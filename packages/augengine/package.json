@@ -1,0 +1,167 @@
+{
+  "name": "@mnemopay/augengine",
+  "version": "0.4.1-alpha.0",
+  "description": "Browser-native game runtime — single scene graph, dual renderer (live WebGPU + frame-deterministic WebGPU+WebCodecs), AI-native by design. Substrate behind the AugEngine flagship vertical slice. Built on browser primitives only — no Three.js, no Remotion, no Babylon as runtime deps. See https://augengine.com/brief for the production direction.",
+  "license": "Apache-2.0",
+  "author": "Jeremiah Omiagbo (Blackpig Films LLC)",
+  "homepage": "https://augengine.com/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnemopay/augengine.git",
+    "directory": "packages/augengine"
+  },
+  "bugs": {
+    "url": "https://github.com/mnemopay/augengine/issues"
+  },
+  "keywords": [
+    "webgpu",
+    "game-engine",
+    "browser",
+    "rendering",
+    "ai-native",
+    "mnemopay",
+    "augengine",
+    "scene-graph",
+    "morph-targets",
+    "pbr"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./scene": {
+      "types": "./dist/scene/index.d.ts",
+      "import": "./dist/scene/index.js"
+    },
+    "./runtime/live": {
+      "types": "./dist/runtime/live/index.d.ts",
+      "import": "./dist/runtime/live/index.js"
+    },
+    "./runtime/live/three": {
+      "types": "./dist/runtime/live/three/index.d.ts",
+      "import": "./dist/runtime/live/three/index.js"
+    },
+    "./runtime/render": {
+      "types": "./dist/runtime/render/index.d.ts",
+      "import": "./dist/runtime/render/index.js"
+    },
+    "./runtime/world": {
+      "types": "./dist/runtime/world/index.d.ts",
+      "import": "./dist/runtime/world/index.js"
+    },
+    "./runtime/perf": {
+      "types": "./dist/runtime/perf/index.d.ts",
+      "import": "./dist/runtime/perf/index.js"
+    },
+    "./runtime/systems": {
+      "types": "./dist/runtime/systems/index.d.ts",
+      "import": "./dist/runtime/systems/index.js"
+    },
+    "./characters": {
+      "types": "./dist/characters/index.d.ts",
+      "import": "./dist/characters/index.js"
+    },
+    "./audio": {
+      "types": "./dist/audio/index.d.ts",
+      "import": "./dist/audio/index.js"
+    },
+    "./ai": {
+      "types": "./dist/ai/index.d.ts",
+      "import": "./dist/ai/index.js"
+    },
+    "./physics": {
+      "types": "./dist/physics/index.d.ts",
+      "import": "./dist/physics/index.js"
+    },
+    "./chemistry": {
+      "types": "./dist/chemistry/index.d.ts",
+      "import": "./dist/chemistry/index.js"
+    },
+    "./networking": {
+      "types": "./dist/runtime/networking/index.d.ts",
+      "import": "./dist/runtime/networking/index.js"
+    },
+    "./i18n": {
+      "types": "./dist/i18n/index.d.ts",
+      "import": "./dist/i18n/index.js"
+    },
+    "./telemetry": {
+      "types": "./dist/telemetry/index.d.ts",
+      "import": "./dist/telemetry/index.js"
+    },
+    "./bundler": {
+      "types": "./dist/bundler/index.d.ts",
+      "import": "./dist/bundler/index.js"
+    },
+    "./content": {
+      "types": "./dist/content/index.d.ts",
+      "import": "./dist/content/index.js"
+    },
+    "./scenes": {
+      "types": "./dist/scenes/index.d.ts",
+      "import": "./dist/scenes/index.js"
+    },
+    "./runtime/proof": {
+      "types": "./dist/runtime/proof/index.d.ts",
+      "import": "./dist/runtime/proof/index.js"
+    },
+    "./fighter": {
+      "types": "./dist/fighter/index.d.ts",
+      "import": "./dist/fighter/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/write-version.mjs && tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "vite serve examples/smoke-game"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-deterministic-compat": "0.21.0",
+    "mp4-muxer": "^5.2.2"
+  },
+  "devDependencies": {
+    "@mnemopay/sdk": "1.6.0-alpha.2",
+    "@types/node": "^20.0.0",
+    "@webgpu/types": "^0.1.69",
+    "es-module-lexer": "^1.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0",
+    "three": "0.187.0",
+    "@types/three": "0.187.0"
+  },
+  "peerDependencies": {
+    "@mnemopay/sdk": ">=1.5.0",
+    "@mnemopay/augengine-onnx": "*",
+    "three": ">=0.187.0",
+    "@xenova/transformers": ">=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@mnemopay/sdk": {
+      "optional": true
+    },
+    "@mnemopay/augengine-onnx": {
+      "optional": true
+    },
+    "three": {
+      "optional": true
+    },
+    "@xenova/transformers": {
+      "optional": true
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AUGENGINE-ARCHITECTURE.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ]
+}

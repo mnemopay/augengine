@@ -1,0 +1,52 @@
+{
+  "capturedAt": "2026-11-20T06:20:25.704Z",
+  "machine": {
+    "cpu": "Intel Core i5-1035G1 (4C/8T)",
+    "ramGB": 7.8,
+    "gpu": "Intel UHD Graphics (Ice Lake gen-11, integrated)",
+    "class": "LOW-END baseline"
+  },
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-11",
+    "device": "0x8a56",
+    "description": "Intel(R) UHD Graphics"
+  },
+  "adapterSoftware": false,
+  "scene": "smoke-game #/proof-room after DEPLOY (player camera facing the dais), 1440x900, dev server (unbundled)",
+  "frameWindow": {
+    "count": 600,
+    "windowSec": 20.393099999997766,
+    "fps": 29.432540616906046,
+    "p50Ms": 16.100000000002183,
+    "p95Ms": 81.70000000000073,
+    "p99Ms": 333.2999999999993,
+    "maxMs": 1580.1540000000005,
+    "budgetMissCount": 288
+  },
+  "gpuPass": {
+    "gpu_ms": 5.434185,
+    "gpu_ms_p95": 6.35444,
+    "source": "timestamp-query",
+    "note": "opaque main pass only (WebGPU timestamp-query)"
+  },
+  "load": {
+    "domContentLoadedMs": 2822,
+    "loadEventMs": 2847,
+    "resourceCount": 237,
+    "transferBytes": 18041990,
+    "decodedBytes": 17978892
+  },
+  "character": {
+    "joint_count": 3,
+    "clip": "maya_breathe"
+  },
+  "consoleErrors": [],
+  "gpuUncapturedErrors": 0,
+  "caveats": [
+    "Other agents (tests, builds) were running on this laptop during capture; CPU frame tail is not an idle measurement.",
+    "Dev-server load numbers are unbundled; a production build is much smaller (PERFORMANCE.md: 224 kB JS+CSS+HTML).",
+    "Characters are stand-in primitives plus a 3-joint, 3-morph, untextured Maya GLB."
+  ]
+}

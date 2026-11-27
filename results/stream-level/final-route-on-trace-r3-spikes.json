@@ -1,0 +1,7496 @@
+{
+  "tag": "final-route-on-trace-r3",
+  "qs": "",
+  "measuredAt": "2026-11-23T22:40:14.252Z",
+  "frames": 236,
+  "frameMs": {
+    "p50": 35.70000000000073,
+    "p95": 55.89999999999782,
+    "p99": 61.400000000001455,
+    "max": 75.69999999999709
+  },
+  "over33ms": 132,
+  "over50ms": 38,
+  "phaseStats": {
+    "total": {
+      "p50": 3.3,
+      "p95": 10.2,
+      "max": 24.9
+    },
+    "runtime": {
+      "p50": 0.2,
+      "p95": 1.5,
+      "max": 13.4
+    },
+    "floorMs": {
+      "p50": 0,
+      "p95": 1.9,
+      "max": 20.7
+    },
+    "propMs": {
+      "p50": 0,
+      "p95": 1.4,
+      "max": 5.1
+    },
+    "despawnMs": {
+      "p50": 0,
+      "p95": 0.1,
+      "max": 2.5
+    },
+    "completeMs": {
+      "p50": 0,
+      "p95": 1,
+      "max": 2.2
+    },
+    "visibility": {
+      "p50": 1.3,
+      "p95": 4,
+      "max": 18.4
+    },
+    "occlusion": {
+      "p50": 0,
+      "p95": 3,
+      "max": 5
+    },
+    "actors": {
+      "p50": 0.3,
+      "p95": 1,
+      "max": 11.7
+    }
+  },
+  "prepByKind": {
+    "heights": {
+      "n": 54,
+      "p50": 2,
+      "max": 8.7
+    },
+    "meshes": {
+      "n": 54,
+      "p50": 2.5,
+      "max": 25.7
+    },
+    "slopes": {
+      "n": 54,
+      "p50": 1.8,
+      "max": 13.9
+    },
+    "occluder": {
+      "n": 39,
+      "p50": 1.7,
+      "max": 4.1
+    }
+  },
+  "gc": {
+    "events": 267,
+    "totalMs": 665.9,
+    "maxMs": 82.5
+  },
+  "traceMapped": true,
+  "mainBusyMs": {
+    "long": {
+      "n": 132,
+      "p50": 28.9,
+      "p90": 37.5
+    },
+    "short": {
+      "n": 91,
+      "p50": 17.4,
+      "p90": 18.4
+    }
+  },
+  "loafCount": 28,
+  "spikes": [
+    {
+      "frame": 22,
+      "dt": 53.4,
+      "x": 108,
+      "ph": {
+        "total": 7.5,
+        "runtime": 3.7000000178813934,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.699999988079071,
+        "occlusion": 0,
+        "actors": 0.5999999940395355
+      },
+      "phPrev": {
+        "total": 4.5999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.4000000059604645,
+        "occlusion": 1.9000000059604645,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 4.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.6000000238418579
+      },
+      "hot": [],
+      "residentTiles": 14,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "3|9",
+          "ms": 1.6
+        },
+        {
+          "kind": "heights",
+          "tile": "3|6",
+          "ms": 1.7
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 14.1,
+          "ms": 24.1
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 14.3,
+          "ms": 14
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 14.3,
+          "ms": 13.9
+        },
+        {
+          "name": "FunctionCall",
+          "at": 14.3,
+          "ms": 13.8,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 44.7,
+          "ms": 9.8
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 45,
+          "ms": 9.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 45,
+          "ms": 9.3,
+          "args": ""
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 28.3,
+          "ms": 6.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 28.3,
+          "ms": 6.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 28.3,
+          "ms": 6.8,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 38.8,
+          "ms": 3.3
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 38.8,
+          "ms": 3.2
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 31,
+      "dt": 61.4,
+      "x": 144,
+      "ph": {
+        "total": 9.900000005960464,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 8.199999988079071,
+        "occlusion": 1.5,
+        "actors": 0.09999999403953552
+      },
+      "phPrev": {
+        "total": 8.400000005960464,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3,
+        "occlusion": 5,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 1.9000000059604645,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.2999999821186066,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 16,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "4|8",
+          "ms": 1.8
+        },
+        {
+          "kind": "meshes",
+          "tile": "4|7",
+          "ms": 1.6
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 57,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 15ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 11ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 12.8,
+          "ms": 26.9
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 12.9,
+          "ms": 14.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 13,
+          "ms": 14.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 13,
+          "ms": 14.2,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 27.5,
+          "ms": 10.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 27.5,
+          "ms": 10.9
+        },
+        {
+          "name": "FunctionCall",
+          "at": 27.5,
+          "ms": 10.8,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 39.7,
+          "ms": 2.3
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 39.8,
+          "ms": 2.2
+        },
+        {
+          "name": "RunTask",
+          "at": 51.6,
+          "ms": 2.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 39.8,
+          "ms": 2.1
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 51.6,
+          "ms": 2.1
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 36,
+      "dt": 56.1,
+      "x": 164,
+      "ph": {
+        "total": 1.600000023841858,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.199999988079071,
+        "occlusion": 0,
+        "actors": 0.10000002384185791
+      },
+      "phPrev": {
+        "total": 5.0999999940395355,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 1.2999999821186066,
+        "props": 18,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0.30000001192092896,
+        "visibility": 2.4000000059604645,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "phNext": {
+        "total": 3.0999999940395355,
+        "runtime": 0.3999999761581421,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.4000000059604645,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 11.1,
+          "ms": 21.1
+        },
+        {
+          "name": "RunTask",
+          "at": -3.8,
+          "ms": 14.6
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 11.2,
+          "ms": 11.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 11.2,
+          "ms": 11.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 11.2,
+          "ms": 11.3,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 1.7,
+          "ms": 8.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 1.7,
+          "ms": 8.2
+        },
+        {
+          "name": "FunctionCall",
+          "at": 1.7,
+          "ms": 8.1,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 22.6,
+          "ms": 8
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 22.6,
+          "ms": 7.9
+        },
+        {
+          "name": "FunctionCall",
+          "at": 22.6,
+          "ms": 7.8,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -3.2,
+          "ms": 4.9
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 3.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 3.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 3.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 3.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 1.7,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 1.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.7,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.2,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0.3,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.1,
+          "tid": 23224
+        }
+      ]
+    },
+    {
+      "frame": 46,
+      "dt": 55.1,
+      "x": 204,
+      "ph": {
+        "total": 0.699999988079071,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "phPrev": {
+        "total": 1.199999988079071,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "phNext": {
+        "total": 3.5999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.19999998807907104,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.100000023841858,
+        "occlusion": 1.5999999940395355,
+        "actors": 0.5999999940395355
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "5|7",
+          "ms": 1.8
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -4.8,
+          "ms": 14.9
+        },
+        {
+          "name": "RunTask",
+          "at": 20.1,
+          "ms": 9.9
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -4.7,
+          "ms": 7.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -4.6,
+          "ms": 7.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": -4.6,
+          "ms": 7,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 2.5,
+          "ms": 6.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 2.6,
+          "ms": 6.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 2.6,
+          "ms": 6.4,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 13.6,
+          "ms": 6.2
+        },
+        {
+          "name": "MinorGC",
+          "at": 13.7,
+          "ms": 6
+        },
+        {
+          "name": "V8.GCScavenger",
+          "at": 13.7,
+          "ms": 5.8
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 20.2,
+          "ms": 5.3
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 5.8,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 3.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_BACKGROUND_SAFEPOINT",
+          "ms": 5.8,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_BACKGROUND_SAFEPOINT",
+          "ms": 11.1,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 2.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 2.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 1.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.6,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.7,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 0.7,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.1,
+          "tid": 9928
+        }
+      ]
+    },
+    {
+      "frame": 50,
+      "dt": 55.3,
+      "x": 220,
+      "ph": {
+        "total": 1.7000000178813934,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5,
+        "occlusion": 0,
+        "actors": 0.10000002384185791
+      },
+      "phPrev": {
+        "total": 9.5,
+        "runtime": 0.699999988079071,
+        "floorMs": 0.7000000178813934,
+        "floors": 1,
+        "propMs": 5.0999999940395355,
+        "props": 14,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 2.199999988079071,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 6.300000011920929,
+        "runtime": 1.5,
+        "floorMs": 1.5999999940395355,
+        "floors": 1,
+        "propMs": 1.399999976158142,
+        "props": 7,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "5|7",
+          "ms": 8.1
+        },
+        {
+          "kind": "occluder",
+          "tile": "5|8",
+          "ms": 3.5
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 26.5,
+          "ms": 20.1
+        },
+        {
+          "name": "RunTask",
+          "at": -2.1,
+          "ms": 13.9
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 32.6,
+          "ms": 12.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 32.7,
+          "ms": 12
+        },
+        {
+          "name": "FunctionCall",
+          "at": 32.7,
+          "ms": 11.9,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 13.1,
+          "ms": 8.7
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 13.1,
+          "ms": 8.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 13.2,
+          "ms": 8.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 13.2,
+          "ms": 8.1,
+          "args": ""
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -1.9,
+          "ms": 6.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -1.9,
+          "ms": 6.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": -1.9,
+          "ms": 6.7,
+          "args": "tick"
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 5.8,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 5.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 5.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 5.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 4.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.3,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.2,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0.2,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.1,
+          "tid": 21968
+        }
+      ]
+    },
+    {
+      "frame": 53,
+      "dt": 55,
+      "x": 232,
+      "ph": {
+        "total": 0.800000011920929,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.6000000238418579,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "phPrev": {
+        "total": 5.799999982118607,
+        "runtime": 0.9000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 1.2000000178813934,
+        "props": 10,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0.09999999403953552,
+        "visibility": 2.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 0.6000000238418579,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.5,
+        "occlusion": 0,
+        "actors": 0
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 12.2,
+          "ms": 23.5
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 12.5,
+          "ms": 13.3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 12.6,
+          "ms": 13.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 12.6,
+          "ms": 13,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 25.7,
+          "ms": 7.8
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 25.8,
+          "ms": 7.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 25.8,
+          "ms": 7.7,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 54.3,
+          "ms": 6.2
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 66,
+      "dt": 54,
+      "x": 282,
+      "ph": {
+        "total": 1.4000000059604645,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.8999999761581421,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "phPrev": {
+        "total": 1.9000000059604645,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phNext": {
+        "total": 2.5,
+        "runtime": 0.5999999940395355,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.100000023841858,
+        "occlusion": 0,
+        "actors": 0.5999999940395355
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "6|8",
+          "ms": 3.2
+        },
+        {
+          "kind": "slopes",
+          "tile": "6|7",
+          "ms": 8.3
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 70,
+          "blocking": 0.9,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 7ms",
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 26ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 19ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -16.6,
+          "ms": 25.6
+        },
+        {
+          "name": "RunTask",
+          "at": 10.9,
+          "ms": 21.1
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -16.1,
+          "ms": 18.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -16,
+          "ms": 18.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": -16,
+          "ms": 18.5,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 50.7,
+          "ms": 9.1
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 11.1,
+          "ms": 9
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 50.7,
+          "ms": 9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 11.2,
+          "ms": 8.8
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 51,
+          "ms": 8.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 51,
+          "ms": 8.4,
+          "args": ""
+        },
+        {
+          "name": "FunctionCall",
+          "at": 11.2,
+          "ms": 8.2,
+          "args": "tick"
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 72,
+      "dt": 55.1,
+      "x": 306,
+      "ph": {
+        "total": 2.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phPrev": {
+        "total": 6.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 1.2999999821186066,
+        "props": 13,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0.6000000238418579,
+        "visibility": 1.300000011920929,
+        "occlusion": 2.199999988079071,
+        "actors": 0.3999999761581421
+      },
+      "phNext": {
+        "total": 1.7000000178813934,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "6|9",
+          "ms": 2
+        },
+        {
+          "kind": "heights",
+          "tile": "6|6",
+          "ms": 1.7
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 60,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 7ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 8ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -11.4,
+          "ms": 19.8
+        },
+        {
+          "name": "RunTask",
+          "at": 11.3,
+          "ms": 14.2
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 16.6,
+          "ms": 8.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 16.6,
+          "ms": 8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 16.6,
+          "ms": 8,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -0.6,
+          "ms": 6.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -0.5,
+          "ms": 6.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": -0.5,
+          "ms": 6.5,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 11.6,
+          "ms": 4.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 11.7,
+          "ms": 4.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 11.7,
+          "ms": 4.7,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 25.8,
+          "ms": 2.7
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 1.8,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 1.8,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 1.7,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 0.9,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.6,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.2,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.2,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 0.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.2,
+          "tid": 4064
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.1,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        }
+      ]
+    },
+    {
+      "frame": 82,
+      "dt": 54.2,
+      "x": 346,
+      "ph": {
+        "total": 1,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.10000002384185791
+      },
+      "phPrev": {
+        "total": 2.0999999940395355,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phNext": {
+        "total": 6.199999988079071,
+        "runtime": 0.29999998211860657,
+        "floorMs": 1.5,
+        "floors": 1,
+        "propMs": 0.9999999403953552,
+        "props": 17,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 1,
+        "completeMs": 1.100000023841858,
+        "visibility": 1.399999976158142,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "7|8",
+          "ms": 1.7
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 53,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 13ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 4.9,
+          "ms": 14.9
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 5.1,
+          "ms": 7.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 5.2,
+          "ms": 7.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 5.2,
+          "ms": 7.4,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 12.6,
+          "ms": 5.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 12.7,
+          "ms": 5.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 12.7,
+          "ms": 5.4,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 42.9,
+          "ms": 3.2
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 43,
+          "ms": 3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 43.2,
+          "ms": 2.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 43.2,
+          "ms": 2.1,
+          "args": ""
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 83,
+      "dt": 55.8,
+      "x": 350,
+      "ph": {
+        "total": 6.199999988079071,
+        "runtime": 0.29999998211860657,
+        "floorMs": 1.5,
+        "floors": 1,
+        "propMs": 0.9999999403953552,
+        "props": 17,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 1,
+        "completeMs": 1.100000023841858,
+        "visibility": 1.399999976158142,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 1,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.10000002384185791
+      },
+      "phNext": {
+        "total": 2.5999999940395355,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "7|7",
+          "ms": 1.6
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 53,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 13ms"
+          ]
+        },
+        {
+          "duration": 55,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 6ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 6ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 8ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 2.2,
+          "ms": 19.4
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 2.3,
+          "ms": 13.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 2.3,
+          "ms": 13.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 2.3,
+          "ms": 13,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 15.4,
+          "ms": 2.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 15.5,
+          "ms": 2.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": 15.5,
+          "ms": 2.5,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 22,
+          "ms": 2.4
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 22.1,
+          "ms": 2.3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 22.1,
+          "ms": 2.2
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 86,
+      "dt": 57.6,
+      "x": 362,
+      "ph": {
+        "total": 2.7000000178813934,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0.29999998211860657,
+        "props": 4,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0.5,
+        "visibility": 1.5,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phPrev": {
+        "total": 4.800000011920929,
+        "runtime": 0.800000011920929,
+        "floorMs": 0.800000011920929,
+        "floors": 1,
+        "propMs": 1.9000000059604645,
+        "props": 15,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0.09999999403953552,
+        "visibility": 0.7000000178813934,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 4,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 2.699999988079071,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "occluder",
+          "tile": "7|7",
+          "ms": 1.5
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 50,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 6ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 7ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -14.3,
+          "ms": 18.3
+        },
+        {
+          "name": "RunTask",
+          "at": 15.2,
+          "ms": 11.7
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -6,
+          "ms": 8.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -6,
+          "ms": 8.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": -6,
+          "ms": 8.6,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 19.5,
+          "ms": 6.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 19.6,
+          "ms": 6.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 19.6,
+          "ms": 6.5,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 15.4,
+          "ms": 4.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 15.4,
+          "ms": 4.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 15.4,
+          "ms": 3.9,
+          "args": "tick"
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_BACKGROUND_SAFEPOINT",
+          "ms": 5,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.1,
+          "tid": 9928
+        }
+      ]
+    },
+    {
+      "frame": 98,
+      "dt": 55,
+      "x": 410,
+      "ph": {
+        "total": 1.2999999821186066,
+        "runtime": 0.29999998211860657,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.5,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phPrev": {
+        "total": 1,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.10000002384185791
+      },
+      "phNext": {
+        "total": 9.5,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0.800000011920929,
+        "floors": 1,
+        "propMs": 2.0999999940395355,
+        "props": 9,
+        "despawnMs": 0,
+        "despawns": 1,
+        "completeMs": 0.09999999403953552,
+        "visibility": 1.699999988079071,
+        "occlusion": 4.200000017881393,
+        "actors": 0.19999998807907104
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "8|8",
+          "ms": 3
+        },
+        {
+          "kind": "meshes",
+          "tile": "8|7",
+          "ms": 6.8
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -9.5,
+          "ms": 20.9
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -9.4,
+          "ms": 14.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -9.3,
+          "ms": 14.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": -9.3,
+          "ms": 14.3,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 26.8,
+          "ms": 14
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 26.8,
+          "ms": 8.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 26.9,
+          "ms": 8.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 26.9,
+          "ms": 7.9,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 15.2,
+          "ms": 7.4
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 15.2,
+          "ms": 7.3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 15.3,
+          "ms": 7.2
+        },
+        {
+          "name": "FunctionCall",
+          "at": 15.3,
+          "ms": 7,
+          "args": ""
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 4.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 3.9,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 3.9,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 3.8,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 2.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.4,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.5,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0.5,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.1,
+          "tid": 9928
+        }
+      ]
+    },
+    {
+      "frame": 102,
+      "dt": 55.5,
+      "x": 426,
+      "ph": {
+        "total": 4.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.800000011920929,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "phPrev": {
+        "total": 11.199999988079071,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0.5,
+        "floors": 1,
+        "propMs": 1.9000000059604645,
+        "props": 19,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 1,
+        "completeMs": 0.3999999761581421,
+        "visibility": 2.899999976158142,
+        "occlusion": 4.9000000059604645,
+        "actors": 0.09999999403953552
+      },
+      "phNext": {
+        "total": 9.800000011920929,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 9.599999994039536,
+        "occlusion": 0,
+        "actors": 0.10000002384185791
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "occluder",
+          "tile": "8|7",
+          "ms": 1.7
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 16.3,
+          "ms": 45.7
+        },
+        {
+          "name": "RunTask",
+          "at": -26,
+          "ms": 37.3
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 16.4,
+          "ms": 31.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 16.4,
+          "ms": 31.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 16.4,
+          "ms": 31.6,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -12.8,
+          "ms": 22.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -12.7,
+          "ms": 22.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": -12.7,
+          "ms": 22,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 48.1,
+          "ms": 12.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 48.1,
+          "ms": 12.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 48.1,
+          "ms": 12.6,
+          "args": "tick"
+        },
+        {
+          "name": "MinorGC",
+          "at": 19.7,
+          "ms": 6.2
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 6.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 5.9,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 5.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.9,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 3.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.1,
+          "tid": 23224
+        }
+      ]
+    },
+    {
+      "frame": 103,
+      "dt": 54.5,
+      "x": 430,
+      "ph": {
+        "total": 9.800000011920929,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 9.599999994039536,
+        "occlusion": 0,
+        "actors": 0.10000002384185791
+      },
+      "phPrev": {
+        "total": 4.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.800000011920929,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "phNext": {
+        "total": 1.699999988079071,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "8|9",
+          "ms": 6.8
+        },
+        {
+          "kind": "heights",
+          "tile": "8|6",
+          "ms": 3.9
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 59,
+          "blocking": 0.1,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 16ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 16ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 13ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -39.2,
+          "ms": 45.7
+        },
+        {
+          "name": "RunTask",
+          "at": 31.6,
+          "ms": 34.5
+        },
+        {
+          "name": "RunTask",
+          "at": 10.3,
+          "ms": 16.5
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 10.4,
+          "ms": 16.4
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 31.8,
+          "ms": 16.3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 10.5,
+          "ms": 16.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 31.8,
+          "ms": 16.2
+        },
+        {
+          "name": "FunctionCall",
+          "at": 31.8,
+          "ms": 16,
+          "args": "tick"
+        },
+        {
+          "name": "FunctionCall",
+          "at": 10.5,
+          "ms": 15.9,
+          "args": ""
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -7.4,
+          "ms": 12.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -7.4,
+          "ms": 12.7
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 48,
+          "ms": 12.7
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 112,
+      "dt": 54.9,
+      "x": 466,
+      "ph": {
+        "total": 24.899999976158142,
+        "runtime": 0.3999999761581421,
+        "floorMs": 20.69999998807907,
+        "floors": 1,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 2.800000011920929,
+        "occlusion": 0,
+        "actors": 0.7999999821186066
+      },
+      "phPrev": {
+        "total": 1.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 8.299999982118607,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 3.100000023841858,
+        "props": 7,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 1.7999999821186066,
+        "visibility": 2.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 1,
+      "prep": [
+        {
+          "kind": "occluder",
+          "tile": "8|6",
+          "ms": 1.6
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 70,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 12ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 27ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -6.3,
+          "ms": 21
+        },
+        {
+          "name": "RunTask",
+          "at": 16.5,
+          "ms": 12.3
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -6.2,
+          "ms": 12.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -6.1,
+          "ms": 12.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": -6.1,
+          "ms": 12,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 16.6,
+          "ms": 7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 16.7,
+          "ms": 6.9
+        },
+        {
+          "name": "FunctionCall",
+          "at": 16.7,
+          "ms": 6.8,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 6,
+          "ms": 5.8
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 6,
+          "ms": 5.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 6,
+          "ms": 5.7,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 23.6,
+          "ms": 4
+        }
+      ],
+      "gc": [
+        {
+          "name": "MinorGC",
+          "ms": 3.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 3.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 3.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 3.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 2.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_BACKGROUND_UNPARK",
+          "ms": 0.8,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0.1,
+          "tid": 16884
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0,
+          "tid": 16884
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        }
+      ]
+    },
+    {
+      "frame": 114,
+      "dt": 54.1,
+      "x": 474,
+      "ph": {
+        "total": 2.7000000178813934,
+        "runtime": 0.30000001192092896,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phPrev": {
+        "total": 8.299999982118607,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 3.100000023841858,
+        "props": 7,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 1.7999999821186066,
+        "visibility": 2.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "phNext": {
+        "total": 1.800000011920929,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.199999988079071,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "9|8",
+          "ms": 5.8
+        },
+        {
+          "kind": "meshes",
+          "tile": "9|7",
+          "ms": 3.3
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 70,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 12ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 27ms"
+          ]
+        },
+        {
+          "duration": 52,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 8ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 26ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 11ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -34.6,
+          "ms": 40.8
+        },
+        {
+          "name": "RunTask",
+          "at": 20.6,
+          "ms": 38.3
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -22.3,
+          "ms": 26.8
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -22.3,
+          "ms": 26.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": -22.3,
+          "ms": 26.5,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 20.7,
+          "ms": 26
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 20.7,
+          "ms": 25.9
+        },
+        {
+          "name": "FunctionCall",
+          "at": 20.7,
+          "ms": 25.7,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 46.7,
+          "ms": 10.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 46.8,
+          "ms": 10.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 46.8,
+          "ms": 10.7,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 6.7,
+          "ms": 9.2
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 122,
+      "dt": 54,
+      "x": 506,
+      "ph": {
+        "total": 2.199999988079071,
+        "runtime": 0.5999999940395355,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.199999988079071,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 1.4000000059604645,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.2000000178813934,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "phNext": {
+        "total": 1.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [
+        {
+          "duration": 58,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 16ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -7.5,
+          "ms": 21.1
+        },
+        {
+          "name": "RunTask",
+          "at": 13.9,
+          "ms": 10.8
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -7.4,
+          "ms": 10.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -7.3,
+          "ms": 9.1
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 3.3,
+          "ms": 9.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 3.4,
+          "ms": 9.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 3.4,
+          "ms": 9,
+          "args": "tick"
+        },
+        {
+          "name": "FunctionCall",
+          "at": -7.3,
+          "ms": 8.9,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 14.2,
+          "ms": 6.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 14.2,
+          "ms": 6.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 14.3,
+          "ms": 6.4,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 20.7,
+          "ms": 3.1
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_BACKGROUND_SAFEPOINT",
+          "ms": 102.6,
+          "tid": 21968
+        }
+      ]
+    },
+    {
+      "frame": 124,
+      "dt": 54.1,
+      "x": 514,
+      "ph": {
+        "total": 2.2000000178813934,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.399999976158142,
+        "occlusion": 0,
+        "actors": 0.6000000238418579
+      },
+      "phPrev": {
+        "total": 1.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 5.600000023841858,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3,
+        "occlusion": 2.199999988079071,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "9|9",
+          "ms": 3.2
+        },
+        {
+          "kind": "meshes",
+          "tile": "9|6",
+          "ms": 5.7
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 74,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 17ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 6ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 5ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 9.5,
+          "ms": 9.7
+        },
+        {
+          "name": "RunTask",
+          "at": 0.6,
+          "ms": 6.8
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 0.7,
+          "ms": 6.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 0.7,
+          "ms": 6.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 0.7,
+          "ms": 5.9,
+          "args": ""
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 10.1,
+          "ms": 4.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 10.2,
+          "ms": 4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 10.2,
+          "ms": 4,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": -3.3,
+          "ms": 3.9
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": -3.3,
+          "ms": 3.8
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 14.2,
+          "ms": 3.8
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 14.3,
+          "ms": 3.8
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 135,
+      "dt": 55.7,
+      "x": 556,
+      "ph": {
+        "total": 2,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phPrev": {
+        "total": 11,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.2999999821186066,
+        "occlusion": 0,
+        "actors": 8.5
+      },
+      "phNext": {
+        "total": 3,
+        "runtime": 0.800000011920929,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.5999999940395355
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "10|9",
+          "ms": 1.8
+        },
+        {
+          "kind": "heights",
+          "tile": "10|6",
+          "ms": 2
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -24.7,
+          "ms": 25.1
+        },
+        {
+          "name": "RunTask",
+          "at": 5.6,
+          "ms": 24.7
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 13.6,
+          "ms": 13.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 13.6,
+          "ms": 13.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 13.6,
+          "ms": 13.7,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 5.8,
+          "ms": 7.8
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 5.8,
+          "ms": 7.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 5.8,
+          "ms": 7.6,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 30.4,
+          "ms": 3.8
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 30.4,
+          "ms": 3.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 30.5,
+          "ms": 3.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": 30.5,
+          "ms": 3.3,
+          "args": ""
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 136,
+      "dt": 56.4,
+      "x": 560,
+      "ph": {
+        "total": 3,
+        "runtime": 0.800000011920929,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.5999999940395355
+      },
+      "phPrev": {
+        "total": 2,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 4.9000000059604645,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 4.299999982118607,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "10|9",
+          "ms": 2.6
+        },
+        {
+          "kind": "meshes",
+          "tile": "10|6",
+          "ms": 2.1
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 95,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 11ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 6ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 49.1,
+          "ms": 47.9
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "at": 51.1,
+          "ms": 45.8
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "at": 52.3,
+          "ms": 44.6
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "at": 52.4,
+          "ms": 44.5
+        },
+        {
+          "name": "RunTask",
+          "at": 1,
+          "ms": 21.2
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 1.2,
+          "ms": 14.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 1.2,
+          "ms": 14.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": 1.2,
+          "ms": 13.9,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 15.8,
+          "ms": 4.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 15.9,
+          "ms": 4.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 15.9,
+          "ms": 4.1,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 43.1,
+          "ms": 3.3
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GCIncrementalMarkingStart",
+          "ms": 1.9,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_START",
+          "ms": 1.8,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EXTERNAL_PROLOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_EMBEDDER_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_ROOTS",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 82.5,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 36.8,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 36.8,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 37.1,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GC_MC_MARK_EMBEDDER_PROLOGUE",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EXTERNAL_EPILOGUE",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 45.8,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 44.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 44.5,
+          "tid": "main"
+        }
+      ]
+    },
+    {
+      "frame": 137,
+      "dt": 56.7,
+      "x": 564,
+      "ph": {
+        "total": 4.9000000059604645,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 4.299999982118607,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 3,
+        "runtime": 0.800000011920929,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.5999999940395355
+      },
+      "phNext": {
+        "total": 3.2999999821186066,
+        "runtime": 0.3999999761581421,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.699999988079071
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [
+        {
+          "duration": 95,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 11ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 6ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -7.3,
+          "ms": 47.9
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "at": -5.3,
+          "ms": 45.8
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "at": -4.1,
+          "ms": 44.6
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "at": -4,
+          "ms": 44.5
+        },
+        {
+          "name": "RunTask",
+          "at": 42.1,
+          "ms": 19.3
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 42.3,
+          "ms": 11.3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 42.4,
+          "ms": 11.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 42.4,
+          "ms": 11,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 53.6,
+          "ms": 6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 53.7,
+          "ms": 5.9
+        },
+        {
+          "name": "FunctionCall",
+          "at": 53.8,
+          "ms": 5.8,
+          "args": "tick"
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 82.5,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 36.8,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 36.8,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 37.1,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 45.8,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 44.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 44.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 0.7,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 0.7,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 0.3,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 0.2,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 0.1,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        }
+      ]
+    },
+    {
+      "frame": 139,
+      "dt": 71.8,
+      "x": 572,
+      "ph": {
+        "total": 1.800000011920929,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.2000000178813934,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "phPrev": {
+        "total": 3.2999999821186066,
+        "runtime": 0.3999999761581421,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.699999988079071
+      },
+      "phNext": {
+        "total": 6.4000000059604645,
+        "runtime": 1.0999999940395355,
+        "floorMs": 1.9000000059604645,
+        "floors": 2,
+        "propMs": 0.699999988079071,
+        "props": 8,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 1,
+        "visibility": 1.199999988079071,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "10|9",
+          "ms": 1.8
+        },
+        {
+          "kind": "slopes",
+          "tile": "10|6",
+          "ms": 2.6
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 66,
+          "blocking": 12.6,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 48ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 10ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 12.8,
+          "ms": 63.2
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 13,
+          "ms": 48.3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 13.1,
+          "ms": 48.2
+        },
+        {
+          "name": "FunctionCall",
+          "at": 13.1,
+          "ms": 48,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": -13,
+          "ms": 19.4
+        },
+        {
+          "name": "MajorGC",
+          "at": 16.8,
+          "ms": 12.7
+        },
+        {
+          "name": "V8.GCFinalizeMC",
+          "at": 16.8,
+          "ms": 12.5
+        },
+        {
+          "name": "V8.GC_MARK_COMPACTOR",
+          "at": 16.9,
+          "ms": 12.5
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 61.3,
+          "ms": 10.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 61.3,
+          "ms": 10.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 61.3,
+          "ms": 10.2,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -3.4,
+          "ms": 8.5
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 82.5,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCIncrementalMarking",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "MajorGC",
+          "ms": 12.7,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCFinalizeMC",
+          "ms": 12.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MARK_COMPACTOR",
+          "ms": 12.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_PROLOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK",
+          "ms": 1.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_FINISH_INCREMENTAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_ROOTS",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_CLIENT_HEAPS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_RETAIN_MAPS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_FULL_CLOSURE_PARALLEL",
+          "ms": 0.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_WEAK_CLOSURE_EPHEMERON_MARKING",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_EMBEDDER_TRACING",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_MARKING",
+          "ms": 0.1,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_MARK_WEAK_CLOSURE_EPHEMERON_MARKING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_WEAK_CLOSURE_EPHEMERON_MARKING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_ROOTS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_CONSERVATIVE_STACK_SCANNING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_FULL_CLOSURE_SERIAL",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_WEAK_CLOSURE_EPHEMERON_MARKING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_MARK_EMBEDDER_TRACING",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR",
+          "ms": 1.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_JOIN_JOB",
+          "ms": 1.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_WEAK_COLLECTIONS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_SWEEP_WASM_CODE_POINTER_TABLE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_MAPS",
+          "ms": 0.1,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_FLUSHED_JS_FUNCTIONS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_WEAK_LISTS",
+          "ms": 0.2,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_SWEEP_JS_DISPATCH_TABLE",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_WEAK_GLOBAL_HANDLES",
+          "ms": 0.2,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_EXTERNAL_STRING_TABLE",
+          "ms": 0.2,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_JS_WEAK_REFERENCES",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_STRING_TABLE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_STRING_TABLE",
+          "ms": 0.1,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_STRING_TABLE",
+          "ms": 0.1,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_STRING_TABLE",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_FLUSHABLE_BYTECODE",
+          "ms": 0,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_SWEEP_EXTERNAL_POINTER_TABLE",
+          "ms": 0.6,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_SWEEP_TRUSTED_POINTER_TABLE",
+          "ms": 0.1,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_WEAK_REFERENCES_NON_TRIVIAL",
+          "ms": 0.1,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_WEAK_REFERENCES_TRUSTED",
+          "ms": 0,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_WEAK_REFERENCES_TRIVIAL",
+          "ms": 0.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_STRING_TABLE",
+          "ms": 0.1,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_STRING_TABLE",
+          "ms": 0.1,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_STRING_TABLE",
+          "ms": 0.2,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_CLEAR_STRING_TABLE",
+          "ms": 0.1,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GC_MC_SWEEP",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE",
+          "ms": 6.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_COPY",
+          "ms": 2.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_COPY_PARALLEL",
+          "ms": 1.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_SWEEP",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_EVACUATE_COPY",
+          "ms": 1,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_EVACUATE_COPY",
+          "ms": 1.1,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_SWEEPING",
+          "ms": 0.2,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_SWEEPING",
+          "ms": 0.2,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_EVACUATE_COPY",
+          "ms": 0.9,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_SWEEPING",
+          "ms": 0.2,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS",
+          "ms": 4.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS",
+          "ms": 2.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_CLIENT_HEAPS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_SLOTS_MAIN",
+          "ms": 1.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_PARALLEL",
+          "ms": 0.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_EVACUATE_UPDATE_POINTERS",
+          "ms": 0.4,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_EVACUATE_UPDATE_POINTERS",
+          "ms": 0.4,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_EVACUATE_UPDATE_POINTERS",
+          "ms": 0.2,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_EVACUATE_UPDATE_POINTERS",
+          "ms": 0.2,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_WEAK",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES",
+          "ms": 0.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_CLEAN_UP",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_SWEEP",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_SWEEP_NEW_LO",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_EVACUATE_REBALANCE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_FINISH",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_FINISH_SWEEP_ARRAY_BUFFERS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_SWEEP_START_JOBS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_BACKGROUND_FULL_ARRAY_BUFFER_SWEEP",
+          "ms": 1.5,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_MC_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_WEAK_GLOBAL_HANDLES",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_SWEEPING",
+          "ms": 6.1,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_HEAP_EMBEDDER_TRACING_EPILOGUE",
+          "ms": 1.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_SWEEPING",
+          "ms": 5.4,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_MC_BACKGROUND_SWEEPING",
+          "ms": 5.1,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        }
+      ]
+    },
+    {
+      "frame": 145,
+      "dt": 53.7,
+      "x": 596,
+      "ph": {
+        "total": 4.200000017881393,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 2.4000000059604645,
+        "actors": 0.30000001192092896
+      },
+      "phPrev": {
+        "total": 6.5,
+        "runtime": 0.29999998211860657,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.600000023841858,
+        "occlusion": 4.199999988079071,
+        "actors": 0.4000000059604645
+      },
+      "phNext": {
+        "total": 5.0999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.399999976158142,
+        "occlusion": 3.300000011920929,
+        "actors": 0.30000001192092896
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "11|8",
+          "ms": 1.7
+        },
+        {
+          "kind": "meshes",
+          "tile": "11|7",
+          "ms": 1.7
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -5.6,
+          "ms": 31.3
+        },
+        {
+          "name": "RunTask",
+          "at": 25.7,
+          "ms": 16
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 30.3,
+          "ms": 9.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 30.4,
+          "ms": 9.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 30.4,
+          "ms": 9.3,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 25.9,
+          "ms": 4.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 25.9,
+          "ms": 4.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 25.9,
+          "ms": 4.2,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 44.4,
+          "ms": 2.8
+        },
+        {
+          "name": "RunTask",
+          "at": 47.3,
+          "ms": 2.2
+        },
+        {
+          "name": "RunTask",
+          "at": 42.2,
+          "ms": 2.1
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 42.2,
+          "ms": 2.1
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 154,
+      "dt": 54.8,
+      "x": 632,
+      "ph": {
+        "total": 1.9000000059604645,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.6000000238418579
+      },
+      "phPrev": {
+        "total": 3.800000011920929,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.800000011920929,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 4.300000011920929,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "11|9",
+          "ms": 1.4
+        },
+        {
+          "kind": "meshes",
+          "tile": "11|6",
+          "ms": 1.3
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 16,
+          "ms": 18.8
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 16.2,
+          "ms": 10
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 16.4,
+          "ms": 9.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 16.5,
+          "ms": 9.6,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 26.2,
+          "ms": 6.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 26.3,
+          "ms": 6.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 26.3,
+          "ms": 6.3,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 36.8,
+          "ms": 2.2
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 155,
+      "dt": 54.6,
+      "x": 636,
+      "ph": {
+        "total": 4.300000011920929,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 1.9000000059604645,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.6000000238418579
+      },
+      "phNext": {
+        "total": 4.700000017881393,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.9000000059604645,
+        "occlusion": 2.300000011920929,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [
+        {
+          "duration": 58,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 5ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 6ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 5.6,
+          "ms": 15.1
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 5.8,
+          "ms": 9.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 6.3,
+          "ms": 9.2
+        },
+        {
+          "name": "FunctionCall",
+          "at": 6.3,
+          "ms": 9.1,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 15.5,
+          "ms": 4.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 15.5,
+          "ms": 4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 15.5,
+          "ms": 3.9,
+          "args": "tick"
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 162,
+      "dt": 57.9,
+      "x": 664,
+      "ph": {
+        "total": 2.4000000059604645,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.699999988079071,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phPrev": {
+        "total": 1,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 5.9000000059604645,
+        "runtime": 0.30000001192092896,
+        "floorMs": 0.4000000059604645,
+        "floors": 1,
+        "propMs": 2.0999999940395355,
+        "props": 21,
+        "despawnMs": 0,
+        "despawns": 1,
+        "completeMs": 1.5,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "12|7",
+          "ms": 5
+        },
+        {
+          "kind": "slopes",
+          "tile": "12|8",
+          "ms": 1.4
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 66,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 6ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 14ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 8ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -11.8,
+          "ms": 17.8
+        },
+        {
+          "name": "RunTask",
+          "at": 7.1,
+          "ms": 9.5
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -6.4,
+          "ms": 7.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -6.4,
+          "ms": 7.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": -6.4,
+          "ms": 7,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 7.3,
+          "ms": 5.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 7.3,
+          "ms": 5.8
+        },
+        {
+          "name": "RunTask",
+          "at": 17,
+          "ms": 5.8
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 17,
+          "ms": 5.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 7.3,
+          "ms": 5.6,
+          "args": "tick"
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 17,
+          "ms": 5.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": 17,
+          "ms": 5.1,
+          "args": ""
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 167,
+      "dt": 53.2,
+      "x": 684,
+      "ph": {
+        "total": 2,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5,
+        "occlusion": 0,
+        "actors": 0.3999999761581421
+      },
+      "phPrev": {
+        "total": 4.5999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 1.5,
+        "props": 16,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 1.5999999940395355,
+        "visibility": 1.2000000178813934,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 1.5,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "12|9",
+          "ms": 2.2
+        },
+        {
+          "kind": "heights",
+          "tile": "12|6",
+          "ms": 2.1
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -21.9,
+          "ms": 22
+        },
+        {
+          "name": "RunTask",
+          "at": 11.5,
+          "ms": 21.5
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 11.8,
+          "ms": 12.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 11.9,
+          "ms": 11.9
+        },
+        {
+          "name": "FunctionCall",
+          "at": 11.9,
+          "ms": 11.9,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 23.9,
+          "ms": 8.3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 23.9,
+          "ms": 8.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 23.9,
+          "ms": 8.2,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 35.9,
+          "ms": 2.8
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 36,
+          "ms": 2.8
+        },
+        {
+          "name": "RunTask",
+          "at": 33.2,
+          "ms": 2.7
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 33.2,
+          "ms": 2.7
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 177,
+      "dt": 56,
+      "x": 724,
+      "ph": {
+        "total": 1.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phPrev": {
+        "total": 1.2999999821186066,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 2.0999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 1
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "13|8",
+          "ms": 1.5
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 60,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 15ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 3.2,
+          "ms": 21.5
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 3.5,
+          "ms": 15
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 3.6,
+          "ms": 14.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 3.6,
+          "ms": 14.7,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 18.5,
+          "ms": 3.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 18.5,
+          "ms": 3.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": 18.5,
+          "ms": 3.7,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 56,
+          "ms": 2.5
+        },
+        {
+          "name": "RunTask",
+          "at": 25.1,
+          "ms": 2.1
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 178,
+      "dt": 73.9,
+      "x": 728,
+      "ph": {
+        "total": 2.0999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 1
+      },
+      "phPrev": {
+        "total": 1.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 6.4000000059604645,
+        "runtime": 1.800000011920929,
+        "floorMs": 3,
+        "floors": 1,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 0.5999999940395355
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "13|7",
+          "ms": 1.7
+        },
+        {
+          "kind": "slopes",
+          "tile": "13|8",
+          "ms": 1.6
+        },
+        {
+          "kind": "slopes",
+          "tile": "13|7",
+          "ms": 2.1
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 60,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 15ms"
+          ]
+        },
+        {
+          "duration": 61,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 7ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 5ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 9,
+          "ms": 23.1
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 9.1,
+          "ms": 15.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 9.1,
+          "ms": 15.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 9.1,
+          "ms": 15.2,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 71.1,
+          "ms": 3.4
+        },
+        {
+          "name": "MinorGC",
+          "at": 71.1,
+          "ms": 3.2
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 24.5,
+          "ms": 3.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 24.5,
+          "ms": 3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 24.5,
+          "ms": 3,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 68,
+          "ms": 3
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 68,
+          "ms": 2.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 68,
+          "ms": 2.8
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 3.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 2.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 2.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 2.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.7,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.5,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 0.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.1,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        }
+      ]
+    },
+    {
+      "frame": 182,
+      "dt": 75.7,
+      "x": 744,
+      "ph": {
+        "total": 6.200000017881393,
+        "runtime": 1.9000000059604645,
+        "floorMs": 1,
+        "floors": 1,
+        "propMs": 1.0999999940395355,
+        "props": 15,
+        "despawnMs": 0,
+        "despawns": 1,
+        "completeMs": 0.6000000238418579,
+        "visibility": 1.199999988079071,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "phPrev": {
+        "total": 2,
+        "runtime": 0.29999998211860657,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phNext": {
+        "total": 1.100000023841858,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "occluder",
+          "tile": "13|7",
+          "ms": 1.5
+        },
+        {
+          "kind": "heights",
+          "tile": "13|9",
+          "ms": 1.9
+        },
+        {
+          "kind": "heights",
+          "tile": "13|6",
+          "ms": 4.5
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 86,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 6ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 10ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -18.6,
+          "ms": 21.7
+        },
+        {
+          "name": "RunTask",
+          "at": 3.3,
+          "ms": 15.6
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -12.2,
+          "ms": 14.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -12.1,
+          "ms": 14.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": -12.1,
+          "ms": 13.3,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 3.4,
+          "ms": 7.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 3.5,
+          "ms": 7.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 3.5,
+          "ms": 7.4,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 11,
+          "ms": 5.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 11.1,
+          "ms": 5.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": 11.1,
+          "ms": 5.5,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 64,
+          "ms": 5.1
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 185,
+      "dt": 54.3,
+      "x": 756,
+      "ph": {
+        "total": 2.5,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.800000011920929,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 3.5999999940395355,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 1.899999976158142
+      },
+      "phNext": {
+        "total": 1.5,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 7.1,
+          "ms": 17.3
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 7.2,
+          "ms": 9.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 7.3,
+          "ms": 9.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 7.3,
+          "ms": 9.7,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 17.1,
+          "ms": 6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 17.1,
+          "ms": 5.9
+        },
+        {
+          "name": "FunctionCall",
+          "at": 17.1,
+          "ms": 5.8,
+          "args": "tick"
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 192,
+      "dt": 54.4,
+      "x": 784,
+      "ph": {
+        "total": 1.5,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 1.4000000059604645,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "phNext": {
+        "total": 2.9000000059604645,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5,
+        "occlusion": 0,
+        "actors": 0.7999999821186066
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "14|8",
+          "ms": 2.5
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 69,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 6ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 7ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 2.3,
+          "ms": 16.4
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 2.5,
+          "ms": 11.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 2.5,
+          "ms": 11.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": 2.5,
+          "ms": 11.5,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 14.2,
+          "ms": 3.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 14.3,
+          "ms": 3.5
+        },
+        {
+          "name": "RunTask",
+          "at": 47.2,
+          "ms": 3.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 14.3,
+          "ms": 3.4,
+          "args": "tick"
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 47.3,
+          "ms": 3.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 47.3,
+          "ms": 3.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 47.4,
+          "ms": 2.9,
+          "args": ""
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 194,
+      "dt": 55.8,
+      "x": 792,
+      "ph": {
+        "total": 4.9000000059604645,
+        "runtime": 0.9000000059604645,
+        "floorMs": 1.300000011920929,
+        "floors": 1,
+        "propMs": 0.9999999701976776,
+        "props": 15,
+        "despawnMs": 0.20000001788139343,
+        "despawns": 1,
+        "completeMs": 0.4000000059604645,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phPrev": {
+        "total": 2.9000000059604645,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5,
+        "occlusion": 0,
+        "actors": 0.7999999821186066
+      },
+      "phNext": {
+        "total": 2.5999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2,
+        "occlusion": 0,
+        "actors": 0.3999999761581421
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "14|8",
+          "ms": 1.7
+        },
+        {
+          "kind": "slopes",
+          "tile": "14|7",
+          "ms": 2.1
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -18.3,
+          "ms": 21
+        },
+        {
+          "name": "RunTask",
+          "at": 13.1,
+          "ms": 18.7
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 20.3,
+          "ms": 9.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 20.3,
+          "ms": 9.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 20.4,
+          "ms": 9,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 13.2,
+          "ms": 7.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 13.3,
+          "ms": 7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 13.3,
+          "ms": 6.9,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 52.9,
+          "ms": 4.3
+        },
+        {
+          "name": "RunTask",
+          "at": 34.9,
+          "ms": 4.1
+        },
+        {
+          "name": "MinorGC",
+          "at": 34.9,
+          "ms": 3.9
+        },
+        {
+          "name": "V8.GCScavenger",
+          "at": 34.9,
+          "ms": 3.6
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 3.9,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 3.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 3.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 3.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 1.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.5,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.4,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.4,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.6,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.5,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.1,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        }
+      ]
+    },
+    {
+      "frame": 200,
+      "dt": 56,
+      "x": 816,
+      "ph": {
+        "total": 3.4000000059604645,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.2999999821186066,
+        "occlusion": 0,
+        "actors": 0.800000011920929
+      },
+      "phPrev": {
+        "total": 1.800000011920929,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.399999976158142,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 1.7999999821186066,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.2000000178813934,
+        "occlusion": 0,
+        "actors": 0.3999999761581421
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "14|9",
+          "ms": 2.3
+        },
+        {
+          "kind": "heights",
+          "tile": "14|6",
+          "ms": 2.3
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 59,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 11ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 12ms"
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -17,
+          "ms": 18.4
+        },
+        {
+          "name": "RunTask",
+          "at": 10.8,
+          "ms": 15.5
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 11,
+          "ms": 10.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 11,
+          "ms": 10.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 11,
+          "ms": 10.2,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -4.3,
+          "ms": 4.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -4.3,
+          "ms": 4.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": -4.2,
+          "ms": 4.5,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 21.4,
+          "ms": 4.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 21.5,
+          "ms": 4.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 21.5,
+          "ms": 4.1,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 4.6,
+          "ms": 3.8
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 210,
+      "dt": 54.7,
+      "x": 856,
+      "ph": {
+        "total": 7,
+        "runtime": 0.5,
+        "floorMs": 1.4000000059604645,
+        "floors": 1,
+        "propMs": 1.399999976158142,
+        "props": 13,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 2.100000023841858,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 2.5,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phNext": {
+        "total": 1.5,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "15|7",
+          "ms": 5.3
+        },
+        {
+          "kind": "slopes",
+          "tile": "15|8",
+          "ms": 4.9
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 8.9,
+          "ms": 25.5
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 9.9,
+          "ms": 16.2
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 10.4,
+          "ms": 15.7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 10.4,
+          "ms": 15.7,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": -14,
+          "ms": 15.6
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 26.1,
+          "ms": 7.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 26.1,
+          "ms": 7
+        },
+        {
+          "name": "FunctionCall",
+          "at": 26.1,
+          "ms": 7,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 1.8,
+          "ms": 6.6
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 1.8,
+          "ms": 6.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 2.3,
+          "ms": 6.1
+        },
+        {
+          "name": "FunctionCall",
+          "at": 2.3,
+          "ms": 5.5,
+          "args": ""
+        }
+      ],
+      "gc": [
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "MinorGC",
+          "ms": 2.9,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GCScavenger",
+          "ms": 2.7,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_TIME_TO_SAFEPOINT",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_BACKGROUND_SAFEPOINT",
+          "ms": 2.8,
+          "tid": 21968
+        },
+        {
+          "name": "V8.GC_SCAVENGER",
+          "ms": 2.4,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_PROLOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE",
+          "ms": 2.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+          "ms": 1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.8,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.3,
+          "tid": 20036
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.4,
+          "tid": 23224
+        },
+        {
+          "name": "V8.GC_SCAVENGER_BACKGROUND_SCAVENGE_PARALLEL",
+          "ms": 0.3,
+          "tid": 14152
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS",
+          "ms": 0.3,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+          "ms": 0.2,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_FREE_REMEMBERED_SET",
+          "ms": 0.1,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_SWEEP_ARRAY_BUFFERS",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_SCAVENGER_RESIZE_NEW_SPACE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_MINOR_MS_BACKGROUND_SWEEPING",
+          "ms": 0.1,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_BACKGROUND_YOUNG_ARRAY_BUFFER_SWEEP",
+          "ms": 0.2,
+          "tid": 9928
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE_SAFEPOINT",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EPILOGUE",
+          "ms": 0,
+          "tid": "main"
+        },
+        {
+          "name": "V8.GC_HEAP_EXTERNAL_EPILOGUE",
+          "ms": 0.1,
+          "tid": "main"
+        }
+      ]
+    },
+    {
+      "frame": 213,
+      "dt": 56.4,
+      "x": 868,
+      "ph": {
+        "total": 3.2000000178813934,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phPrev": {
+        "total": 4.9000000059604645,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.199999988079071,
+        "occlusion": 1.9000000059604645,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 9.299999982118607,
+        "runtime": 0.9000000059604645,
+        "floorMs": 6.5999999940395355,
+        "floors": 1,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 0.3999999761581421
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "15|7",
+          "ms": 1.4
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": 13.2,
+          "ms": 26.9
+        },
+        {
+          "name": "RunTask",
+          "at": -13.5,
+          "ms": 15
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 13.3,
+          "ms": 11.1
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 13.4,
+          "ms": 11
+        },
+        {
+          "name": "FunctionCall",
+          "at": 13.4,
+          "ms": 10.9,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 24.4,
+          "ms": 10.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 24.5,
+          "ms": 10.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 24.5,
+          "ms": 10.4,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 34.9,
+          "ms": 3.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 35,
+          "ms": 3.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 35.1,
+          "ms": 3.3,
+          "args": "step"
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 217,
+      "dt": 53.5,
+      "x": 884,
+      "ph": {
+        "total": 1.0999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phPrev": {
+        "total": 1,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 2.699999988079071,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0.5,
+        "floors": 1,
+        "propMs": 0.5999999940395355,
+        "props": 9,
+        "despawnMs": 0,
+        "despawns": 1,
+        "completeMs": 0.09999999403953552,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "15|9",
+          "ms": 11.4
+        },
+        {
+          "kind": "meshes",
+          "tile": "15|6",
+          "ms": 1.3
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -7.2,
+          "ms": 13.9
+        },
+        {
+          "name": "RunTask",
+          "at": 7.2,
+          "ms": 12.6
+        },
+        {
+          "name": "FireIdleCallback",
+          "at": 7.2,
+          "ms": 12.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 7.4,
+          "ms": 12.3
+        },
+        {
+          "name": "FunctionCall",
+          "at": 7.4,
+          "ms": 12.2,
+          "args": ""
+        },
+        {
+          "name": "RunTask",
+          "at": 19.9,
+          "ms": 10.1
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -2.6,
+          "ms": 7.3
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -2.6,
+          "ms": 7.2
+        },
+        {
+          "name": "FunctionCall",
+          "at": -2.6,
+          "ms": 7.1,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 20,
+          "ms": 5.7
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 20,
+          "ms": 5.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": 20,
+          "ms": 5.6,
+          "args": "tick"
+        }
+      ],
+      "gc": []
+    },
+    {
+      "frame": 224,
+      "dt": 55.9,
+      "x": 912,
+      "ph": {
+        "total": 2.0999999940395355,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.699999988079071,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phPrev": {
+        "total": 3.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 2.5
+      },
+      "phNext": {
+        "total": 4.700000017881393,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -22.3,
+          "ms": 32
+        },
+        {
+          "name": "RunTask",
+          "at": 15.1,
+          "ms": 31.2
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 15.3,
+          "ms": 24.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 15.3,
+          "ms": 24.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 15.3,
+          "ms": 24.4,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -5.6,
+          "ms": 9.9
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -5.5,
+          "ms": 9.8
+        },
+        {
+          "name": "FunctionCall",
+          "at": -5.5,
+          "ms": 9.7,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 39.8,
+          "ms": 5.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 39.9,
+          "ms": 5.6
+        },
+        {
+          "name": "FunctionCall",
+          "at": 39.9,
+          "ms": 5.5,
+          "args": "tick"
+        },
+        {
+          "name": "Layout",
+          "at": 4.7,
+          "ms": 2.3
+        }
+      ],
+      "gc": []
+    }
+  ]
+}

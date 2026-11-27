@@ -1,0 +1,6 @@
+node_modules
+dist
+.vercel-deploy
+.vercel
+test-results
+playwright-report

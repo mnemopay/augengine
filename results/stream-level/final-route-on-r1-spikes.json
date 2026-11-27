@@ -1,0 +1,1710 @@
+{
+  "tag": "final-route-on-r1",
+  "qs": "",
+  "measuredAt": "2026-11-23T22:34:22.931Z",
+  "frames": 236,
+  "frameMs": {
+    "p50": 35.400000000001455,
+    "p95": 54.900000000001455,
+    "p99": 57.400000000001455,
+    "max": 77.10000000000218
+  },
+  "over33ms": 122,
+  "over50ms": 23,
+  "phaseStats": {
+    "total": {
+      "p50": 3,
+      "p95": 9.7,
+      "max": 33.7
+    },
+    "runtime": {
+      "p50": 0.2,
+      "p95": 1.5,
+      "max": 5
+    },
+    "floorMs": {
+      "p50": 0,
+      "p95": 2,
+      "max": 7.7
+    },
+    "propMs": {
+      "p50": 0,
+      "p95": 1.9,
+      "max": 7.7
+    },
+    "despawnMs": {
+      "p50": 0,
+      "p95": 0.1,
+      "max": 1.2
+    },
+    "completeMs": {
+      "p50": 0,
+      "p95": 0.8,
+      "max": 4.7
+    },
+    "visibility": {
+      "p50": 1.2,
+      "p95": 3.5,
+      "max": 33.5
+    },
+    "occlusion": {
+      "p50": 0,
+      "p95": 3.1,
+      "max": 13.3
+    },
+    "actors": {
+      "p50": 0.3,
+      "p95": 1.4,
+      "max": 7.7
+    }
+  },
+  "prepByKind": {
+    "heights": {
+      "n": 54,
+      "p50": 1.7,
+      "max": 6.4
+    },
+    "meshes": {
+      "n": 54,
+      "p50": 1.9,
+      "max": 9.5
+    },
+    "slopes": {
+      "n": 54,
+      "p50": 1.8,
+      "max": 20.9
+    },
+    "occluder": {
+      "n": 39,
+      "p50": 1.7,
+      "max": 6.2
+    }
+  },
+  "gc": {
+    "events": 0,
+    "totalMs": 0,
+    "maxMs": 0
+  },
+  "traceMapped": false,
+  "mainBusyMs": null,
+  "loafCount": 22,
+  "spikes": [
+    {
+      "frame": 20,
+      "dt": 55.4,
+      "x": 100,
+      "ph": {
+        "total": 1.2999999821186066,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phPrev": {
+        "total": 5.799999982118607,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0.800000011920929,
+        "floors": 1,
+        "propMs": 0.7000000178813934,
+        "props": 16,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 2.699999988079071,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phNext": {
+        "total": 3.9000000059604645,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5,
+        "occlusion": 2.0999999940395355,
+        "actors": 0.10000002384185791
+      },
+      "hot": [],
+      "residentTiles": 14,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "3|7",
+          "ms": 2.1
+        }
+      ],
+      "loaf": [],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 28,
+      "dt": 54.4,
+      "x": 132,
+      "ph": {
+        "total": 3.300000011920929,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.199999988079071,
+        "occlusion": 0,
+        "actors": 0.9000000059604645
+      },
+      "phPrev": {
+        "total": 1.300000011920929,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 6.800000011920929,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5,
+        "occlusion": 4.799999982118607,
+        "actors": 0.30000001192092896
+      },
+      "hot": [],
+      "residentTiles": 16,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "4|8",
+          "ms": 1.5
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 62,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 16ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 5ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 29,
+      "dt": 57.4,
+      "x": 136,
+      "ph": {
+        "total": 6.800000011920929,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5,
+        "occlusion": 4.799999982118607,
+        "actors": 0.30000001192092896
+      },
+      "phPrev": {
+        "total": 3.300000011920929,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.199999988079071,
+        "occlusion": 0,
+        "actors": 0.9000000059604645
+      },
+      "phNext": {
+        "total": 4.5,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.199999988079071,
+        "occlusion": 1.5999999940395355,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 16,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "4|7",
+          "ms": 2.1
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 62,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 16ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 5ms"
+          ]
+        },
+        {
+          "duration": 51,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 15ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 9ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 37,
+      "dt": 73.3,
+      "x": 168,
+      "ph": {
+        "total": 2.199999988079071,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0.30000001192092896,
+        "props": 2,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0.09999999403953552,
+        "visibility": 1.4000000059604645,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phPrev": {
+        "total": 9.199999988079071,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 2.400000035762787,
+        "props": 16,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0.09999999403953552,
+        "visibility": 5.5,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phNext": {
+        "total": 3.800000011920929,
+        "runtime": 0.30000001192092896,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.199999988079071,
+        "occlusion": 0,
+        "actors": 2.300000011920929
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "4|9",
+          "ms": 2
+        },
+        {
+          "kind": "heights",
+          "tile": "4|6",
+          "ms": 4.6
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 86,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 7ms",
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 9ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 26ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 40,
+      "dt": 54.9,
+      "x": 180,
+      "ph": {
+        "total": 1.2999999821186066,
+        "runtime": 0.29999998211860657,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phPrev": {
+        "total": 12,
+        "runtime": 0.6000000238418579,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 6.399999976158142,
+        "occlusion": 3.4000000059604645,
+        "actors": 1.5999999940395355
+      },
+      "phNext": {
+        "total": 1.4000000059604645,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.6000000238418579,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [
+        {
+          "duration": 65,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 31ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 18ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 46,
+      "dt": 56.3,
+      "x": 204,
+      "ph": {
+        "total": 1.100000023841858,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "phPrev": {
+        "total": 1.5999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 4.199999988079071,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 2.5,
+        "actors": 0.19999998807907104
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "5|7",
+          "ms": 1.4
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 56,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 9ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 54,
+      "dt": 74.8,
+      "x": 236,
+      "ph": {
+        "total": 4.199999988079071,
+        "runtime": 0.9000000059604645,
+        "floorMs": 1.0999999940395355,
+        "floors": 1,
+        "propMs": 0.9000000059604645,
+        "props": 17,
+        "despawnMs": 0,
+        "despawns": 1,
+        "completeMs": 0.09999999403953552,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0
+      },
+      "phPrev": {
+        "total": 33.69999998807907,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 33.5,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 3.0999999940395355,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.4000000059604645,
+        "occlusion": 1,
+        "actors": 0.5
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "occluder",
+          "tile": "5|7",
+          "ms": 1.6
+        },
+        {
+          "kind": "heights",
+          "tile": "5|9",
+          "ms": 1.5
+        },
+        {
+          "kind": "heights",
+          "tile": "5|6",
+          "ms": 1.5
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 52,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 12ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 36ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 64,
+      "dt": 77.1,
+      "x": 274,
+      "ph": {
+        "total": 3.4000000059604645,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 2.199999988079071
+      },
+      "phPrev": {
+        "total": 16.099999994039536,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0.800000011920929,
+        "props": 10,
+        "despawnMs": 0,
+        "despawns": 1,
+        "completeMs": 0.19999998807907104,
+        "visibility": 1,
+        "occlusion": 13.300000011920929,
+        "actors": 0.5
+      },
+      "phNext": {
+        "total": 2.4000000059604645,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.899999976158142,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "6|8",
+          "ms": 1.6
+        },
+        {
+          "kind": "meshes",
+          "tile": "6|7",
+          "ms": 1.9
+        }
+      ],
+      "loaf": [],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 87,
+      "dt": 56.1,
+      "x": 366,
+      "ph": {
+        "total": 4.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 2.9000000059604645,
+        "actors": 0.5
+      },
+      "phPrev": {
+        "total": 1.9000000059604645,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 3.800000011920929,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 2.5,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "7|9",
+          "ms": 4.7
+        },
+        {
+          "kind": "heights",
+          "tile": "7|6",
+          "ms": 2.6
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 62,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 6ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 15ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 6ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 88,
+      "dt": 55.9,
+      "x": 370,
+      "ph": {
+        "total": 3.800000011920929,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 2.5,
+        "actors": 0.20000001788139343
+      },
+      "phPrev": {
+        "total": 4.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 2.9000000059604645,
+        "actors": 0.5
+      },
+      "phNext": {
+        "total": 3.7000000178813934,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9999999701976776,
+        "occlusion": 2.2000000178813934,
+        "actors": 0.30000001192092896
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "7|9",
+          "ms": 1.6
+        },
+        {
+          "kind": "meshes",
+          "tile": "7|6",
+          "ms": 3.6
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 62,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 6ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 15ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 6ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 99,
+      "dt": 54.5,
+      "x": 414,
+      "ph": {
+        "total": 14.200000017881393,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 2.2000000178813934,
+        "props": 10,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 4.699999988079071,
+        "visibility": 3.300000011920929,
+        "occlusion": 3.199999988079071,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 31.19999998807907,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 7.699999988079071,
+        "props": 1,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 23.100000023841858,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phNext": {
+        "total": 16.899999976158142,
+        "runtime": 1.7999999821186066,
+        "floorMs": 3.800000011920929,
+        "floors": 1,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 4.000000029802322,
+        "occlusion": 6.899999976158142,
+        "actors": 0.29999998211860657
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [
+        {
+          "duration": 59,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 21ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 11ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 8ms"
+          ]
+        },
+        {
+          "duration": 54,
+          "blocking": 1.3,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 18ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 33ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 114,
+      "dt": 56.4,
+      "x": 474,
+      "ph": {
+        "total": 6.299999982118607,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0.5999999940395355,
+        "floors": 1,
+        "propMs": 1.5999999940395355,
+        "props": 7,
+        "despawnMs": 0.20000001788139343,
+        "despawns": 1,
+        "completeMs": 1,
+        "visibility": 1.5,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "phPrev": {
+        "total": 1.2999999821186066,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "phNext": {
+        "total": 4.5999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 3.5
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "9|7",
+          "ms": 3
+        },
+        {
+          "kind": "occluder",
+          "tile": "8|6",
+          "ms": 1.7
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 55,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 9ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 10ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 122,
+      "dt": 54,
+      "x": 506,
+      "ph": {
+        "total": 2.199999988079071,
+        "runtime": 0.3999999761581421,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phPrev": {
+        "total": 2.7999999821186066,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.2000000178813934,
+        "occlusion": 0,
+        "actors": 0.3999999761581421
+      },
+      "phNext": {
+        "total": 3.2000000178813934,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "9|9",
+          "ms": 1.4
+        },
+        {
+          "kind": "slopes",
+          "tile": "9|6",
+          "ms": 8.4
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 54,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 5ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 7ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 8ms"
+          ]
+        },
+        {
+          "duration": 53,
+          "blocking": 0,
+          "scripts": [
+            "IdleRequestCallback||stream-extras.js?t=1795473140688 9ms",
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 14ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 129,
+      "dt": 55.7,
+      "x": 532,
+      "ph": {
+        "total": 1.7999999821186066,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "phPrev": {
+        "total": 6.0999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.5,
+        "occlusion": 0,
+        "actors": 2.4000000059604645
+      },
+      "phNext": {
+        "total": 1.7000000178813934,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.2999999821186066,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 147,
+      "dt": 54.6,
+      "x": 604,
+      "ph": {
+        "total": 4.5999999940395355,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phPrev": {
+        "total": 2.9000000059604645,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.800000011920929
+      },
+      "phNext": {
+        "total": 1.9000000059604645,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "11|7",
+          "ms": 1.6
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 51,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 9ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 7ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 148,
+      "dt": 55.1,
+      "x": 608,
+      "ph": {
+        "total": 1.9000000059604645,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 4.5999999940395355,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phNext": {
+        "total": 11,
+        "runtime": 1,
+        "floorMs": 4.5999999940395355,
+        "floors": 1,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 1.2999999821186066,
+        "occlusion": 2.5,
+        "actors": 1.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "11|8",
+          "ms": 1.6
+        },
+        {
+          "kind": "slopes",
+          "tile": "11|7",
+          "ms": 2.2
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 51,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 9ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 7ms"
+          ]
+        },
+        {
+          "duration": 58,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 8ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 161,
+      "dt": 54,
+      "x": 660,
+      "ph": {
+        "total": 5.5999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 5.300000011920929,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "phPrev": {
+        "total": 3.5,
+        "runtime": 0.5,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2.199999988079071,
+        "occlusion": 0,
+        "actors": 0.800000011920929
+      },
+      "phNext": {
+        "total": 1.5999999940395355,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "12|7",
+          "ms": 3.5
+        },
+        {
+          "kind": "slopes",
+          "tile": "12|8",
+          "ms": 3.3
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 55,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 10ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 8ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 166,
+      "dt": 53.6,
+      "x": 680,
+      "ph": {
+        "total": 6,
+        "runtime": 1,
+        "floorMs": 0.7000000178813934,
+        "floors": 1,
+        "propMs": 1.5999999940395355,
+        "props": 18,
+        "despawnMs": 0,
+        "despawns": 1,
+        "completeMs": 0.5999999940395355,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.800000011920929
+      },
+      "phPrev": {
+        "total": 5.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2,
+        "occlusion": 3.100000023841858,
+        "actors": 0.29999998211860657
+      },
+      "phNext": {
+        "total": 1.100000023841858,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [],
+      "loaf": [],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 178,
+      "dt": 54.5,
+      "x": 728,
+      "ph": {
+        "total": 2.199999988079071,
+        "runtime": 0.5999999940395355,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.199999988079071,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 2.4000000059604645,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.7999999821186066,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phNext": {
+        "total": 1.2000000178813934,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.8999999761581421,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "13|8",
+          "ms": 1.8
+        },
+        {
+          "kind": "meshes",
+          "tile": "13|7",
+          "ms": 1.3
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 53,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 12ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 6ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 185,
+      "dt": 53.4,
+      "x": 756,
+      "ph": {
+        "total": 0.9000000059604645,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "phPrev": {
+        "total": 2.4000000059604645,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.7999999821186066,
+        "occlusion": 0,
+        "actors": 1.5
+      },
+      "phNext": {
+        "total": 2,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "13|6",
+          "ms": 2.1
+        }
+      ],
+      "loaf": [],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 193,
+      "dt": 52.9,
+      "x": 788,
+      "ph": {
+        "total": 1.800000011920929,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 0,
+        "actors": 0.30000001192092896
+      },
+      "phPrev": {
+        "total": 1,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "phNext": {
+        "total": 3.9000000059604645,
+        "runtime": 1.0999999940395355,
+        "floorMs": 0.800000011920929,
+        "floors": 1,
+        "propMs": 0.9000000059604645,
+        "props": 15,
+        "despawnMs": 0.19999998807907104,
+        "despawns": 1,
+        "completeMs": 0.19999998807907104,
+        "visibility": 0.6000000238418579,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "14|7",
+          "ms": 2.7
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 60,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 8ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 209,
+      "dt": 53.9,
+      "x": 852,
+      "ph": {
+        "total": 4.700000017881393,
+        "runtime": 1,
+        "floorMs": 1.2000000178813934,
+        "floors": 1,
+        "propMs": 0.7999999821186066,
+        "props": 8,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0.20000001788139343,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 2.5999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 2,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "phNext": {
+        "total": 5.300000011920929,
+        "runtime": 0.7000000178813934,
+        "floorMs": 0.9000000059604645,
+        "floors": 1,
+        "propMs": 2,
+        "props": 12,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "meshes",
+          "tile": "15|8",
+          "ms": 1.4
+        },
+        {
+          "kind": "occluder",
+          "tile": "14|6",
+          "ms": 1.1
+        },
+        {
+          "kind": "meshes",
+          "tile": "15|7",
+          "ms": 2.4
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 60,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 13ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 7ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    },
+    {
+      "frame": 210,
+      "dt": 56.2,
+      "x": 856,
+      "ph": {
+        "total": 5.300000011920929,
+        "runtime": 0.7000000178813934,
+        "floorMs": 0.9000000059604645,
+        "floors": 1,
+        "propMs": 2,
+        "props": 12,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phPrev": {
+        "total": 4.700000017881393,
+        "runtime": 1,
+        "floorMs": 1.2000000178813934,
+        "floors": 1,
+        "propMs": 0.7999999821186066,
+        "props": 8,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 1,
+        "completeMs": 0.20000001788139343,
+        "visibility": 1,
+        "occlusion": 0,
+        "actors": 0.4000000059604645
+      },
+      "phNext": {
+        "total": 1.7999999821186066,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0.19999998807907104,
+        "props": 1,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0.7000000178813934,
+        "visibility": 0.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 1,
+      "prep": [
+        {
+          "kind": "slopes",
+          "tile": "15|8",
+          "ms": 1.8
+        }
+      ],
+      "loaf": [
+        {
+          "duration": 60,
+          "blocking": 0,
+          "scripts": [
+            "FrameRequestCallback|tick|engine.js?t=1795473139116 13ms",
+            "FrameRequestCallback|tick|main.ts?t=1795473208012 7ms"
+          ]
+        }
+      ],
+      "tasks": [],
+      "gc": []
+    }
+  ]
+}

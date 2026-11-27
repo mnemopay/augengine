@@ -1,0 +1,30 @@
+{
+  "transcript": [
+    {
+      "who": "Ines Calloway",
+      "text": "I've been here for twenty years, keeping this house in order. Ask what you need, but make it quick; I've got a kitchen to tidy up.",
+      "source": "llm"
+    },
+    {
+      "who": "Ines Calloway",
+      "text": "I made his tea at twenty to ten and left it on the counter for Mara. Then I went out to cover the seedlings in my garden and was out there till after ten.",
+      "source": "llm"
+    }
+  ],
+  "perf": {
+    "frames": 6,
+    "p50": 33.399999999999636,
+    "p95": 3899.8,
+    "max": 3899.8,
+    "fps": 29.94011976047937,
+    "renderer": {
+      "drawCalls": 9,
+      "instancedDraws": 2,
+      "instancedEntities": 57,
+      "entitiesDrawn": 64,
+      "triangles": 20749
+    }
+  },
+  "portraitsLoaded": 5,
+  "errors": []
+}

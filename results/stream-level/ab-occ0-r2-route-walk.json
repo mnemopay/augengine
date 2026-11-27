@@ -1,0 +1,27 @@
+{
+  "frames": 233,
+  "frameMs": {
+    "p50": 33.400000000001455,
+    "p95": 79.79999999999927,
+    "p99": 113.89999999999964,
+    "max": 281.7999999999993
+  },
+  "over33ms": 117,
+  "over50ms": 63,
+  "maxPendingSpawnTiles": 2,
+  "maxWorkMs": 9.099999994039536,
+  "rendererDrawCalls": {
+    "min": 25,
+    "max": 61
+  },
+  "rendererEntitiesDrawn": {
+    "max": 146
+  },
+  "peakStreamEntities": 259,
+  "peakResidentTiles": 17,
+  "peakBytes": 1929508,
+  "draws": {
+    "min": 41,
+    "max": 130
+  }
+}

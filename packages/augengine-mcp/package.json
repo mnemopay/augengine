@@ -1,0 +1,52 @@
+{
+  "name": "@mnemopay/augengine-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Model Context Protocol server exposing AugEngine engine primitives. Lets any MCP-aware agent (Claude, Cursor, ChatGPT desktop, custom) author and inspect AugEngine scenes via typed tool calls. Decision #7 (observation bus) is the underlying surface; this package routes it to MCP.",
+  "license": "Apache-2.0",
+  "author": "Jeremiah Omiagbo (Blackpig Films LLC)",
+  "homepage": "https://augengine.com/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnemopay/augengine.git",
+    "directory": "packages/augengine-mcp"
+  },
+  "bugs": {
+    "url": "https://github.com/mnemopay/augengine/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "augengine-mcp": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./godot-tscn": {
+      "types": "./dist/godot-tscn.d.ts",
+      "import": "./dist/godot-tscn.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@mnemopay/augengine": "*",
+    "@mnemopay/augengine-detective": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}

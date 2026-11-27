@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Wrenfield Observatory — an AugEngine detective game</title>
+    <meta name="description" content="A short detective game on AugEngine: question four suspects who remember you, find the clues, and make one accusation." />
+    <style>
+      :root {
+        --bg: #07080c;
+        --panel: rgba(14, 16, 22, 0.88);
+        --line: rgba(255, 255, 255, 0.12);
+        --ink: #ece6da;
+        --dim: #a59e90;
+        --gold: #d9a441;
+        --red: #d0564c;
+        --green: #6fbf73;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.45 Georgia, "Times New Roman", serif; overflow: hidden; }
+      #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+      .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; backdrop-filter: blur(6px); }
+      h1, h2, h3 { font-weight: normal; margin: 0 0 6px; letter-spacing: 0.02em; }
+      h2 { font-size: 18px; color: var(--gold); }
+      h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); margin-top: 10px; }
+      button { font: inherit; color: var(--ink); background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+      button:hover:not(:disabled) { border-color: var(--gold); }
+      button:disabled { opacity: 0.45; cursor: default; }
+      button.primary { background: var(--gold); color: #1b1408; border-color: var(--gold); }
+      button.active { border-color: var(--gold); color: var(--gold); }
+      #rooms { top: 14px; left: 14px; width: 260px; max-height: calc(100% - 28px); overflow-y: auto; }
+      #rooms .room-list, #objects { display: flex; flex-direction: column; gap: 5px; }
+      #room-blurb { color: var(--dim); font-style: italic; margin: 6px 0; }
+      #notebook { top: 14px; right: 14px; width: 300px; max-height: calc(100% - 28px); overflow-y: auto; }
+      #notebook ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+      #notebook li { border-left: 2px solid var(--gold); padding-left: 8px; }
+      #notebook li .name { font-weight: bold; }
+      #notebook li.testimony { border-left-color: #7fa6d9; }
+      #notebook .empty { color: var(--dim); font-style: italic; }
+      #dialogue { left: 290px; right: 330px; bottom: 14px; min-height: 160px; }
+      #dialogue.has-portrait { padding-left: 166px; }
+      #portrait { position: absolute; left: 12px; bottom: 12px; width: 144px; height: 192px; object-fit: cover; border-radius: 6px; border: 2px solid #3a2a18; box-shadow: 0 6px 24px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.25s ease; }
+      #portrait.show { opacity: 1; }
+      #suspects { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+      .suspect-btn { display: flex; align-items: center; gap: 6px; padding: 3px 9px 3px 3px; }
+      .suspect-btn img { width: 28px; height: 37px; object-fit: cover; border-radius: 3px; }
+      #speech { min-height: 52px; font-size: 16px; }
+      #speech .who { color: var(--gold); }
+      #speech .src { font-size: 11px; color: var(--dim); margin-left: 6px; }
+      #memory-note { font-size: 13px; color: #9fc2e8; font-style: italic; min-height: 18px; }
+      #ask-row { display: flex; gap: 6px; margin-top: 8px; }
+      #ask-row input, select { flex: 1; font: inherit; background: rgba(0,0,0,0.4); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+      #toast { top: 14px; left: 50%; transform: translateX(-50%); display: none; max-width: 520px; text-align: center; }
+      .overlay { position: fixed; inset: 0; background: rgba(4, 5, 8, 0.82); display: none; align-items: center; justify-content: center; z-index: 10; }
+      .overlay.show { display: flex; }
+      .card { width: min(640px, calc(100% - 32px)); max-height: calc(100% - 40px); overflow-y: auto; background: #10121a; border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; }
+      .card h1 { font-size: 28px; color: var(--gold); }
+      .card p { color: var(--ink); }
+      .card .muted { color: var(--dim); font-size: 13px; }
+      .verdict-solved { color: var(--green) !important; }
+      .verdict-weak, .verdict-wrong { color: var(--red) !important; }
+      .checklist { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 12px; }
+      .row { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+      .row label { width: 90px; color: var(--dim); }
+      #hover-label { position: fixed; display: none; pointer-events: none; z-index: 5; background: rgba(14,16,22,0.92); border: 1px solid var(--gold); color: var(--gold); border-radius: 6px; padding: 3px 8px; font-size: 13px; }
+      #perf { position: fixed; bottom: 4px; right: 8px; font: 11px monospace; color: var(--dim); }
+      @media (max-width: 900px) {
+        #rooms { width: 46%; max-height: 38%; }
+        #notebook { width: 46%; max-height: 38%; }
+        #dialogue { left: 14px; right: 14px; }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+
+    <section id="rooms" class="panel" aria-label="Rooms">
+      <h2>Wrenfield Observatory</h2>
+      <div class="room-list" id="room-list"></div>
+      <h3 id="room-name">Parlour</h3>
+      <div id="room-blurb"></div>
+      <div id="objects"></div>
+      <h3>Case</h3>
+      <button id="accuse-open" class="primary" data-testid="accuse-open">Make your accusation</button>
+    </section>
+
+    <section id="notebook" class="panel" aria-label="Notebook">
+      <h2>Notebook</h2>
+      <ul id="notebook-list"><li class="empty">Nothing yet. Search the rooms.</li></ul>
+    </section>
+
+    <section id="dialogue" class="panel" aria-label="Questioning">
+      <img id="portrait" alt="" />
+      <div id="suspects"></div>
+      <div id="memory-note"></div>
+      <div id="speech" aria-live="polite">Go to the parlour and choose someone to question.</div>
+      <div id="ask-row">
+        <input id="ask-input" maxlength="300" placeholder="Ask a question… (e.g. Where were you at ten?)" data-testid="ask-input" />
+        <button id="ask-send" data-testid="ask-send">Ask</button>
+      </div>
+      <div id="present-row" style="display:flex;gap:6px;margin-top:6px">
+        <select id="present-select" data-testid="present-select"><option value="">Show evidence…</option></select>
+        <button id="present-send" data-testid="present-send">Show</button>
+      </div>
+    </section>
+
+    <div id="toast" class="panel"></div>
+    <div id="hover-label" data-testid="hover-label"></div>
+
+    <div id="intro" class="overlay show">
+      <div class="card">
+        <h1>The Wrenfield Observatory</h1>
+        <p id="intro-text"></p>
+        <p class="muted" id="intro-memory"></p>
+        <p class="muted">Search rooms for clues. In the parlour, ask the household anything and show them what you've found — some of them are lying, and the right evidence will crack them. You get <b>one</b> accusation: name the killer, the method and the motive, and back it with evidence.</p>
+        <p class="muted" id="mode-note"></p>
+        <button class="primary" id="start" data-testid="start">Begin the investigation</button>
+      </div>
+    </div>
+
+    <div id="accuse" class="overlay" role="dialog" aria-label="Accusation">
+      <div class="card">
+        <h1>Your accusation</h1>
+        <p class="muted">You only get one. Choose carefully.</p>
+        <div class="row"><label for="acc-suspect">Who</label><select id="acc-suspect" data-testid="acc-suspect"></select></div>
+        <div class="row"><label for="acc-method">How</label><select id="acc-method" data-testid="acc-method"></select></div>
+        <div class="row"><label for="acc-motive">Why</label><select id="acc-motive" data-testid="acc-motive"></select></div>
+        <h3>Evidence (pick up to four)</h3>
+        <div class="checklist" id="acc-evidence"></div>
+        <div class="row">
+          <button id="acc-cancel">Not yet</button>
+          <button id="acc-confirm" class="primary" data-testid="acc-confirm">Accuse</button>
+        </div>
+        <p id="acc-error" class="verdict-wrong"></p>
+      </div>
+    </div>
+
+    <div id="result" class="overlay" role="dialog" aria-label="Verdict">
+      <div class="card">
+        <h1 id="result-headline" data-testid="result-headline"></h1>
+        <div id="result-body"></div>
+        <button class="primary" id="new-case" data-testid="new-case">Investigate again</button>
+      </div>
+    </div>
+
+    <div id="perf"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

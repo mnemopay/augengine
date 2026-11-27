@@ -1,0 +1,110 @@
+{
+  "done": true,
+  "backend": "webgpu",
+  "backendInfo": {
+    "backend": "webgpu"
+  },
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-11",
+    "device": "0x8a56",
+    "description": "Intel(R) UHD Graphics",
+    "isFallbackAdapter": false,
+    "maxComputeWorkgroupSizeX": 256,
+    "maxBufferSize": 268435456,
+    "maxStorageBufferBindingSize": 134217728,
+    "ts": 1795441266213
+  },
+  "map": "proof-room",
+  "warmupFrames": 180,
+  "frames": 600,
+  "canvas": {
+    "width": 1440,
+    "height": 900
+  },
+  "sampleCount": 1,
+  "timestamp": {
+    "supported": true,
+    "reason": ""
+  },
+  "passTimingArmed": true,
+  "raf_ms": {
+    "n": 600,
+    "mean": 169.517,
+    "p50": 16.7,
+    "p95": 28.3,
+    "p99": 3509.1,
+    "max": 42530.4
+  },
+  "cpu_render_ms": {
+    "n": 600,
+    "mean": 2.447,
+    "p50": 2,
+    "p95": 6,
+    "p99": 9.4,
+    "max": 38
+  },
+  "gpu_frame_ms": {
+    "n": 323,
+    "mean": 6.592,
+    "p50": 6.126,
+    "p95": 9.29,
+    "p99": 13.055,
+    "max": 23.141
+  },
+  "gpu_sum_ms": {
+    "n": 323,
+    "mean": 5.926,
+    "p50": 5.558,
+    "p95": 8.165,
+    "p99": 12.151,
+    "max": 16.411
+  },
+  "gpu_pass_ms": {
+    "skin": {
+      "n": 323,
+      "mean": 0.196,
+      "p50": 0.158,
+      "p95": 0.222,
+      "p99": 0.317,
+      "max": 4.053
+    },
+    "main": {
+      "n": 323,
+      "mean": 4.174,
+      "p50": 3.802,
+      "p95": 5.859,
+      "p99": 7.102,
+      "max": 14.166
+    },
+    "post": {
+      "n": 323,
+      "mean": 1.555,
+      "p50": 1.502,
+      "p95": 1.983,
+      "p99": 2.189,
+      "max": 2.298
+    }
+  },
+  "draw_calls": {
+    "n": 600,
+    "mean": 6,
+    "p50": 6,
+    "p95": 6,
+    "p99": 6,
+    "max": 6
+  },
+  "triangles": {
+    "n": 600,
+    "mean": 5800,
+    "p50": 5800,
+    "p95": 5800,
+    "p99": 5800,
+    "max": 5800
+  },
+  "over_33ms": 24,
+  "over_50ms": 18,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+  "at": "2026-11-23T13:43:02.618Z",
+  "pageErrors": []
+}

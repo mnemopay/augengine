@@ -1,0 +1,118 @@
+{
+  "done": true,
+  "backend": "webgpu",
+  "backendInfo": {
+    "backend": "webgpu"
+  },
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-11",
+    "device": "0x8a56",
+    "description": "Intel(R) UHD Graphics",
+    "isFallbackAdapter": false,
+    "maxComputeWorkgroupSizeX": 256,
+    "maxBufferSize": 268435456,
+    "maxStorageBufferBindingSize": 134217728,
+    "ts": 1795469805251
+  },
+  "map": "stream-level",
+  "warmupFrames": 180,
+  "frames": 600,
+  "canvas": {
+    "width": 1440,
+    "height": 900
+  },
+  "sampleCount": 1,
+  "timestamp": {
+    "supported": true,
+    "reason": ""
+  },
+  "passTimingArmed": true,
+  "raf_ms": {
+    "n": 600,
+    "mean": 20.42,
+    "p50": 18.7,
+    "p95": 31.3,
+    "p99": 48.9,
+    "max": 79.5
+  },
+  "cpu_render_ms": {
+    "n": 600,
+    "mean": 6.152,
+    "p50": 5.7,
+    "p95": 10.1,
+    "p99": 16,
+    "max": 44.3
+  },
+  "gpu_frame_ms": {
+    "n": 155,
+    "mean": 9.04,
+    "p50": 8.328,
+    "p95": 11.248,
+    "p99": 13.082,
+    "max": 15.189
+  },
+  "gpu_sum_ms": {
+    "n": 155,
+    "mean": 8.421,
+    "p50": 7.876,
+    "p95": 10.993,
+    "p99": 12.851,
+    "max": 14.935
+  },
+  "gpu_pass_ms": {
+    "skin": {
+      "n": 155,
+      "mean": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "max": 0
+    },
+    "shadow": {
+      "n": 155,
+      "mean": 0.64,
+      "p50": 0.559,
+      "p95": 0.872,
+      "p99": 2.851,
+      "max": 2.861
+    },
+    "main": {
+      "n": 155,
+      "mean": 3.314,
+      "p50": 3.045,
+      "p95": 5.495,
+      "p99": 6.193,
+      "max": 7.987
+    },
+    "post": {
+      "n": 155,
+      "mean": 4.467,
+      "p50": 4.284,
+      "p95": 6.615,
+      "p99": 7.355,
+      "max": 10.846
+    }
+  },
+  "draw_calls": {
+    "n": 600,
+    "mean": 47.065,
+    "p50": 47,
+    "p95": 52,
+    "p99": 53,
+    "max": 53
+  },
+  "triangles": {
+    "n": 600,
+    "mean": 25151.72,
+    "p50": 24954,
+    "p95": 30465,
+    "p99": 30645,
+    "max": 30765
+  },
+  "over_33ms": 23,
+  "over_50ms": 5,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+  "at": "2026-11-23T21:37:04.368Z",
+  "pageErrors": []
+}

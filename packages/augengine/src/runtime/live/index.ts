@@ -1,0 +1,223 @@
+/** Live runtime barrel. */
+
+export {
+  WebGpuLiveRenderer,
+  lookAtTransform,
+  type RenderFrameOptions,
+  type LiveRendererOptions,
+  type RendererFrameStats,
+  type LookOptions,
+  type ImageQualityOptions,
+} from "./webgpu/renderer.js";
+export {
+  TemporalResolver,
+  halton,
+  taaJitter,
+  applyProjectionJitter,
+  jitterToUv,
+  linearizeDepth,
+  scaledSize,
+  TAA_JITTER_SAMPLES,
+} from "./webgpu/temporal.js";
+export type { LiveRenderer, LiveRendererBackend } from "./renderer-api.js";
+export {
+  createLiveRenderer,
+  assertPlayableRenderer,
+  PLAYABLE_RENDERER,
+  type PlayableRendererKind,
+} from "./bootstrap.js";
+export { SkyPass, OVERCLOCK_SKY, type SkyGradient } from "./webgpu/sky.js";
+export {
+  ParticlePass,
+  FIRE_PRESET,
+  SMOKE_PRESET,
+  EMBER_PRESET,
+  resolveEmitterSpec,
+  seedParticlePool,
+  packSimParams,
+  packDrawParams,
+  cameraBasisFromView,
+  particleBlendState,
+  particleGpuBytes,
+  particleWorkgroupCount,
+  expectedAliveCount,
+  colorModeCode,
+  PARTICLE_SIM_WGSL,
+  PARTICLE_DRAW_WGSL,
+  PARTICLE_STRIDE_BYTES,
+  PARTICLE_STRIDE_FLOATS,
+  PARTICLE_FIELD_OFFSETS,
+  PARTICLE_WORKGROUP_SIZE,
+  PARTICLE_VERTS_PER_QUAD,
+  SIM_PARAMS_BYTES,
+  DRAW_PARAMS_BYTES,
+  MAX_PARTICLE_CAPACITY,
+  PLAYABLE_PARTICLE_CAPACITY,
+  type ParticleEmitterSpec,
+  type ParticleEmitterOptions,
+  type ParticlePassOptions,
+  type ParticleColorMode,
+  type ParticleBlend,
+} from "./webgpu/particle-pass.js";
+export {
+  flameFromCombustion,
+  type CombustionFlameInput,
+  type CombustionFlameLook,
+} from "./webgpu/combustion-flame.js";
+export {
+  ShallowWaterSim,
+  ShallowWaterField,
+  POOL_PRESET,
+  SHORE_PRESET,
+  resolveShallowWaterSpec,
+  shallowWaveSpeed,
+  maxStableTimeStep,
+  waterCellCount,
+  waterGpuBytes,
+  waterWorkgroupCount,
+  seedWaterField,
+  slopedBed,
+  packWaterSimParams,
+  packWaterImpulseParams,
+  splashVolumeM3,
+  splashFalloff,
+  waterSurfaceNormal,
+  waterFaceIsOpen,
+  waterTransmittance,
+  waterPathLength,
+  fresnelSchlick,
+  WATER_SIM_WGSL,
+  WATER_CELL_STRUCT_WGSL,
+  WATER_CELL_STRIDE_BYTES,
+  WATER_CELL_STRIDE_FLOATS,
+  WATER_CELL_FIELD_OFFSETS,
+  WATER_SIM_PARAMS_BYTES,
+  WATER_IMPULSE_PARAMS_BYTES,
+  WATER_WORKGROUP_SIZE,
+  WATER_GRAVITY,
+  MAX_WATER_GRID,
+  PLAYABLE_WATER_GRID,
+  DEFAULT_CFL_SAFETY,
+  type ShallowWaterSpec,
+  type ShallowWaterOptions,
+  type ShallowWaterFieldStats,
+  type ShallowWaterStepReport,
+} from "./webgpu/shallow-water.js";
+export {
+  WaterSurfacePass,
+  OCEAN_WATER_LOOK,
+  POOL_WATER_LOOK,
+  resolveWaterLook,
+  waterQuadCount,
+  packWaterDrawParams,
+  waterBlendState,
+  WATER_SURFACE_WGSL,
+  WATER_DRAW_PARAMS_BYTES,
+  WATER_VERTS_PER_QUAD,
+  type WaterLook,
+  type WaterSurfaceOptions,
+  type WaterSurfacePassOptions,
+  type WaterSurfaceStats,
+} from "./webgpu/water-surface.js";
+export {
+  waterFromSubstance,
+  waterVolumeM3FromMoles,
+  waterMolesFromVolumeM3,
+  waterFootprintM2,
+  surfaceLevelForVolume,
+  relativeWaterViscosity,
+  WATER_MOLAR_MASS_KG,
+  WATER_DENSITY_KG_PER_M3,
+  WATER_FREEZING_K,
+  WATER_BOILING_K,
+  type WaterPhase,
+  type WaterSubstanceInput,
+  type WaterSubstanceState,
+} from "./webgpu/water-substance.js";
+export {
+  sprayFromWaterState,
+  SPRAY_PRESET,
+  STEAM_PRESET,
+  type WaterSprayInput,
+  type WaterSprayLook,
+} from "./webgpu/water-spray.js";
+export {
+  BlendshapeUniformPool,
+  BLENDSHAPE_UNIFORM_SIZE_BYTES,
+  BLENDSHAPE_WGSL_HELPER,
+  BLENDSHAPE_BIND_GROUP_ENTRY,
+  type BlendshapeDeviceLike,
+  type BlendshapeBufferLike,
+} from "./webgpu/blendshapes.js";
+export { ARKIT_BLENDSHAPE_COUNT } from "./webgpu/blendshape-constants.js";
+export {
+  MorphDeltaStorage,
+  MORPH_POSITION_DELTAS_BINDING,
+  MORPH_NORMAL_DELTAS_BINDING,
+  MORPH_DELTA_STRIDE_BYTES,
+  packMorphTargetsForGpu,
+  uploadMorphTargets,
+  type MorphTargetSource,
+  type MorphDeltasInput,
+  type MorphDeltasHandle,
+} from "./webgpu/morph-deltas.js";
+export {
+  quatScaleToCovariance3D,
+  evaluateShBand1,
+  sortSplatsBackToFront,
+  SPLAT_COVARIANCE_WGSL,
+  type Covariance3D,
+} from "./webgpu/splat-covariance.js";
+export {
+  SplatCloudResources,
+  packSplatInstances,
+  packSplatUniforms,
+  SPLAT_BILLBOARD_WGSL,
+  SPLAT_INSTANCE_STRIDE_BYTES,
+  SPLAT_QUAD_VERTS,
+  SPLAT_UNIFORM_SIZE_BYTES,
+  type SplatPointCloud,
+  type SplatFrameUniforms,
+  type SplatDeviceLike,
+  type SplatBufferLike,
+} from "./webgpu/splat.js";
+export { LiveRuntime, type LiveRuntimeOptions, type FrameMetric } from "./loop.js";
+export { cubeMesh, cylinderMesh, planeMesh, sphereMesh, type MeshData } from "./webgpu/primitives.js";
+export {
+  BLOOM_EXTRACT_PASS,
+  BLOOM_BLUR_PASS,
+  BLOOM_COMPOSITE_PASS,
+  ACES_TONEMAP_PASS,
+  COMPOSITE_TONEMAP_PASS,
+  FXAA_PASS,
+  DEFAULT_POST_PIPELINE,
+  bloomSize,
+  type PostPassDescriptor,
+  type PostPassInstance,
+  type PostPipeline,
+  type PostUniformLayout,
+} from "./webgpu/post-processing.js";
+
+export {
+  SKINNING_COMPUTE_WGSL,
+  SKINNING_COMPUTE_WGSL_UV,
+  buildBoneMatricesGltf,
+  applyAnimationTrack,
+} from './webgpu/skinning.js';
+export {
+  ProbeRing,
+  PROBE_RING,
+  PROBE_LAYERS,
+  PROBE_RING_FLOATS,
+  ringOffset,
+  sampleProbeRing,
+  type ProbeGridParams,
+  type ProbeTileLike,
+  type RingRange,
+} from "./webgpu/probe-ring.js";
+export { collectSceneLights, type FrameLights } from "./webgpu/lights.js";
+export {
+  loadGltfIntoRenderer,
+  type LoadGltfOptions,
+  type LoadedGltfIntoRenderer,
+} from "./gltf.js";

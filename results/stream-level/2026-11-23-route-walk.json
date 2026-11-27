@@ -1,0 +1,15 @@
+{
+  "frames": 233,
+  "frameMs": {
+    "p50": 16.700000000000728,
+    "p95": 49.89999999999782,
+    "max": 67.19999999999982
+  },
+  "peakStreamEntities": 448,
+  "peakResidentTiles": 18,
+  "peakBytes": 299520,
+  "draws": {
+    "min": 19,
+    "max": 58
+  }
+}

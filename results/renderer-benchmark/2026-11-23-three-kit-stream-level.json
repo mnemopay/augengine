@@ -1,0 +1,87 @@
+{
+  "done": true,
+  "backend": "three",
+  "backendInfo": {
+    "backend": "three",
+    "api": "webgpu",
+    "three": "187",
+    "timestampQuery": true
+  },
+  "adapter": null,
+  "map": "stream-level",
+  "warmupFrames": 180,
+  "frames": 600,
+  "canvas": {
+    "width": 1440,
+    "height": 900
+  },
+  "sampleCount": 1,
+  "timestamp": {
+    "supported": true,
+    "reason": ""
+  },
+  "passTimingArmed": true,
+  "raf_ms": {
+    "n": 600,
+    "mean": 22.217,
+    "p50": 22.5,
+    "p95": 29.6,
+    "p99": 32.8,
+    "max": 34.8
+  },
+  "cpu_render_ms": {
+    "n": 600,
+    "mean": 9.927,
+    "p50": 9.6,
+    "p95": 14.2,
+    "p99": 17.4,
+    "max": 20.3
+  },
+  "gpu_frame_ms": {
+    "n": 166,
+    "mean": 11.806,
+    "p50": 11.769,
+    "p95": 12.678,
+    "p99": 12.865,
+    "max": 12.903
+  },
+  "gpu_sum_ms": {
+    "n": 166,
+    "mean": 11.806,
+    "p50": 11.769,
+    "p95": 12.678,
+    "p99": 12.865,
+    "max": 12.903
+  },
+  "gpu_pass_ms": {
+    "main": {
+      "n": 166,
+      "mean": 11.806,
+      "p50": 11.769,
+      "p95": 12.678,
+      "p99": 12.865,
+      "max": 12.903
+    }
+  },
+  "draw_calls": {
+    "n": 600,
+    "mean": 64.332,
+    "p50": 65,
+    "p95": 68,
+    "p99": 68,
+    "max": 68
+  },
+  "triangles": {
+    "n": 600,
+    "mean": 4159.398,
+    "p50": 4144,
+    "p95": 4723,
+    "p99": 4935,
+    "max": 5027
+  },
+  "over_33ms": 3,
+  "over_50ms": 0,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+  "at": "2026-11-23T14:36:24.584Z",
+  "pageErrors": []
+}

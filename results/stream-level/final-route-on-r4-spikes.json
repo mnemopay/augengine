@@ -1,0 +1,92 @@
+{
+  "tag": "final-route-on-r4",
+  "qs": "",
+  "measuredAt": "2026-11-23T22:43:28.696Z",
+  "frames": 236,
+  "frameMs": {
+    "p50": 18.19999999999891,
+    "p95": 19.30000000000109,
+    "p99": 19.69999999999891,
+    "max": 21.600000000000364
+  },
+  "over33ms": 0,
+  "over50ms": 0,
+  "phaseStats": {
+    "total": {
+      "p50": 1.4,
+      "p95": 5.9,
+      "max": 10.3
+    },
+    "runtime": {
+      "p50": 0.1,
+      "p95": 0.7,
+      "max": 2.9
+    },
+    "floorMs": {
+      "p50": 0,
+      "p95": 0.8,
+      "max": 2.3
+    },
+    "propMs": {
+      "p50": 0,
+      "p95": 1,
+      "max": 1.6
+    },
+    "despawnMs": {
+      "p50": 0,
+      "p95": 0.1,
+      "max": 1.8
+    },
+    "completeMs": {
+      "p50": 0,
+      "p95": 0.8,
+      "max": 2.6
+    },
+    "visibility": {
+      "p50": 0.7,
+      "p95": 1.9,
+      "max": 4.1
+    },
+    "occlusion": {
+      "p50": 0,
+      "p95": 2,
+      "max": 3
+    },
+    "actors": {
+      "p50": 0.2,
+      "p95": 0.5,
+      "max": 3.3
+    }
+  },
+  "prepByKind": {
+    "heights": {
+      "n": 54,
+      "p50": 1.3,
+      "max": 2.7
+    },
+    "meshes": {
+      "n": 54,
+      "p50": 1.2,
+      "max": 4
+    },
+    "slopes": {
+      "n": 54,
+      "p50": 1.3,
+      "max": 2.2
+    },
+    "occluder": {
+      "n": 39,
+      "p50": 1.2,
+      "max": 2.6
+    }
+  },
+  "gc": {
+    "events": 0,
+    "totalMs": 0,
+    "maxMs": 0
+  },
+  "traceMapped": false,
+  "mainBusyMs": null,
+  "loafCount": 0,
+  "spikes": []
+}

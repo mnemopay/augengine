@@ -1,0 +1,134 @@
+{
+  "done": true,
+  "backend": "webgpu",
+  "backendInfo": {
+    "backend": "webgpu"
+  },
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-11",
+    "device": "0x8a56",
+    "description": "Intel(R) UHD Graphics",
+    "isFallbackAdapter": false,
+    "maxComputeWorkgroupSizeX": 256,
+    "maxBufferSize": 268435456,
+    "maxStorageBufferBindingSize": 134217728,
+    "ts": 1795468579116
+  },
+  "map": "proof-room",
+  "warmupFrames": 180,
+  "frames": 600,
+  "canvas": {
+    "width": 1440,
+    "height": 900
+  },
+  "sampleCount": 1,
+  "timestamp": {
+    "supported": true,
+    "reason": ""
+  },
+  "passTimingArmed": true,
+  "raf_ms": {
+    "n": 600,
+    "mean": 18.629,
+    "p50": 17.9,
+    "p95": 26.1,
+    "p99": 34.1,
+    "max": 44
+  },
+  "cpu_render_ms": {
+    "n": 600,
+    "mean": 3.901,
+    "p50": 3.5,
+    "p95": 7.3,
+    "p99": 10.6,
+    "max": 14.4
+  },
+  "gpu_frame_ms": {
+    "n": 151,
+    "mean": 11.483,
+    "p50": 10.681,
+    "p95": 14.084,
+    "p99": 16.564,
+    "max": 18.663
+  },
+  "gpu_sum_ms": {
+    "n": 151,
+    "mean": 9.875,
+    "p50": 9.751,
+    "p95": 10.383,
+    "p99": 12.576,
+    "max": 15.062
+  },
+  "gpu_pass_ms": {
+    "skin": {
+      "n": 151,
+      "mean": 0.206,
+      "p50": 0.186,
+      "p95": 0.232,
+      "p99": 0.269,
+      "max": 2.79
+    },
+    "shadow": {
+      "n": 151,
+      "mean": 0.097,
+      "p50": 0.092,
+      "p95": 0.126,
+      "p99": 0.132,
+      "max": 0.148
+    },
+    "main": {
+      "n": 151,
+      "mean": 2.682,
+      "p50": 2.644,
+      "p95": 2.908,
+      "p99": 3.083,
+      "max": 5.445
+    },
+    "post": {
+      "n": 151,
+      "mean": 1.99,
+      "p50": 1.923,
+      "p95": 2.121,
+      "p99": 4.69,
+      "max": 7.229
+    },
+    "ao": {
+      "n": 151,
+      "mean": 0.843,
+      "p50": 0.819,
+      "p95": 0.88,
+      "p99": 0.924,
+      "max": 3.15
+    },
+    "taa": {
+      "n": 151,
+      "mean": 4.057,
+      "p50": 4.069,
+      "p95": 4.284,
+      "p99": 4.431,
+      "max": 4.559
+    }
+  },
+  "draw_calls": {
+    "n": 600,
+    "mean": 6,
+    "p50": 6,
+    "p95": 6,
+    "p99": 6,
+    "max": 6
+  },
+  "triangles": {
+    "n": 600,
+    "mean": 5824,
+    "p50": 5824,
+    "p95": 5824,
+    "p99": 5824,
+    "max": 5824
+  },
+  "over_33ms": 6,
+  "over_50ms": 0,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+  "at": "2026-11-23T21:16:38.157Z",
+  "pageErrors": []
+}

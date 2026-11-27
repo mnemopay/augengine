@@ -1,0 +1,139 @@
+{
+ "total": 1.6159,
+ "calls": [
+  {
+   "out": "mara_calm_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067274
+  },
+  {
+   "out": "mara_calm_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067288
+  },
+  {
+   "out": "desmond_calm_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067286
+  },
+  {
+   "out": "ines_calm_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067289
+  },
+  {
+   "out": "teodor_calm_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067287
+  },
+  {
+   "out": "vance_calm_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.0672835
+  },
+  {
+   "out": "mara_evasive_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067795
+  },
+  {
+   "out": "mara_angry_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.0677935
+  },
+  {
+   "out": "mara_cracked_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067796
+  },
+  {
+   "out": "desmond_evasive_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067939
+  },
+  {
+   "out": "desmond_angry_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.0677935
+  },
+  {
+   "out": "desmond_cracked_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067796
+  },
+  {
+   "out": "ines_evasive_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067795
+  },
+  {
+   "out": "ines_angry_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.0677935
+  },
+  {
+   "out": "ines_cracked_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067796
+  },
+  {
+   "out": "teodor_evasive_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067795
+  },
+  {
+   "out": "teodor_angry_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.0677935
+  },
+  {
+   "out": "teodor_cracked_v1",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067796
+  },
+  {
+   "out": "mara_angry_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067802
+  },
+  {
+   "out": "desmond_angry_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067802
+  },
+  {
+   "out": "ines_angry_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067802
+  },
+  {
+   "out": "teodor_angry_v2",
+   "model": "google/gemini-3.1-flash-image",
+   "cost": 0.067802
+  },
+  {
+   "out": "desmond_trellis",
+   "model": "replicate firtoz/trellis (A100 est $0.0014/s)",
+   "cost_est": 0.0335,
+   "predict_time": 23.959489390999998
+  },
+  {
+   "out": "mara_trellis",
+   "model": "replicate firtoz/trellis (A100 est $0.0014/s)",
+   "cost_est": 0.0323,
+   "predict_time": 23.043260327
+  },
+  {
+   "out": "ines_trellis",
+   "model": "replicate firtoz/trellis (A100 est $0.0014/s)",
+   "cost_est": 0.0296,
+   "predict_time": 21.167269265
+  },
+  {
+   "out": "teodor_trellis",
+   "model": "replicate firtoz/trellis (A100 est $0.0014/s)",
+   "cost_est": 0.0319,
+   "predict_time": 22.767269019
+  }
+ ]
+}

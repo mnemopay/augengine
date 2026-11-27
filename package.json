@@ -1,0 +1,27 @@
+{
+  "name": "augengine",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AugEngine: a web-native runtime for persistent, memory-bearing, guard-railed AI characters inside deterministic game state, drivable by agents over MCP.",
+  "license": "Apache-2.0",
+  "author": "Jeremiah Omiagbo (Blackpig Films LLC)",
+  "homepage": "https://augengine.com/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnemopay/augengine.git"
+  },
+  "workspaces": [
+    "packages/augengine-lod",
+    "packages/augengine-detective",
+    "packages/augengine",
+    "packages/augengine-mcp",
+    "examples/detective"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build -w @mnemopay/augengine-lod -w @mnemopay/augengine-detective -w @mnemopay/augengine && npm run build -w @mnemopay/augengine-mcp -w augengine-detective-game",
+    "test": "npm run test --workspaces --if-present"
+  }
+}

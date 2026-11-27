@@ -1,0 +1,1277 @@
+{
+  "measuredAt": "2026-11-23T22:35:11.181Z",
+  "frames": 599,
+  "frameMs": {
+    "p50": 18.400000000001455,
+    "p95": 38.70000000000073,
+    "p99": 55.29999999999927,
+    "max": 81.59999999999854
+  },
+  "fps": 43.433493822147454,
+  "over33ms": 134,
+  "over50ms": 14,
+  "startX": 16,
+  "endX": 114.12874140308536,
+  "minY": 0.5575303019118477,
+  "minClearance": 1.305,
+  "peakStreamEntities": 198,
+  "peakResidentTiles": 15,
+  "draws": {
+    "min": 83,
+    "max": 112
+  },
+  "triangles": {
+    "min": 20271,
+    "max": 28668
+  },
+  "rendererDrawCalls": {
+    "min": 40,
+    "max": 55
+  },
+  "rendererEntitiesDrawn": {
+    "min": 94,
+    "max": 124
+  },
+  "samples": [
+    {
+      "frame": 30,
+      "x": 16,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 2.5999999940395355,
+        "runtime": 0.30000001192092896,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.5
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 10,
+        "terrainTriangles": 22016,
+        "terrainLods": [
+          8,
+          2,
+          0
+        ],
+        "meshesResident": 30,
+        "occlusionTested": 93,
+        "occluded": 0,
+        "occluderTriangles": 735,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 10,
+      "residentBytes": 1127656,
+      "streamEntities": 138,
+      "peakStreamEntities": 138,
+      "draws": 109,
+      "triangles": 25429,
+      "culled": 29,
+      "lodCounts": [
+        6,
+        14,
+        27,
+        46
+      ],
+      "navTiles": 10,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.19999998807907104,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 53,
+        "instancedDraws": 8,
+        "instancedEntities": 75,
+        "entitiesDrawn": 120,
+        "triangles": 25561
+      }
+    },
+    {
+      "frame": 60,
+      "x": 16,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 2.0999999940395355,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 1.0999999940395355
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 10,
+        "terrainTriangles": 19456,
+        "terrainLods": [
+          7,
+          2,
+          0
+        ],
+        "meshesResident": 30,
+        "occlusionTested": 88,
+        "occluded": 0,
+        "occluderTriangles": 668,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 10,
+      "residentBytes": 1127656,
+      "streamEntities": 138,
+      "peakStreamEntities": 138,
+      "draws": 103,
+      "triangles": 22952,
+      "culled": 35,
+      "lodCounts": [
+        6,
+        14,
+        28,
+        40
+      ],
+      "navTiles": 10,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 55,
+        "instancedDraws": 6,
+        "instancedEntities": 65,
+        "entitiesDrawn": 114,
+        "triangles": 23084
+      }
+    },
+    {
+      "frame": 90,
+      "x": 18.635122167607264,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 0.8999999761581421,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 10,
+        "terrainTriangles": 19456,
+        "terrainLods": [
+          7,
+          2,
+          0
+        ],
+        "meshesResident": 30,
+        "occlusionTested": 88,
+        "occluded": 0,
+        "occluderTriangles": 664,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 10,
+      "residentBytes": 1127656,
+      "streamEntities": 138,
+      "peakStreamEntities": 138,
+      "draws": 102,
+      "triangles": 22694,
+      "culled": 36,
+      "lodCounts": [
+        6,
+        13,
+        28,
+        40
+      ],
+      "navTiles": 10,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 54,
+        "instancedDraws": 6,
+        "instancedEntities": 65,
+        "entitiesDrawn": 113,
+        "triangles": 22826
+      }
+    },
+    {
+      "frame": 120,
+      "x": 23.993837815006952,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 2,
+        "runtime": 0.30000001192092896,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.4000000059604645,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 11,
+        "terrainTriangles": 20224,
+        "terrainLods": [
+          7,
+          3,
+          0
+        ],
+        "meshesResident": 33,
+        "occlusionTested": 92,
+        "occluded": 1,
+        "occluderTriangles": 624,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 11,
+      "residentBytes": 1236940,
+      "streamEntities": 145,
+      "peakStreamEntities": 145,
+      "draws": 108,
+      "triangles": 24356,
+      "culled": 37,
+      "lodCounts": [
+        8,
+        11,
+        27,
+        46
+      ],
+      "navTiles": 11,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.09999999403953552,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 52,
+        "instancedDraws": 8,
+        "instancedEntities": 75,
+        "entitiesDrawn": 119,
+        "triangles": 24488
+      }
+    },
+    {
+      "frame": 150,
+      "x": 29.445985782751695,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 2.2999999821186066,
+        "runtime": 0.19999998807907104,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.800000011920929,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 11,
+        "terrainTriangles": 23808,
+        "terrainLods": [
+          9,
+          1,
+          0
+        ],
+        "meshesResident": 33,
+        "occlusionTested": 88,
+        "occluded": 2,
+        "occluderTriangles": 588,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 11,
+      "residentBytes": 1236940,
+      "streamEntities": 145,
+      "peakStreamEntities": 145,
+      "draws": 103,
+      "triangles": 27785,
+      "culled": 42,
+      "lodCounts": [
+        7,
+        11,
+        23,
+        46
+      ],
+      "navTiles": 11,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 50,
+        "instancedDraws": 8,
+        "instancedEntities": 72,
+        "entitiesDrawn": 114,
+        "triangles": 27917
+      }
+    },
+    {
+      "frame": 180,
+      "x": 35.0287736320408,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 1.4000000059604645,
+        "runtime": 0.30000001192092896,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 11,
+        "terrainTriangles": 23808,
+        "terrainLods": [
+          9,
+          1,
+          0
+        ],
+        "meshesResident": 33,
+        "occlusionTested": 84,
+        "occluded": 2,
+        "occluderTriangles": 552,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 11,
+      "residentBytes": 1236940,
+      "streamEntities": 145,
+      "peakStreamEntities": 145,
+      "draws": 100,
+      "triangles": 28668,
+      "culled": 45,
+      "lodCounts": [
+        9,
+        11,
+        22,
+        42
+      ],
+      "navTiles": 11,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 46,
+        "instancedDraws": 9,
+        "instancedEntities": 72,
+        "entitiesDrawn": 109,
+        "triangles": 28784
+      }
+    },
+    {
+      "frame": 210,
+      "x": 40.52639750791804,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 1.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.10000002384185791,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 11,
+        "terrainTriangles": 23808,
+        "terrainLods": [
+          9,
+          1,
+          0
+        ],
+        "meshesResident": 33,
+        "occlusionTested": 81,
+        "occluded": 3,
+        "occluderTriangles": 532,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 11,
+      "residentBytes": 1236940,
+      "streamEntities": 145,
+      "peakStreamEntities": 145,
+      "draws": 97,
+      "triangles": 28491,
+      "culled": 48,
+      "lodCounts": [
+        6,
+        12,
+        24,
+        39
+      ],
+      "navTiles": 11,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.10000002384185791,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 50,
+        "instancedDraws": 7,
+        "instancedEntities": 65,
+        "entitiesDrawn": 108,
+        "triangles": 28623
+      }
+    },
+    {
+      "frame": 240,
+      "x": 45.9388574103835,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 2.5,
+        "runtime": 0.30000001192092896,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 1.199999988079071,
+        "actors": 0.19999998807907104
+      },
+      "occluded": 7,
+      "occlusionRan": true,
+      "extras": {
+        "terrainTiles": 11,
+        "terrainTriangles": 18688,
+        "terrainLods": [
+          7,
+          1,
+          0
+        ],
+        "meshesResident": 33,
+        "occlusionTested": 76,
+        "occluded": 7,
+        "occluderTriangles": 480,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 11,
+      "residentBytes": 1236940,
+      "streamEntities": 145,
+      "peakStreamEntities": 145,
+      "draws": 83,
+      "triangles": 21846,
+      "culled": 62,
+      "lodCounts": [
+        5,
+        12,
+        20,
+        32
+      ],
+      "navTiles": 11,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 41,
+        "instancedDraws": 7,
+        "instancedEntities": 60,
+        "entitiesDrawn": 94,
+        "triangles": 21978
+      }
+    },
+    {
+      "frame": 270,
+      "x": 51.81517157580083,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 0.8999999761581421,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 11,
+        "terrainTriangles": 20480,
+        "terrainLods": [
+          8,
+          0,
+          0
+        ],
+        "meshesResident": 33,
+        "occlusionTested": 72,
+        "occluded": 0,
+        "occluderTriangles": 432,
+        "npcs": 5,
+        "voices": 1
+      },
+      "residentTiles": 11,
+      "residentBytes": 1236940,
+      "streamEntities": 145,
+      "peakStreamEntities": 145,
+      "draws": 86,
+      "triangles": 23637,
+      "culled": 59,
+      "lodCounts": [
+        5,
+        12,
+        23,
+        32
+      ],
+      "navTiles": 11,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.09999999403953552,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 40,
+        "instancedDraws": 9,
+        "instancedEntities": 66,
+        "entitiesDrawn": 97,
+        "triangles": 23769
+      }
+    },
+    {
+      "frame": 300,
+      "x": 57.97426320633323,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 3,
+        "runtime": 0.20000001788139343,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 1.5,
+        "actors": 0.5
+      },
+      "occluded": 0,
+      "occlusionRan": true,
+      "extras": {
+        "terrainTiles": 12,
+        "terrainTriangles": 18688,
+        "terrainLods": [
+          7,
+          1,
+          0
+        ],
+        "meshesResident": 36,
+        "occlusionTested": 86,
+        "occluded": 0,
+        "occluderTriangles": 442,
+        "npcs": 6,
+        "voices": 1
+      },
+      "residentTiles": 12,
+      "residentBytes": 1351856,
+      "streamEntities": 163,
+      "peakStreamEntities": 163,
+      "draws": 100,
+      "triangles": 22010,
+      "culled": 63,
+      "lodCounts": [
+        5,
+        11,
+        28,
+        42
+      ],
+      "navTiles": 12,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.09999999403953552,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 43,
+        "instancedDraws": 9,
+        "instancedEntities": 78,
+        "entitiesDrawn": 112,
+        "triangles": 22154
+      }
+    },
+    {
+      "frame": 330,
+      "x": 63.73316684529926,
+      "y": 1.305,
+      "ground": 0,
+      "phases": {
+        "total": 1.7000000178813934,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0.5,
+        "props": 14,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0.09999999403953552,
+        "visibility": 0.5999999940395355,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 13,
+        "terrainTriangles": 19456,
+        "terrainLods": [
+          7,
+          2,
+          0
+        ],
+        "meshesResident": 39,
+        "occlusionTested": 80,
+        "occluded": 1,
+        "occluderTriangles": 436,
+        "npcs": 6,
+        "voices": 1
+      },
+      "residentTiles": 13,
+      "residentBytes": 1466772,
+      "streamEntities": 181,
+      "peakStreamEntities": 181,
+      "draws": 112,
+      "triangles": 21911,
+      "culled": 69,
+      "lodCounts": [
+        3,
+        12,
+        23,
+        58
+      ],
+      "navTiles": 13,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.7999999821186066,
+      "lastWorkSteps": 14,
+      "render": {
+        "drawCalls": 44,
+        "instancedDraws": 8,
+        "instancedEntities": 74,
+        "entitiesDrawn": 110,
+        "triangles": 21935
+      }
+    },
+    {
+      "frame": 360,
+      "x": 69.08857515392572,
+      "y": 1.3024833049038238,
+      "ground": -0.0025196847414331535,
+      "phases": {
+        "total": 1.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.20000001788139343
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 13,
+        "terrainTriangles": 19456,
+        "terrainLods": [
+          7,
+          2,
+          0
+        ],
+        "meshesResident": 39,
+        "occlusionTested": 96,
+        "occluded": 2,
+        "occluderTriangles": 432,
+        "npcs": 6,
+        "voices": 1
+      },
+      "residentTiles": 13,
+      "residentBytes": 1466772,
+      "streamEntities": 181,
+      "peakStreamEntities": 181,
+      "draws": 112,
+      "triangles": 22219,
+      "culled": 69,
+      "lodCounts": [
+        5,
+        13,
+        23,
+        55
+      ],
+      "navTiles": 13,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 44,
+        "instancedDraws": 10,
+        "instancedEntities": 90,
+        "entitiesDrawn": 124,
+        "triangles": 22363
+      }
+    },
+    {
+      "frame": 390,
+      "x": 74.92768175814365,
+      "y": 1.2959815384011346,
+      "ground": -0.009197307529420452,
+      "phases": {
+        "total": 1.2000000178813934,
+        "runtime": 0.4000000059604645,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.699999988079071,
+        "occlusion": 0,
+        "actors": 0.10000002384185791
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 14,
+        "terrainTriangles": 17664,
+        "terrainLods": [
+          6,
+          3,
+          0
+        ],
+        "meshesResident": 42,
+        "occlusionTested": 95,
+        "occluded": 2,
+        "occluderTriangles": 456,
+        "npcs": 6,
+        "voices": 1
+      },
+      "residentTiles": 14,
+      "residentBytes": 1576056,
+      "streamEntities": 188,
+      "peakStreamEntities": 188,
+      "draws": 109,
+      "triangles": 20271,
+      "culled": 79,
+      "lodCounts": [
+        4,
+        12,
+        21,
+        57
+      ],
+      "navTiles": 14,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 45,
+        "instancedDraws": 10,
+        "instancedEntities": 87,
+        "entitiesDrawn": 122,
+        "triangles": 20491
+      }
+    },
+    {
+      "frame": 420,
+      "x": 80.47408888092674,
+      "y": 1.256192120951565,
+      "ground": -0.048986724978991036,
+      "phases": {
+        "total": 3.399999976158142,
+        "runtime": 0,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.5999999940395355,
+        "occlusion": 1.699999988079071,
+        "actors": 0.09999999403953552
+      },
+      "occluded": 1,
+      "occlusionRan": true,
+      "extras": {
+        "terrainTiles": 14,
+        "terrainTriangles": 17664,
+        "terrainLods": [
+          6,
+          3,
+          0
+        ],
+        "meshesResident": 42,
+        "occlusionTested": 94,
+        "occluded": 1,
+        "occluderTriangles": 432,
+        "npcs": 6,
+        "voices": 1
+      },
+      "residentTiles": 14,
+      "residentBytes": 1576056,
+      "streamEntities": 188,
+      "peakStreamEntities": 188,
+      "draws": 108,
+      "triangles": 20470,
+      "culled": 80,
+      "lodCounts": [
+        4,
+        16,
+        20,
+        53
+      ],
+      "navTiles": 14,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 49,
+        "instancedDraws": 9,
+        "instancedEntities": 81,
+        "entitiesDrawn": 121,
+        "triangles": 20622
+      }
+    },
+    {
+      "frame": 450,
+      "x": 85.95682973232422,
+      "y": 1.197556348290757,
+      "ground": -0.10809745777366846,
+      "phases": {
+        "total": 3,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.800000011920929,
+        "occlusion": 0,
+        "actors": 0.29999998211860657
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 14,
+        "terrainTriangles": 17664,
+        "terrainLods": [
+          6,
+          3,
+          0
+        ],
+        "meshesResident": 42,
+        "occlusionTested": 90,
+        "occluded": 1,
+        "occluderTriangles": 400,
+        "npcs": 6,
+        "voices": 1
+      },
+      "residentTiles": 14,
+      "residentBytes": 1576056,
+      "streamEntities": 188,
+      "peakStreamEntities": 188,
+      "draws": 105,
+      "triangles": 20563,
+      "culled": 83,
+      "lodCounts": [
+        5,
+        11,
+        23,
+        51
+      ],
+      "navTiles": 14,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.800000011920929,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 49,
+        "instancedDraws": 8,
+        "instancedEntities": 76,
+        "entitiesDrawn": 117,
+        "triangles": 20707
+      }
+    },
+    {
+      "frame": 480,
+      "x": 91.52060038366699,
+      "y": 1.119190314994269,
+      "ground": -0.18714445405267227,
+      "phases": {
+        "total": 1.2999999821186066,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 14,
+        "terrainTriangles": 17664,
+        "terrainLods": [
+          6,
+          3,
+          0
+        ],
+        "meshesResident": 42,
+        "occlusionTested": 86,
+        "occluded": 2,
+        "occluderTriangles": 362,
+        "npcs": 6,
+        "voices": 1
+      },
+      "residentTiles": 14,
+      "residentBytes": 1576056,
+      "streamEntities": 188,
+      "peakStreamEntities": 188,
+      "draws": 100,
+      "triangles": 20353,
+      "culled": 88,
+      "lodCounts": [
+        4,
+        11,
+        21,
+        49
+      ],
+      "navTiles": 14,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 47,
+        "instancedDraws": 8,
+        "instancedEntities": 73,
+        "entitiesDrawn": 112,
+        "triangles": 20497
+      }
+    },
+    {
+      "frame": 510,
+      "x": 97.03641462279731,
+      "y": 1.0091231771620632,
+      "ground": -0.29721159188487833,
+      "phases": {
+        "total": 4,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 3.7000000178813934,
+        "occlusion": 0,
+        "actors": 0.09999999403953552
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 14,
+        "terrainTriangles": 21248,
+        "terrainLods": [
+          8,
+          1,
+          0
+        ],
+        "meshesResident": 42,
+        "occlusionTested": 81,
+        "occluded": 0,
+        "occluderTriangles": 306,
+        "npcs": 6,
+        "voices": 0
+      },
+      "residentTiles": 14,
+      "residentBytes": 1576056,
+      "streamEntities": 188,
+      "peakStreamEntities": 188,
+      "draws": 96,
+      "triangles": 23905,
+      "culled": 92,
+      "lodCounts": [
+        2,
+        16,
+        16,
+        47
+      ],
+      "navTiles": 14,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.09999999403953552,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 48,
+        "instancedDraws": 7,
+        "instancedEntities": 67,
+        "entitiesDrawn": 108,
+        "triangles": 24017
+      }
+    },
+    {
+      "frame": 540,
+      "x": 102.55057519254096,
+      "y": 0.8823860055651793,
+      "ground": -0.4247546850871457,
+      "phases": {
+        "total": 2.7999999821186066,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.300000011920929,
+        "occlusion": 1.0999999940395355,
+        "actors": 0.29999998211860657
+      },
+      "occluded": 0,
+      "occlusionRan": true,
+      "extras": {
+        "terrainTiles": 14,
+        "terrainTriangles": 21248,
+        "terrainLods": [
+          8,
+          1,
+          0
+        ],
+        "meshesResident": 42,
+        "occlusionTested": 77,
+        "occluded": 0,
+        "occluderTriangles": 280,
+        "npcs": 6,
+        "voices": 0
+      },
+      "residentTiles": 14,
+      "residentBytes": 1576056,
+      "streamEntities": 188,
+      "peakStreamEntities": 188,
+      "draws": 92,
+      "triangles": 23742,
+      "culled": 96,
+      "lodCounts": [
+        3,
+        14,
+        18,
+        42
+      ],
+      "navTiles": 14,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 52,
+        "instancedDraws": 6,
+        "instancedEntities": 58,
+        "entitiesDrawn": 104,
+        "triangles": 23886
+      }
+    },
+    {
+      "frame": 570,
+      "x": 108.30699832742711,
+      "y": 0.7330568921823569,
+      "ground": -0.5749429667024833,
+      "phases": {
+        "total": 1.2999999821186066,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.9000000059604645,
+        "occlusion": 0,
+        "actors": 0.19999998807907104
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 14,
+        "terrainTriangles": 20480,
+        "terrainLods": [
+          8,
+          0,
+          0
+        ],
+        "meshesResident": 42,
+        "occlusionTested": 74,
+        "occluded": 0,
+        "occluderTriangles": 260,
+        "npcs": 6,
+        "voices": 0
+      },
+      "residentTiles": 14,
+      "residentBytes": 1576056,
+      "streamEntities": 188,
+      "peakStreamEntities": 188,
+      "draws": 85,
+      "triangles": 22509,
+      "culled": 103,
+      "lodCounts": [
+        1,
+        12,
+        20,
+        39
+      ],
+      "navTiles": 14,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0.09999999403953552,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 49,
+        "instancedDraws": 5,
+        "instancedEntities": 53,
+        "entitiesDrawn": 97,
+        "triangles": 22653
+      }
+    },
+    {
+      "frame": 600,
+      "x": 114.12874140308536,
+      "y": 0.5575303019118477,
+      "ground": -0.750469556972992,
+      "phases": {
+        "total": 3,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.9000000059604645,
+        "occlusion": 0,
+        "actors": 1
+      },
+      "occluded": 0,
+      "occlusionRan": false,
+      "extras": {
+        "terrainTiles": 15,
+        "terrainTriangles": 23040,
+        "terrainLods": [
+          9,
+          0,
+          0
+        ],
+        "meshesResident": 45,
+        "occlusionTested": 72,
+        "occluded": 1,
+        "occluderTriangles": 404,
+        "npcs": 6,
+        "voices": 0
+      },
+      "residentTiles": 15,
+      "residentBytes": 1686876,
+      "streamEntities": 198,
+      "peakStreamEntities": 198,
+      "draws": 86,
+      "triangles": 25160,
+      "culled": 112,
+      "lodCounts": [
+        1,
+        14,
+        18,
+        39
+      ],
+      "navTiles": 15,
+      "pendingSpawnTiles": 0,
+      "pendingDespawnEntities": 0,
+      "lastWorkMs": 0,
+      "lastWorkSteps": 0,
+      "render": {
+        "drawCalls": 49,
+        "instancedDraws": 6,
+        "instancedEntities": 55,
+        "entitiesDrawn": 98,
+        "triangles": 25272
+      }
+    }
+  ]
+}

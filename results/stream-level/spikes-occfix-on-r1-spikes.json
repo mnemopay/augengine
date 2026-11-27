@@ -1,0 +1,221 @@
+{
+  "tag": "spikes-occfix-on-r1",
+  "qs": "",
+  "measuredAt": "2026-11-23T22:25:42.890Z",
+  "frames": 236,
+  "frameMs": {
+    "p50": 18.399999999999636,
+    "p95": 36.5,
+    "p99": 37.5,
+    "max": 55.29999999999927
+  },
+  "over33ms": 27,
+  "over50ms": 1,
+  "phaseStats": {
+    "total": {
+      "p50": 3.4,
+      "p95": 7.1,
+      "max": 9.7
+    },
+    "runtime": {
+      "p50": 0.1,
+      "p95": 0.8,
+      "max": 3.7
+    },
+    "floorMs": {
+      "p50": 0,
+      "p95": 0.8,
+      "max": 3.8
+    },
+    "propMs": {
+      "p50": 0,
+      "p95": 1,
+      "max": 2.5
+    },
+    "despawnMs": {
+      "p50": 0,
+      "p95": 0.1,
+      "max": 0.7
+    },
+    "completeMs": {
+      "p50": 0,
+      "p95": 0.6,
+      "max": 1.7
+    },
+    "visibility": {
+      "p50": 1,
+      "p95": 2.3,
+      "max": 6.3
+    },
+    "occlusion": {
+      "p50": 1.7,
+      "p95": 2.5,
+      "max": 3.9
+    },
+    "actors": {
+      "p50": 0.2,
+      "p95": 0.7,
+      "max": 2.3
+    }
+  },
+  "prepByKind": {
+    "heights": {
+      "n": 54,
+      "p50": 1.5,
+      "max": 4.6
+    },
+    "meshes": {
+      "n": 54,
+      "p50": 1.5,
+      "max": 4.9
+    },
+    "slopes": {
+      "n": 54,
+      "p50": 1.4,
+      "max": 3.3
+    },
+    "occluder": {
+      "n": 39,
+      "p50": 1.4,
+      "max": 3.4
+    }
+  },
+  "gc": {
+    "events": 293,
+    "totalMs": 351.1,
+    "maxMs": 14.2
+  },
+  "traceMapped": true,
+  "loafCount": 0,
+  "spikes": [
+    {
+      "frame": 120,
+      "dt": 55.3,
+      "x": 498,
+      "ph": {
+        "total": 2.5,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.6000000238418579,
+        "occlusion": 1.699999988079071,
+        "actors": 0.09999999403953552
+      },
+      "phPrev": {
+        "total": 3,
+        "runtime": 0.09999999403953552,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 0.800000011920929,
+        "occlusion": 2,
+        "actors": 0.09999999403953552
+      },
+      "phNext": {
+        "total": 3.100000023841858,
+        "runtime": 0.10000002384185791,
+        "floorMs": 0,
+        "floors": 0,
+        "propMs": 0,
+        "props": 0,
+        "despawnMs": 0.09999999403953552,
+        "despawns": 0,
+        "completeMs": 0,
+        "visibility": 1.0999999940395355,
+        "occlusion": 1.5999999940395355,
+        "actors": 0.20000001788139343
+      },
+      "hot": [],
+      "residentTiles": 17,
+      "pendingSpawnTiles": 0,
+      "prep": [
+        {
+          "kind": "heights",
+          "tile": "9|9",
+          "ms": 1.5
+        },
+        {
+          "kind": "heights",
+          "tile": "9|6",
+          "ms": 1.5
+        }
+      ],
+      "loaf": [],
+      "tasks": [
+        {
+          "name": "RunTask",
+          "at": -5.8,
+          "ms": 12.5
+        },
+        {
+          "name": "RunTask",
+          "at": 15.3,
+          "ms": 12.3
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 15.5,
+          "ms": 6.6
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 15.6,
+          "ms": 6.5
+        },
+        {
+          "name": "FunctionCall",
+          "at": 15.6,
+          "ms": 6.3,
+          "args": "tick"
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": -2.1,
+          "ms": 4.5
+        },
+        {
+          "name": "FireAnimationFrame",
+          "at": 22.1,
+          "ms": 4.5
+        },
+        {
+          "name": "v8.callFunction",
+          "at": -2.1,
+          "ms": 4.4
+        },
+        {
+          "name": "v8.callFunction",
+          "at": 22.2,
+          "ms": 4.4
+        },
+        {
+          "name": "FunctionCall",
+          "at": 22.2,
+          "ms": 4.4,
+          "args": "tick"
+        },
+        {
+          "name": "FunctionCall",
+          "at": -2.1,
+          "ms": 4.3,
+          "args": "tick"
+        },
+        {
+          "name": "RunTask",
+          "at": 28.2,
+          "ms": 2.3
+        }
+      ],
+      "gc": []
+    }
+  ]
+}

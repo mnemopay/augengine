@@ -1,0 +1,9 @@
+AugEngine
+Copyright 2026 Blackpig Films LLC
+
+This product includes software developed by Blackpig Films LLC
+(https://augengine.com/), licensed under the Apache License, Version 2.0.
+
+The detective suspect portraits in examples/detective/public/portraits were
+generated for this project; their sources and prompts are recorded in
+examples/detective/public/portraits/SOURCES.md.

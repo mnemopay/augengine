@@ -1,0 +1,40 @@
+{
+  "name": "@mnemopay/augengine-detective",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gate-4 game core for AugEngine: an original detective case (The Wrenfield Observatory) as deterministic game state, a rule engine for actions, suspect personas with scripted lie policies, guardrail validators for LLM dialogue, an offline dialogue fallback, and per-player suspect memory. No engine or DOM dependency, so the browser game and the MCP server share it.",
+  "license": "Apache-2.0",
+  "author": "Jeremiah Omiagbo (Blackpig Films LLC)",
+  "homepage": "https://augengine.com/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnemopay/augengine.git",
+    "directory": "packages/augengine-detective"
+  },
+  "bugs": {
+    "url": "https://github.com/mnemopay/augengine/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}

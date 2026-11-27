@@ -1,0 +1,37 @@
+{
+  "variant": "taa-mv1-s100",
+  "qs": "aa=taa&mv=1&scale=1",
+  "shots": [
+    {
+      "file": "taa-mv1-s100-0.png",
+      "head": {
+        "t": 2.961700000000001,
+        "jaw": 0,
+        "brow": 0,
+        "blinkL": 0,
+        "blinkR": 0
+      }
+    },
+    {
+      "file": "taa-mv1-s100-1.png",
+      "head": {
+        "t": 0.3502000000000005,
+        "jaw": 0.2707727253437042,
+        "brow": 0,
+        "blinkL": 0,
+        "blinkR": 0
+      }
+    },
+    {
+      "file": "taa-mv1-s100-2.png",
+      "head": {
+        "t": 0.009299999999996977,
+        "jaw": 0,
+        "brow": 0,
+        "blinkL": 0,
+        "blinkR": 0
+      }
+    }
+  ],
+  "errors": []
+}

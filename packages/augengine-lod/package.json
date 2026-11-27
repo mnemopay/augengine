@@ -1,0 +1,74 @@
+{
+  "name": "@mnemopay/augengine-lod",
+  "version": "0.1.0-alpha.0",
+  "description": "LOD baking for AugEngine: glTF/GLB in, LOD0..LOD3 out (meshoptimizer simplification + impostor), plus an original procedural city kit (buildings, rooftops, street props, trees) baked through it.",
+  "license": "Apache-2.0",
+  "author": "Jeremiah Omiagbo (Blackpig Films LLC)",
+  "homepage": "https://augengine.com/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnemopay/augengine.git",
+    "directory": "packages/augengine-lod"
+  },
+  "bugs": {
+    "url": "https://github.com/mnemopay/augengine/issues"
+  },
+  "keywords": [
+    "augengine",
+    "lod",
+    "level-of-detail",
+    "gltf",
+    "glb",
+    "meshoptimizer",
+    "simplification",
+    "impostor",
+    "webgpu",
+    "game-engine",
+    "procedural"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "augengine-lod": "./bin/augengine-lod.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "meshoptimizer": "1.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.5.0"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "bin",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ]
+}

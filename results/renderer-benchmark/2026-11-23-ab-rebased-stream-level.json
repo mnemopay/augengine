@@ -1,0 +1,657 @@
+{
+  "summary": {
+    "map": "stream-level",
+    "rounds": 3,
+    "order": "alternating, A first on even rounds",
+    "at": "2026-11-23T14:20:38.354Z",
+    "webgpu": {
+      "gpu_sum_ms.p50": 10.061,
+      "gpu_sum_ms.p95": 11.596,
+      "gpu_frame_ms.p50": 10.247,
+      "gpu_frame_ms.p95": 11.789,
+      "raf_ms.p50": 16.7,
+      "raf_ms.p95": 20.8,
+      "cpu_render_ms.p50": 4.1,
+      "cpu_render_ms.p95": 6.7,
+      "draw_calls.p50": 38,
+      "draw_calls.p95": 40,
+      "triangles.p50": 2971,
+      "triangles.p95": 3473
+    },
+    "three": {
+      "gpu_sum_ms.p50": 11.662,
+      "gpu_sum_ms.p95": 12.524,
+      "gpu_frame_ms.p50": 11.662,
+      "gpu_frame_ms.p95": 12.524,
+      "raf_ms.p50": 22.1,
+      "raf_ms.p95": 29.6,
+      "cpu_render_ms.p50": 9.9,
+      "cpu_render_ms.p95": 14.1,
+      "draw_calls.p50": 115,
+      "draw_calls.p95": 132,
+      "triangles.p50": 3256,
+      "triangles.p95": 3790
+    }
+  },
+  "runs": {
+    "webgpu": [
+      {
+        "done": true,
+        "backend": "webgpu",
+        "backendInfo": {
+          "backend": "webgpu"
+        },
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-11",
+          "device": "0x8a56",
+          "description": "Intel(R) UHD Graphics",
+          "isFallbackAdapter": false,
+          "maxComputeWorkgroupSizeX": 256,
+          "maxBufferSize": 268435456,
+          "maxStorageBufferBindingSize": 134217728,
+          "ts": 1795443556071
+        },
+        "map": "stream-level",
+        "warmupFrames": 180,
+        "frames": 600,
+        "canvas": {
+          "width": 1440,
+          "height": 900
+        },
+        "sampleCount": 1,
+        "timestamp": {
+          "supported": true,
+          "reason": ""
+        },
+        "passTimingArmed": true,
+        "raf_ms": {
+          "n": 600,
+          "mean": 16.775,
+          "p50": 16.7,
+          "p95": 18.3,
+          "p99": 20.7,
+          "max": 44.3
+        },
+        "cpu_render_ms": {
+          "n": 600,
+          "mean": 4.512,
+          "p50": 4.3,
+          "p95": 7.6,
+          "p99": 9,
+          "max": 9.7
+        },
+        "gpu_frame_ms": {
+          "n": 234,
+          "mean": 8.617,
+          "p50": 8.568,
+          "p95": 9.562,
+          "p99": 10.135,
+          "max": 10.172
+        },
+        "gpu_sum_ms": {
+          "n": 234,
+          "mean": 8.444,
+          "p50": 8.406,
+          "p95": 9.385,
+          "p99": 9.928,
+          "max": 9.961
+        },
+        "gpu_pass_ms": {
+          "skin": {
+            "n": 234,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "shadow": {
+            "n": 234,
+            "mean": 0.51,
+            "p50": 0.48,
+            "p95": 0.704,
+            "p99": 0.864,
+            "max": 0.929
+          },
+          "main": {
+            "n": 234,
+            "mean": 3.559,
+            "p50": 3.533,
+            "p95": 3.843,
+            "p99": 3.891,
+            "max": 3.962
+          },
+          "post": {
+            "n": 234,
+            "mean": 4.375,
+            "p50": 4.366,
+            "p95": 5.13,
+            "p99": 5.808,
+            "max": 5.939
+          }
+        },
+        "draw_calls": {
+          "n": 600,
+          "mean": 37.12,
+          "p50": 38,
+          "p95": 40,
+          "p99": 41,
+          "max": 41
+        },
+        "triangles": {
+          "n": 600,
+          "mean": 2978.957,
+          "p50": 2971,
+          "p95": 3473,
+          "p99": 3601,
+          "max": 3721
+        },
+        "over_33ms": 1,
+        "over_50ms": 0,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+        "at": "2026-11-23T14:19:31.296Z",
+        "pageErrors": []
+      },
+      {
+        "done": true,
+        "backend": "webgpu",
+        "backendInfo": {
+          "backend": "webgpu"
+        },
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-11",
+          "device": "0x8a56",
+          "description": "Intel(R) UHD Graphics",
+          "isFallbackAdapter": false,
+          "maxComputeWorkgroupSizeX": 256,
+          "maxBufferSize": 268435456,
+          "maxStorageBufferBindingSize": 134217728,
+          "ts": 1795443598503
+        },
+        "map": "stream-level",
+        "warmupFrames": 180,
+        "frames": 600,
+        "canvas": {
+          "width": 1440,
+          "height": 900
+        },
+        "sampleCount": 1,
+        "timestamp": {
+          "supported": true,
+          "reason": ""
+        },
+        "passTimingArmed": true,
+        "raf_ms": {
+          "n": 600,
+          "mean": 16.884,
+          "p50": 16.7,
+          "p95": 20.8,
+          "p99": 27.7,
+          "max": 31.9
+        },
+        "cpu_render_ms": {
+          "n": 600,
+          "mean": 4.215,
+          "p50": 4.1,
+          "p95": 6.7,
+          "p99": 8.9,
+          "max": 11.1
+        },
+        "gpu_frame_ms": {
+          "n": 184,
+          "mean": 9.954,
+          "p50": 10.247,
+          "p95": 11.789,
+          "p99": 12.481,
+          "max": 12.651
+        },
+        "gpu_sum_ms": {
+          "n": 184,
+          "mean": 9.772,
+          "p50": 10.061,
+          "p95": 11.596,
+          "p99": 12.274,
+          "max": 12.422
+        },
+        "gpu_pass_ms": {
+          "skin": {
+            "n": 184,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "shadow": {
+            "n": 184,
+            "mean": 0.673,
+            "p50": 0.663,
+            "p95": 0.884,
+            "p99": 1.03,
+            "max": 1.282
+          },
+          "main": {
+            "n": 184,
+            "mean": 4.448,
+            "p50": 4.75,
+            "p95": 5.56,
+            "p99": 5.731,
+            "max": 5.843
+          },
+          "post": {
+            "n": 184,
+            "mean": 4.651,
+            "p50": 4.654,
+            "p95": 5.619,
+            "p99": 5.9,
+            "max": 6.168
+          }
+        },
+        "draw_calls": {
+          "n": 600,
+          "mean": 37.12,
+          "p50": 38,
+          "p95": 40,
+          "p99": 41,
+          "max": 41
+        },
+        "triangles": {
+          "n": 600,
+          "mean": 2978.957,
+          "p50": 2971,
+          "p95": 3473,
+          "p99": 3601,
+          "max": 3721
+        },
+        "over_33ms": 0,
+        "over_50ms": 0,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+        "at": "2026-11-23T14:20:13.324Z",
+        "pageErrors": []
+      },
+      {
+        "done": true,
+        "backend": "webgpu",
+        "backendInfo": {
+          "backend": "webgpu"
+        },
+        "adapter": {
+          "vendor": "intel",
+          "architecture": "gen-11",
+          "device": "0x8a56",
+          "description": "Intel(R) UHD Graphics",
+          "isFallbackAdapter": false,
+          "maxComputeWorkgroupSizeX": 256,
+          "maxBufferSize": 268435456,
+          "maxStorageBufferBindingSize": 134217728,
+          "ts": 1795443598503
+        },
+        "map": "stream-level",
+        "warmupFrames": 180,
+        "frames": 600,
+        "canvas": {
+          "width": 1440,
+          "height": 900
+        },
+        "sampleCount": 1,
+        "timestamp": {
+          "supported": true,
+          "reason": ""
+        },
+        "passTimingArmed": true,
+        "raf_ms": {
+          "n": 600,
+          "mean": 16.884,
+          "p50": 16.7,
+          "p95": 20.8,
+          "p99": 27.7,
+          "max": 31.9
+        },
+        "cpu_render_ms": {
+          "n": 600,
+          "mean": 4.215,
+          "p50": 4.1,
+          "p95": 6.7,
+          "p99": 8.9,
+          "max": 11.1
+        },
+        "gpu_frame_ms": {
+          "n": 184,
+          "mean": 9.954,
+          "p50": 10.247,
+          "p95": 11.789,
+          "p99": 12.481,
+          "max": 12.651
+        },
+        "gpu_sum_ms": {
+          "n": 184,
+          "mean": 9.772,
+          "p50": 10.061,
+          "p95": 11.596,
+          "p99": 12.274,
+          "max": 12.422
+        },
+        "gpu_pass_ms": {
+          "skin": {
+            "n": 184,
+            "mean": 0,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 0
+          },
+          "shadow": {
+            "n": 184,
+            "mean": 0.673,
+            "p50": 0.663,
+            "p95": 0.884,
+            "p99": 1.03,
+            "max": 1.282
+          },
+          "main": {
+            "n": 184,
+            "mean": 4.448,
+            "p50": 4.75,
+            "p95": 5.56,
+            "p99": 5.731,
+            "max": 5.843
+          },
+          "post": {
+            "n": 184,
+            "mean": 4.651,
+            "p50": 4.654,
+            "p95": 5.619,
+            "p99": 5.9,
+            "max": 6.168
+          }
+        },
+        "draw_calls": {
+          "n": 600,
+          "mean": 37.12,
+          "p50": 38,
+          "p95": 40,
+          "p99": 41,
+          "max": 41
+        },
+        "triangles": {
+          "n": 600,
+          "mean": 2978.957,
+          "p50": 2971,
+          "p95": 3473,
+          "p99": 3601,
+          "max": 3721
+        },
+        "over_33ms": 0,
+        "over_50ms": 0,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+        "at": "2026-11-23T14:20:13.324Z",
+        "pageErrors": []
+      }
+    ],
+    "three": [
+      {
+        "done": true,
+        "backend": "three",
+        "backendInfo": {
+          "backend": "three",
+          "api": "webgpu",
+          "three": "187",
+          "timestampQuery": true
+        },
+        "adapter": null,
+        "map": "stream-level",
+        "warmupFrames": 180,
+        "frames": 600,
+        "canvas": {
+          "width": 1440,
+          "height": 900
+        },
+        "sampleCount": 1,
+        "timestamp": {
+          "supported": true,
+          "reason": ""
+        },
+        "passTimingArmed": true,
+        "raf_ms": {
+          "n": 600,
+          "mean": 22.142,
+          "p50": 22.1,
+          "p95": 29.6,
+          "p99": 32.7,
+          "max": 43
+        },
+        "cpu_render_ms": {
+          "n": 600,
+          "mean": 10.113,
+          "p50": 9.9,
+          "p95": 14.1,
+          "p99": 21.8,
+          "max": 38.1
+        },
+        "gpu_frame_ms": {
+          "n": 165,
+          "mean": 11.688,
+          "p50": 11.662,
+          "p95": 12.524,
+          "p99": 12.759,
+          "max": 13.018
+        },
+        "gpu_sum_ms": {
+          "n": 165,
+          "mean": 11.688,
+          "p50": 11.662,
+          "p95": 12.524,
+          "p99": 12.759,
+          "max": 13.018
+        },
+        "gpu_pass_ms": {
+          "main": {
+            "n": 165,
+            "mean": 11.688,
+            "p50": 11.662,
+            "p95": 12.524,
+            "p99": 12.759,
+            "max": 13.018
+          }
+        },
+        "draw_calls": {
+          "n": 600,
+          "mean": 116.947,
+          "p50": 115,
+          "p95": 132,
+          "p99": 134,
+          "max": 135
+        },
+        "triangles": {
+          "n": 600,
+          "mean": 3285.712,
+          "p50": 3256,
+          "p95": 3790,
+          "p99": 3957,
+          "max": 4227
+        },
+        "over_33ms": 4,
+        "over_50ms": 0,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+        "at": "2026-11-23T14:19:55.091Z",
+        "pageErrors": []
+      },
+      {
+        "done": true,
+        "backend": "three",
+        "backendInfo": {
+          "backend": "three",
+          "api": "webgpu",
+          "three": "187",
+          "timestampQuery": true
+        },
+        "adapter": null,
+        "map": "stream-level",
+        "warmupFrames": 180,
+        "frames": 600,
+        "canvas": {
+          "width": 1440,
+          "height": 900
+        },
+        "sampleCount": 1,
+        "timestamp": {
+          "supported": true,
+          "reason": ""
+        },
+        "passTimingArmed": true,
+        "raf_ms": {
+          "n": 600,
+          "mean": 22.142,
+          "p50": 22.1,
+          "p95": 29.6,
+          "p99": 32.7,
+          "max": 43
+        },
+        "cpu_render_ms": {
+          "n": 600,
+          "mean": 10.113,
+          "p50": 9.9,
+          "p95": 14.1,
+          "p99": 21.8,
+          "max": 38.1
+        },
+        "gpu_frame_ms": {
+          "n": 165,
+          "mean": 11.688,
+          "p50": 11.662,
+          "p95": 12.524,
+          "p99": 12.759,
+          "max": 13.018
+        },
+        "gpu_sum_ms": {
+          "n": 165,
+          "mean": 11.688,
+          "p50": 11.662,
+          "p95": 12.524,
+          "p99": 12.759,
+          "max": 13.018
+        },
+        "gpu_pass_ms": {
+          "main": {
+            "n": 165,
+            "mean": 11.688,
+            "p50": 11.662,
+            "p95": 12.524,
+            "p99": 12.759,
+            "max": 13.018
+          }
+        },
+        "draw_calls": {
+          "n": 600,
+          "mean": 116.947,
+          "p50": 115,
+          "p95": 132,
+          "p99": 134,
+          "max": 135
+        },
+        "triangles": {
+          "n": 600,
+          "mean": 3285.712,
+          "p50": 3256,
+          "p95": 3790,
+          "p99": 3957,
+          "max": 4227
+        },
+        "over_33ms": 4,
+        "over_50ms": 0,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+        "at": "2026-11-23T14:19:55.091Z",
+        "pageErrors": []
+      },
+      {
+        "done": true,
+        "backend": "three",
+        "backendInfo": {
+          "backend": "three",
+          "api": "webgpu",
+          "three": "187",
+          "timestampQuery": true
+        },
+        "adapter": null,
+        "map": "stream-level",
+        "warmupFrames": 180,
+        "frames": 600,
+        "canvas": {
+          "width": 1440,
+          "height": 900
+        },
+        "sampleCount": 1,
+        "timestamp": {
+          "supported": true,
+          "reason": ""
+        },
+        "passTimingArmed": true,
+        "raf_ms": {
+          "n": 600,
+          "mean": 24.522,
+          "p50": 24.1,
+          "p95": 35.1,
+          "p99": 39.3,
+          "max": 65.3
+        },
+        "cpu_render_ms": {
+          "n": 600,
+          "mean": 12.053,
+          "p50": 11.6,
+          "p95": 18.5,
+          "p99": 21.1,
+          "max": 42
+        },
+        "gpu_frame_ms": {
+          "n": 142,
+          "mean": 15.907,
+          "p50": 16.473,
+          "p95": 18.074,
+          "p99": 18.911,
+          "max": 19.723
+        },
+        "gpu_sum_ms": {
+          "n": 142,
+          "mean": 15.907,
+          "p50": 16.473,
+          "p95": 18.074,
+          "p99": 18.911,
+          "max": 19.723
+        },
+        "gpu_pass_ms": {
+          "main": {
+            "n": 142,
+            "mean": 15.907,
+            "p50": 16.473,
+            "p95": 18.074,
+            "p99": 18.911,
+            "max": 19.723
+          }
+        },
+        "draw_calls": {
+          "n": 600,
+          "mean": 116.947,
+          "p50": 115,
+          "p95": 132,
+          "p99": 134,
+          "max": 135
+        },
+        "triangles": {
+          "n": 600,
+          "mean": 3285.712,
+          "p50": 3256,
+          "p95": 3790,
+          "p99": 3957,
+          "max": 4227
+        },
+        "over_33ms": 43,
+        "over_50ms": 1,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.7778.96 Safari/537.36",
+        "at": "2026-11-23T14:20:37.711Z",
+        "pageErrors": []
+      }
+    ]
+  }
+}

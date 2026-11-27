@@ -1,0 +1,59 @@
+{
+  "at": "2026-11-24T02:55:22.964Z",
+  "parlour": {
+    "frames": 271,
+    "p50": 16.799999999999272,
+    "p95": 50,
+    "max": 2033.1,
+    "fps": 59.523809523812105,
+    "renderer": {
+      "drawCalls": 9,
+      "instancedDraws": 2,
+      "instancedEntities": 57,
+      "entitiesDrawn": 64,
+      "triangles": 20749
+    }
+  },
+  "dome": {
+    "frames": 541,
+    "p50": 16.799999999999272,
+    "p95": 34.30000000000109,
+    "max": 2033.1,
+    "fps": 59.523809523812105,
+    "renderer": {
+      "drawCalls": 9,
+      "instancedDraws": 2,
+      "instancedEntities": 57,
+      "entitiesDrawn": 64,
+      "triangles": 20749
+    }
+  },
+  "library": {
+    "frames": 600,
+    "p50": 17.100000000002183,
+    "p95": 50.19999999999709,
+    "max": 83.80000000000291,
+    "fps": 58.47953216373523,
+    "renderer": {
+      "drawCalls": 9,
+      "instancedDraws": 2,
+      "instancedEntities": 57,
+      "entitiesDrawn": 64,
+      "triangles": 20749
+    }
+  },
+  "parlour-closeup": {
+    "frames": 600,
+    "p50": 33.20000000000073,
+    "p95": 50.400000000001455,
+    "max": 433,
+    "fps": 30.120481927710184,
+    "renderer": {
+      "drawCalls": 9,
+      "instancedDraws": 2,
+      "instancedEntities": 57,
+      "entitiesDrawn": 64,
+      "triangles": 20749
+    }
+  }
+}

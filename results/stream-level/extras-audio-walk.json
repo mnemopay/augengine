@@ -1,0 +1,18 @@
+{
+  "steps": 498,
+  "maxVoices": 2,
+  "stats": {
+    "npcs": 7,
+    "peakNpcs": 14,
+    "savedStates": 32,
+    "spawned": 59,
+    "despawned": 52,
+    "restored": 20,
+    "emitters": 5,
+    "voices": 0,
+    "peakVoices": 2,
+    "voicesStarted": 7,
+    "voicesReleased": 7
+  },
+  "ctx": "running"
+}

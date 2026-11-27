@@ -1,0 +1,193 @@
+{
+  "capturedAt": "2026-11-20T20:36:57.676Z",
+  "query": "perf=1&hud=1",
+  "frames": 599,
+  "fps": 57.5082326059198,
+  "p50": 16.69999999999891,
+  "p95": 17,
+  "p99": 17.30000000000109,
+  "max": 433.3000000000011,
+  "over33": 1,
+  "over100": 1,
+  "loafUnsupported": false,
+  "longest": [
+    {
+      "start": 9264,
+      "dur": 441,
+      "blocking": 0,
+      "render": 4,
+      "styleLayout": 0,
+      "scripts": []
+    }
+  ],
+  "loafCount": 1,
+  "gpu": {
+    "gpu_ms": 7.254225,
+    "gpu_ms_p95": 11.84227,
+    "gpu_ms_source": "timestamp-query"
+  },
+  "backdropFiltered": [],
+  "heapMB": 19,
+  "metricsDelta": {
+    "ScriptDuration": 1.644,
+    "TaskDuration": 3.409,
+    "LayoutDuration": 0.025,
+    "RecalcStyleDuration": 0.003,
+    "LayoutCount": 22,
+    "RecalcStyleCount": 22,
+    "JSHeapUsedSize": 2812
+  },
+  "topSelf": [
+    {
+      "fn": "(idle) @ :0",
+      "ms": 6914,
+      "pct": 68.3
+    },
+    {
+      "fn": "(program) @ :0",
+      "ms": 1440,
+      "pct": 14.2
+    },
+    {
+      "fn": "render @ renderer.js:1115",
+      "ms": 210,
+      "pct": 2.1
+    },
+    {
+      "fn": "(garbage collector) @ :0",
+      "ms": 112,
+      "pct": 1.1
+    },
+    {
+      "fn": "getCurrentTexture @ :0",
+      "ms": 91,
+      "pct": 0.9
+    },
+    {
+      "fn": "beginRenderPass @ :0",
+      "ms": 78,
+      "pct": 0.8
+    },
+    {
+      "fn": "tick @ main.ts:1873",
+      "ms": 64,
+      "pct": 0.6
+    },
+    {
+      "fn": "(anonymous) @ frame-budget.ts:19",
+      "ms": 59,
+      "pct": 0.6
+    },
+    {
+      "fn": "writeBuffer @ :0",
+      "ms": 58,
+      "pct": 0.6
+    },
+    {
+      "fn": "requestAnimationFrame @ :0",
+      "ms": 56,
+      "pct": 0.6
+    },
+    {
+      "fn": "submit @ :0",
+      "ms": 54,
+      "pct": 0.5
+    },
+    {
+      "fn": "computeWorldTransforms @ transform.js:59",
+      "ms": 52,
+      "pct": 0.5
+    },
+    {
+      "fn": "driveMayaProofCharacter @ main.ts:2366",
+      "ms": 48,
+      "pct": 0.5
+    },
+    {
+      "fn": "readFrameMs @ timestamp-queries.js:140",
+      "ms": 45,
+      "pct": 0.4
+    },
+    {
+      "fn": "createCommandEncoder @ :0",
+      "ms": 38,
+      "pct": 0.4
+    },
+    {
+      "fn": "tick @ engine.js:68",
+      "ms": 31,
+      "pct": 0.3
+    },
+    {
+      "fn": "topoSortParentFirst @ transform.js:24",
+      "ms": 27,
+      "pct": 0.3
+    },
+    {
+      "fn": "setVertexBuffer @ :0",
+      "ms": 25,
+      "pct": 0.2
+    },
+    {
+      "fn": "visit @ transform.js:34",
+      "ms": 24,
+      "pct": 0.2
+    },
+    {
+      "fn": "setText @ main.ts:2573",
+      "ms": 22,
+      "pct": 0.2
+    },
+    {
+      "fn": "createView @ :0",
+      "ms": 22,
+      "pct": 0.2
+    },
+    {
+      "fn": "cherryToArkit @ cherry-visemes.js:89",
+      "ms": 22,
+      "pct": 0.2
+    },
+    {
+      "fn": "setBindGroup @ :0",
+      "ms": 22,
+      "pct": 0.2
+    },
+    {
+      "fn": "withComponent @ scene.js:60",
+      "ms": 22,
+      "pct": 0.2
+    },
+    {
+      "fn": "computeCamera @ renderer.js:1668",
+      "ms": 21,
+      "pct": 0.2
+    },
+    {
+      "fn": "emptyCherryWeights @ cherry-visemes.js:68",
+      "ms": 20,
+      "pct": 0.2
+    },
+    {
+      "fn": "collectSceneLights @ lights.js:55",
+      "ms": 20,
+      "pct": 0.2
+    },
+    {
+      "fn": "getMappedRange @ :0",
+      "ms": 19,
+      "pct": 0.2
+    },
+    {
+      "fn": "setIndexBuffer @ :0",
+      "ms": 18,
+      "pct": 0.2
+    },
+    {
+      "fn": "visitNode @ :267",
+      "ms": 16,
+      "pct": 0.2
+    }
+  ],
+  "traceSummary": null
+}
