@@ -61,8 +61,9 @@ MetaHuman ship face shapes; generated (image-to-3D) meshes do not. The engine's
 texture and depth, and returns a face patch with all 52 ARKit morph targets
 (`FACE_RIG_SHAPES`, audio2face channel order; `visemeFrameToFaceRig` maps visemes onto
 them). Landmark detection is heuristic and can misplace features (in the 2026-11-27
-review the mouth on a test mesh landed at eye height), so inspect the result before
-shipping it.
+review the mouth on a test mesh landed at eye height and blink moved the hair), so
+inspect the result before shipping it. The editor in the development monorepo keeps it
+off by default for that reason.
 
 ## Limits (honest list)
 

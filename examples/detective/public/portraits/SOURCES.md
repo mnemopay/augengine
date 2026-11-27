@@ -54,4 +54,4 @@ $0.0001 is the game's own model-mode e2e test). `_source/ledger.json` lists ever
 
 ## Dead Air
 
-The five new characters have original generated portraits. Seventeen image calls (estimated $0.663) are recorded in _source/deadair-ledger.json. The four suspects appear on painted portrait plaques in the radio-station lobby.
+The five new characters have original generated portraits. Seventeen image calls (estimated $0.663) are recorded in _source/deadair-ledger.json. The four suspects appear on painted portrait plaques in the radio-station lobby. The raw generator outputs (864×1184 PNG, one per ledger call) are kept in `examples/detective/assets-src/portraits/deadair/<id>_<mood>.png`; the game ships the WebP versions in `portraits/deadair/<id>/<mood>.webp`.
