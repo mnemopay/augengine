@@ -56,8 +56,13 @@ Name face morph targets after Apple's **ARKit-52** set (`jawOpen`,
 `eyeBlinkLeft`, `mouthSmileLeft`…, list in `characters/humanoid.ts` `ARKIT_52`).
 Lip-sync: live speech → in-browser viseme detection; scripted lines → bake offline
 with NVIDIA Audio2Face (open-sourced Sept 2025; runs on an NVIDIA GPU). VRoid and
-MetaHuman ship face shapes; generated (image-to-3D) meshes do **not** — they have no
-face rig.
+MetaHuman ship face shapes; generated (image-to-3D) meshes do not. The engine's
+`buildFaceRig` (alpha) can add one: it finds the head, detects eyes/nose/mouth from the
+texture and depth, and returns a face patch with all 52 ARKit morph targets
+(`FACE_RIG_SHAPES`, audio2face channel order; `visemeFrameToFaceRig` maps visemes onto
+them). Landmark detection is heuristic and can misplace features (in the 2026-11-27
+review the mouth on a test mesh landed at eye height), so inspect the result before
+shipping it.
 
 ## Limits (honest list)
 
@@ -66,4 +71,4 @@ face rig.
 - **Retargeting** is humanoid ↔ humanoid; quadrupeds, tails, wings and props
   aren't mapped. Mirror-image rigs aren't detected.
 - **Characters without face morphs get no lip-sync** until a face rig is added
-  (e.g. via the VRoid/MetaHuman routes).
+  (VRoid/MetaHuman routes, or the alpha `buildFaceRig` with the caveat above).

@@ -13,7 +13,7 @@ a fixed-step, Rapier-backed world. The same scene can be played by a person or d
 an agent over the Model Context Protocol.
 
 - Play the flagship slice: **[augengine.com/detective](https://augengine.com/detective)**
-  (*The Wrenfield Observatory*). Its full source is in [`examples/detective`](examples/detective).
+  (two cases: *The Wrenfield Observatory* and *Dead Air*). Its full source is in [`examples/detective`](examples/detective).
 - npm: [`@mnemopay/augengine`](https://www.npmjs.com/package/@mnemopay/augengine) (alpha),
   [`@mnemopay/augengine-lod`](https://www.npmjs.com/package/@mnemopay/augengine-lod) (alpha)
 - New here? Start with [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md), then the
@@ -38,9 +38,9 @@ AugEngine is measured against four gates. Honest status:
 3. **Gate 3, editor: shipped as alpha, not in this repository.** AugEngine Studio (browser
    editor plus an unsigned Windows build) lives in the development monorepo for now.
 4. **Gate 4, a finished game: shipped as alpha.** The detective game, live at
-   augengine.com/detective, source in [`examples/detective`](examples/detective).
+   augengine.com/detective (two cases), source in [`examples/detective`](examples/detective).
 
-Known gaps carried into the next release: generated characters have no lip-sync; Kokoro
+Known gaps carried into the next release: the generated-character face rig (`buildFaceRig`) is alpha and can misplace features; textured LOD baking (augengine-lod 0.2.0-alpha.0) is in this repo but not on npm; Kokoro
 voices need `@mnemopay/augengine-onnx`, which is not public yet. Full list in
 [`packages/augengine/CHANGELOG.md`](packages/augengine/CHANGELOG.md).
 
@@ -52,7 +52,7 @@ voices need `@mnemopay/augengine-onnx`, which is not public yet. Full list in
 | [`packages/augengine-lod`](packages/augengine-lod) | LOD baking CLI + procedural city kit | `@mnemopay/augengine-lod` (alpha) |
 | [`packages/augengine-mcp`](packages/augengine-mcp) | stdio MCP server: scene authoring, actions, observations, Godot export, detective tools | no |
 | [`packages/augengine-detective`](packages/augengine-detective) | The detective game's core: case as deterministic state, rule engine, suspect personas, LLM-dialogue guardrails, offline fallback, per-player memory | no |
-| [`examples/detective`](examples/detective) | *The Wrenfield Observatory*, the gate 4 game (Vite app + key-guarded dialogue API) | no |
+| [`examples/detective`](examples/detective) | *The Wrenfield Observatory* and *Dead Air*, the gate 4 game (Vite app + key-guarded dialogue API) | no |
 | [`docs/`](docs) | [Getting started](docs/GETTING-STARTED.md), [characters](docs/CHARACTERS.md) | |
 | [`results/`](results) | Measured scorecards and captures: [renderer benchmark](results/renderer-benchmark/SCORECARD.md), [streamed level](results/stream-level/SCORECARD.md), [proof room](results/proof-room/SCORECARD.md), [detective](results/detective) | |
 | [`AUGENGINE-ARCHITECTURE.md`](AUGENGINE-ARCHITECTURE.md) | The architecture decision record (public edition) | |
@@ -75,9 +75,10 @@ npm test          # unit tests (vitest) in every workspace
 ```
 
 Measured on 2026-11-27 (Node 25.9.0 / npm 11.12.1, Windows) from a clean tree: `npm ci`
-and `npm run build` succeed and `npm test` passes 983 unit tests in 5 workspaces (853 in the
-engine, 51 detective core, 43 MCP server, 18 LOD, 18 game server), with 1 skipped: the
-engine's native-substrate ABI check, whose package is not in this repository. CI runs the
+and `npm run build` succeed and `npm test` passes 1,052 unit tests in 5 workspaces (868 in
+the engine, 93 detective core, 43 MCP server, 30 LOD, 18 game server), with 2 skipped: the
+engine's native-substrate ABI check and the face rig's audio2face channel-order check, whose
+packages are not in this repository. CI runs the
 same three commands on Ubuntu with Node 20 and 22.
 
 Notes:

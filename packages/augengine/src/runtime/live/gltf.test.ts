@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadGltfIntoRenderer } from "./gltf.js";
+import { loadGltfIntoRenderer, loadLodIntoRenderer } from "./gltf.js";
+import { loadGlb } from "../../scene/loaders/gltf.js";
 import { loadGltfIntoRenderer as fromRoot } from "../../index.js";
 import { Scene } from "../../scene/scene.js";
 import { Tag } from "../../scene/types.js";
@@ -73,5 +74,15 @@ describe("loadGltfIntoRenderer", () => {
       }),
     ).rejects.toThrow("404");
     expect(r.meshes).toEqual([]);
+  });
+});
+
+describe("loadLodIntoRenderer", () => {
+  it.each(["augengine-lod/1", "augengine-lod/2"])("resolves textured primitives for %s", async format => {
+    const renderer = fakeRenderer();
+    const mesh = loadGlb(CUBE).parsed.root.meshes![0]!.name!;
+    const levels = await loadLodIntoRenderer(renderer, "/cube.glb", { format, lods:[{level:0, mesh}] }, {fetch:okFetch(CUBE)});
+    expect(levels.get(0)).toContain("gltf:/cube.glb#0");
+    expect(renderer.textures[0]!.slots).toContain("baseColor");
   });
 });

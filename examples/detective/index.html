@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Wrenfield Observatory — an AugEngine detective game</title>
-    <meta name="description" content="A short detective game on AugEngine: question four suspects who remember you, find the clues, and make one accusation." />
+    <title>AugEngine Detective — two original murder cases</title>
+    <meta name="description" content="A short detective game on AugEngine: question four suspects who remember you, find the clues, and make one accusation. Two cases: The Wrenfield Observatory and Dead Air." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <style>
       :root {
         --bg: #07080c;
@@ -18,19 +19,30 @@
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.45 Georgia, "Times New Roman", serif; overflow: hidden; }
-      #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+      #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: manipulation; }
       .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; backdrop-filter: blur(6px); }
       h1, h2, h3 { font-weight: normal; margin: 0 0 6px; letter-spacing: 0.02em; }
       h2 { font-size: 18px; color: var(--gold); }
       h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--dim); margin-top: 10px; }
-      button { font: inherit; color: var(--ink); background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
-      button:hover:not(:disabled) { border-color: var(--gold); }
+      button, .btn { font: inherit; color: var(--ink); background: rgba(255,255,255,0.06); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; text-decoration: none; display: inline-block; }
+      button:hover:not(:disabled), .btn:hover { border-color: var(--gold); }
       button:disabled { opacity: 0.45; cursor: default; }
       button.primary { background: var(--gold); color: #1b1408; border-color: var(--gold); }
       button.active { border-color: var(--gold); color: var(--gold); }
+      .panel-head { display: flex; align-items: center; gap: 8px; }
+      .panel-head h2 { flex: 1; margin: 0; }
+      .panel-toggle { padding: 2px 8px; font-size: 13px; color: var(--dim); }
+      .panel-toggle .chev { display: inline-block; transition: transform 0.15s; }
+      .panel.collapsed .panel-toggle .chev { transform: rotate(-90deg); }
+      .panel.collapsed .panel-body { display: none; }
+      .panel-body { margin-top: 8px; }
+      #room-now { color: var(--dim); font-size: 13px; display: none; }
+      .panel.collapsed #room-now { display: inline; }
+      #notebook-count { font-size: 12px; color: var(--dim); border: 1px solid var(--line); border-radius: 10px; padding: 0 7px; }
       #rooms { top: 14px; left: 14px; width: 260px; max-height: calc(100% - 28px); overflow-y: auto; }
       #rooms .room-list, #objects { display: flex; flex-direction: column; gap: 5px; }
       #room-blurb { color: var(--dim); font-style: italic; margin: 6px 0; }
+      .case-actions { display: flex; gap: 6px; flex-wrap: wrap; }
       #notebook { top: 14px; right: 14px; width: 300px; max-height: calc(100% - 28px); overflow-y: auto; }
       #notebook ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
       #notebook li { border-left: 2px solid var(--gold); padding-left: 8px; }
@@ -39,7 +51,7 @@
       #notebook .empty { color: var(--dim); font-style: italic; }
       #dialogue { left: 290px; right: 330px; bottom: 14px; min-height: 160px; }
       #dialogue.has-portrait { padding-left: 166px; }
-      #portrait { position: absolute; left: 12px; bottom: 12px; width: 144px; height: 192px; object-fit: cover; border-radius: 6px; border: 2px solid #3a2a18; box-shadow: 0 6px 24px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.25s ease; }
+      #portrait { pointer-events: none; position: absolute; left: 12px; bottom: 12px; width: 144px; height: 192px; object-fit: cover; border-radius: 6px; border: 2px solid #3a2a18; box-shadow: 0 6px 24px rgba(0,0,0,0.6); opacity: 0; transition: opacity 0.25s ease; }
       #portrait.show { opacity: 1; }
       #suspects { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
       .suspect-btn { display: flex; align-items: center; gap: 6px; padding: 3px 9px 3px 3px; }
@@ -48,26 +60,63 @@
       #speech .who { color: var(--gold); }
       #speech .src { font-size: 11px; color: var(--dim); margin-left: 6px; }
       #memory-note { font-size: 13px; color: #9fc2e8; font-style: italic; min-height: 18px; }
-      #ask-row { display: flex; gap: 6px; margin-top: 8px; }
-      #ask-row input, select { flex: 1; font: inherit; background: rgba(0,0,0,0.4); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
-      #toast { top: 14px; left: 50%; transform: translateX(-50%); display: none; max-width: 520px; text-align: center; }
+      #ask-row, #present-row { display: flex; gap: 6px; margin-top: 8px; }
+      #present-row { margin-top: 6px; }
+      #ask-row input, select { flex: 1; min-width: 0; font: inherit; background: rgba(0,0,0,0.4); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+      #toast { top: 14px; left: 50%; transform: translateX(-50%); display: none; max-width: 520px; text-align: center; z-index: 6; }
       .overlay { position: fixed; inset: 0; background: rgba(4, 5, 8, 0.82); display: none; align-items: center; justify-content: center; z-index: 10; }
       .overlay.show { display: flex; }
-      .card { width: min(640px, calc(100% - 32px)); max-height: calc(100% - 40px); overflow-y: auto; background: #10121a; border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; }
+      .card { width: min(680px, calc(100% - 32px)); max-height: calc(100% - 40px); overflow-y: auto; background: #10121a; border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; }
       .card h1 { font-size: 28px; color: var(--gold); }
       .card p { color: var(--ink); }
       .card .muted { color: var(--dim); font-size: 13px; }
       .verdict-solved { color: var(--green) !important; }
       .verdict-weak, .verdict-wrong { color: var(--red) !important; }
       .checklist { display: flex; flex-direction: column; gap: 4px; margin: 6px 0 12px; }
-      .row { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+      .row { display: flex; gap: 8px; align-items: center; margin: 6px 0; flex-wrap: wrap; }
       .row label { width: 90px; color: var(--dim); }
+      #case-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 14px; }
+      .case-card { display: flex; gap: 12px; align-items: center; text-align: left; padding: 8px; width: 100%; }
+      .case-card img { width: 54px; height: 72px; object-fit: cover; border-radius: 4px; flex: none; }
+      .case-card.active { border-color: var(--gold); background: rgba(217,164,65,0.08); }
+      .case-meta { display: flex; flex-direction: column; gap: 2px; }
+      .case-name { color: var(--gold); font-size: 17px; }
+      .case-tag { color: var(--ink); font-size: 13px; }
+      .case-progress { color: var(--dim); font-size: 12px; font-style: italic; }
+      #intro-title { font-size: 22px; margin-top: 4px; }
+      #share { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+      #share-img { width: 100%; aspect-ratio: 1200 / 630; border-radius: 6px; border: 1px solid var(--line); background: #0d0f16; display: block; }
+      #share-text { width: 100%; min-height: 64px; margin-top: 8px; font: 13px/1.4 Georgia, serif; background: rgba(0,0,0,0.4); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; resize: vertical; }
+      #share-status { font-size: 12px; color: var(--dim); min-height: 16px; }
       #hover-label { position: fixed; display: none; pointer-events: none; z-index: 5; background: rgba(14,16,22,0.92); border: 1px solid var(--gold); color: var(--gold); border-radius: 6px; padding: 3px 8px; font-size: 13px; }
       #perf { position: fixed; bottom: 4px; right: 8px; font: 11px monospace; color: var(--dim); }
       @media (max-width: 900px) {
-        #rooms { width: 46%; max-height: 38%; }
-        #notebook { width: 46%; max-height: 38%; }
-        #dialogue { left: 14px; right: 14px; }
+        #rooms { left: 8px; top: 8px; width: calc(50% - 12px); max-height: 42%; padding: 8px 10px; }
+        #notebook { right: 8px; top: 8px; width: calc(50% - 12px); max-height: 42%; padding: 8px 10px; }
+        #dialogue { left: 8px; right: 8px; bottom: 8px; min-height: 0; max-height: 50%; overflow-y: auto; padding: 8px 10px; }
+        #perf { display: none; }
+      }
+      @media (max-width: 640px) {
+        body { font-size: 14px; }
+        h2 { font-size: 16px; }
+        #rooms { width: auto; right: 8px; max-height: 44%; }
+        #rooms .room-list { flex-direction: row; flex-wrap: wrap; }
+        #rooms .room-list button { flex: 1 1 30%; padding: 6px 4px; font-size: 13px; }
+        #objects button { text-align: left; }
+        #notebook { top: auto; bottom: calc(50% + 4px); left: auto; right: 8px; width: auto; max-width: calc(100% - 16px); max-height: 38%; }
+        #notebook.collapsed { width: auto; }
+        #rooms.collapsed, #notebook.collapsed { overflow: hidden; }
+        #dialogue { max-height: 48%; }
+        #dialogue.has-portrait { padding-left: 10px; }
+        #portrait { position: static; float: left; width: 66px; height: 88px; margin: 0 8px 4px 0; }
+        #portrait:not(.show) { display: none; }
+        #speech { font-size: 15px; min-height: 0; }
+        .suspect-btn { padding: 2px 7px 2px 2px; font-size: 13px; }
+        .suspect-btn img { width: 22px; height: 29px; }
+        #toast { top: auto; bottom: calc(50% + 52px); max-width: calc(100% - 24px); width: max-content; }
+        .card { padding: 16px; }
+        .card h1 { font-size: 22px; }
+        .row label { width: 100%; }
       }
     </style>
   </head>
@@ -75,46 +124,68 @@
     <canvas id="game"></canvas>
 
     <section id="rooms" class="panel" aria-label="Rooms">
-      <h2>Wrenfield Observatory</h2>
-      <div class="room-list" id="room-list"></div>
-      <h3 id="room-name">Parlour</h3>
-      <div id="room-blurb"></div>
-      <div id="objects"></div>
-      <h3>Case</h3>
-      <button id="accuse-open" class="primary" data-testid="accuse-open">Make your accusation</button>
+      <div class="panel-head">
+        <h2 id="case-title">AugEngine Detective</h2>
+        <span id="room-now"></span>
+        <button id="toggle-rooms" class="panel-toggle" data-testid="toggle-rooms" aria-expanded="true" aria-controls="rooms-body" title="Show or hide rooms"><span class="chev">▾</span></button>
+      </div>
+      <div class="panel-body" id="rooms-body">
+        <div class="room-list" id="room-list"></div>
+        <h3 id="room-name"></h3>
+        <div id="room-blurb"></div>
+        <div id="objects"></div>
+        <h3>Case</h3>
+        <div class="case-actions">
+          <button id="accuse-open" class="primary" data-testid="accuse-open">Make your accusation</button>
+          <button id="cases-open" data-testid="cases-open">Cases</button>
+        </div>
+      </div>
     </section>
 
     <section id="notebook" class="panel" aria-label="Notebook">
-      <h2>Notebook</h2>
-      <ul id="notebook-list"><li class="empty">Nothing yet. Search the rooms.</li></ul>
+      <div class="panel-head">
+        <h2>Notebook</h2>
+        <span id="notebook-count" aria-label="items in notebook">0</span>
+        <button id="toggle-notebook" class="panel-toggle" data-testid="toggle-notebook" aria-expanded="true" aria-controls="notebook-body" title="Show or hide the notebook"><span class="chev">▾</span></button>
+      </div>
+      <div class="panel-body" id="notebook-body">
+        <ul id="notebook-list"><li class="empty">Nothing yet. Search the rooms.</li></ul>
+      </div>
     </section>
 
     <section id="dialogue" class="panel" aria-label="Questioning">
       <img id="portrait" alt="" />
       <div id="suspects"></div>
       <div id="memory-note"></div>
-      <div id="speech" aria-live="polite">Go to the parlour and choose someone to question.</div>
+      <div id="speech" aria-live="polite">Go to where the suspects wait and choose someone to question.</div>
       <div id="ask-row">
-        <input id="ask-input" maxlength="300" placeholder="Ask a question… (e.g. Where were you at ten?)" data-testid="ask-input" />
+        <input id="ask-input" maxlength="300" placeholder="Ask a question… (e.g. Where were you at midnight?)" data-testid="ask-input" />
         <button id="ask-send" data-testid="ask-send">Ask</button>
       </div>
-      <div id="present-row" style="display:flex;gap:6px;margin-top:6px">
+      <div id="present-row">
         <select id="present-select" data-testid="present-select"><option value="">Show evidence…</option></select>
         <button id="present-send" data-testid="present-send">Show</button>
       </div>
     </section>
 
-    <div id="toast" class="panel"></div>
+    <div id="toast" class="panel" role="status"></div>
     <div id="hover-label" data-testid="hover-label"></div>
 
     <div id="intro" class="overlay show">
       <div class="card">
-        <h1>The Wrenfield Observatory</h1>
+        <h1>AugEngine Detective</h1>
+        <p class="muted">Choose a case. Each one remembers you separately.</p>
+        <div id="case-list" role="list"></div>
+        <p><a style="color:var(--gold)" href="%BASE_URL%encounter.html" data-testid="encounter-link">Create your own witness encounter</a></p>
+        <h2 id="intro-title"></h2>
         <p id="intro-text"></p>
         <p class="muted" id="intro-memory"></p>
-        <p class="muted">Search rooms for clues. In the parlour, ask the household anything and show them what you've found — some of them are lying, and the right evidence will crack them. You get <b>one</b> accusation: name the killer, the method and the motive, and back it with evidence.</p>
+        <p class="muted">Search rooms for clues. Where the suspects wait, ask them anything and show them what you've found — some of them are lying, and the right evidence will crack them. You get <b>one</b> accusation: name the killer, the method and the motive, and back it with evidence.</p>
         <p class="muted" id="mode-note"></p>
-        <button class="primary" id="start" data-testid="start">Begin the investigation</button>
+        <div class="row">
+          <button class="primary" id="start" data-testid="start">Begin the investigation</button>
+          <button id="restart" data-testid="restart" style="display:none">Start over</button>
+        </div>
       </div>
     </div>
 
@@ -139,7 +210,22 @@
       <div class="card">
         <h1 id="result-headline" data-testid="result-headline"></h1>
         <div id="result-body"></div>
-        <button class="primary" id="new-case" data-testid="new-case">Investigate again</button>
+        <section id="share" aria-label="Share your verdict">
+          <h3>Share your verdict</h3>
+          <p class="muted">No spoilers: it shows how you did, not who did it. Nothing is sent anywhere unless you send it.</p>
+          <img id="share-img" alt="" data-testid="share-img" />
+          <textarea id="share-text" readonly data-testid="share-text" aria-label="Share text"></textarea>
+          <div class="row">
+            <button id="share-copy" data-testid="share-copy">Copy text</button>
+            <a id="share-download" class="btn" data-testid="share-download" href="#" download="verdict.png">Save card image</a>
+            <button id="share-native" data-testid="share-native" style="display:none">Share…</button>
+          </div>
+          <div id="share-status" role="status"></div>
+        </section>
+        <div class="row">
+          <button class="primary" id="new-case" data-testid="new-case">Investigate again</button>
+          <button id="result-cases" data-testid="result-cases">Choose another case</button>
+        </div>
       </div>
     </div>
 

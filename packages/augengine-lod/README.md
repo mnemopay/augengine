@@ -8,14 +8,15 @@ triangles, LOD2 ~1/16, LOD3 an impostor) with a JSON manifest the engine can str
 npm install @mnemopay/augengine-lod
 ```
 
-Node 18+. **Alpha (`0.1.0-alpha.0`):** the API may change between `0.x` releases.
+Node 18+. **Alpha.** npm has `0.1.0-alpha.0`; this repo is at `0.2.0-alpha.0` (material-aware baking, v2 manifest), **not yet published**. The API may change between `0.x` releases.
 
 | Feature | Status |
 | --- | --- |
 | `bake`: GLB → LOD0–LOD3 + manifest + preview sheet | alpha (verified against the published package: `kit` and `bake` both run) |
 | Procedural city kit (`kit`) | alpha |
 | Browser-safe in-memory baking (`/runtime`) | alpha |
-| Textures carried through the bake | not yet |
+| Textures and material groups carried through the bake, `augengine-lod/2` manifest | alpha, repo only (0.2.0-alpha.0, unpublished) |
+| Textured impostor atlas (LOD3) | alpha, PNG sources only (see Limits) |
 | `simplifySmooth` for organic meshes | in the repo, not in the published 0.1.0-alpha.0 |
 
 Part of [AugEngine](https://www.npmjs.com/package/@mnemopay/augengine): the engine's
@@ -31,7 +32,9 @@ npx augengine-lod kit --out kit-out
 `bake` options: `--ratios 0.25,0.0625` (LOD1/LOD2 triangle ratios), `--error 0.02,0.08`
 (max simplification error as a fraction of the mesh's bounding radius), `--uv-seams` (keep UV seams; on by
 default when the source has textures), `--lock-border` (for tiles that must meet
-neighbours), `--no-impostor`, `--no-preview`.
+neighbours), `--no-impostor`, `--no-preview`. 0.2 (repo only): `--materials keep|fold`
+(default `keep`), `--normals auto|flat|smooth`, `--impostor-texture atlas|vertex|none`
+(default `atlas`).
 
 Output per model:
 
@@ -66,7 +69,7 @@ const { levels } = await bakeLods(mesh, { impostor: "box" });
 const { catalog, meshes } = await kitMeshLibrary();
 ```
 
-## Manifest (`augengine-lod/1`)
+## Manifest (`augengine-lod/1`; 0.2 writes `augengine-lod/2`, a superset)
 
 ```json
 {
@@ -97,8 +100,15 @@ assets. Per-part colour lives in vertex colours, so each asset is one mesh and o
 
 ## Limits
 
-- Textures are not carried through the bake; base-colour factors and vertex colours are.
-  The LOD3 impostor is a flat-tinted box or crossed quads, not a baked texture.
+- Published 0.1.0-alpha.0: textures are not carried through the bake; base-colour factors
+  and vertex colours are, and the LOD3 impostor is flat-tinted. The repo's 0.2.0-alpha.0
+  keeps textures (below).
+- 0.2 with textures kept, UV seams are locked, so meshes with fragmented UV atlases
+  (image-to-3D output such as TRELLIS) barely simplify past LOD1. Measured on the Studio
+  face-rig fixture (6,370 tris): LOD1 2,864, LOD2 2,858 with `--materials keep`, versus
+  1,592 / 720 with `--materials fold` (textures dropped).
+- The impostor atlas samples PNG textures only. JPEG/WebP/KTX2 base colours fall back to
+  the material factor (a warning is printed), which for most textured models is plain white.
 - FBX is refused (export glTF Binary instead). Draco- or meshopt-compressed meshes and
   sparse accessors are rejected. Only GLB-embedded buffers are read (no external `.bin`).
 
@@ -111,3 +121,8 @@ assets. Per-part colour lives in vertex colours, so each asset is one mesh and o
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
+
+
+### Material-aware baking (0.2 alpha)
+
+Use `augengine-lod bake model.glb --materials keep --normals auto --impostor-texture atlas`. Source images are shared between detail levels. The v2 manifest adds material assignments and image sizes to the existing level keys and distance thresholds. Use `--materials fold` for the earlier factor-to-vertex-colour behavior. The Node atlas renderer samples PNG textures. Other embedded formats are carried through in the GLB; their atlas previews use the available material factors. The engine reads both manifest versions with `loadLodIntoRenderer` (`@mnemopay/augengine`, live runtime). The `.lods.png` contact sheet is untextured shading only.

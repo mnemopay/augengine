@@ -8,7 +8,8 @@
  * times; rejected lines are replaced by the offline gist.
  */
 
-import { EVIDENCE, SUSPECTS, VICTIM, type EvidenceId, type SuspectId } from "./case.js";
+import type { CaseDef, EvidenceId, Suspect, SuspectId } from "./case.js";
+import { caseById } from "./cases.js";
 import type { Utterance } from "./rules.js";
 
 export interface DialogueContext {
@@ -50,18 +51,39 @@ const META = [
   "fictional",
 ];
 
-const CONFESSION = /\bi\s+(?:poisoned|killed|murdered|did\s+it|put\s+(?:the|it)\s+in)\b/i;
-const NAMES_KILLER = /\b(?:is|was)\s+the\s+(?:killer|murderer|poisoner)\b|\b(?:killed|poisoned|murdered)\s+(?:him|the professor|vance|aurel)\b/i;
+const CONFESSION = /\bi\s+(?:poisoned|killed|murdered|electrocuted|rigged|did\s+it|put\s+(?:the|it)\s+in)\b/i;
+const namesKillerCache = new Map<string, RegExp>();
+/** "X is the killer", or a killing verb aimed at the victim — built per case from the victim's keywords. */
+function namesKiller(c: CaseDef): RegExp {
+  let re = namesKillerCache.get(c.id);
+  if (!re) {
+    const victim = ["him", "her", "the victim", "the professor", ...c.victim.keywords]
+      .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join("|");
+    re = new RegExp(String.raw`\b(?:is|was)\s+the\s+(?:killer|murderer|poisoner)\b|\b(?:killed|poisoned|murdered|electrocuted)\s+(?:${victim})\b`, "i");
+    namesKillerCache.set(c.id, re);
+  }
+  return re;
+}
 const TIME_TOKEN = /\b\d{1,2}[:.]\d{2}\b/g;
 
 function norm(s: string): string {
   return s.toLowerCase().replace(/[’']/g, "'");
 }
 
+/** The case and suspect a dialogue context refers to. */
+export function dialogueCase(ctx: DialogueContext): { c: CaseDef; s: Suspect } {
+  const c = caseById(ctx.utterance.caseId);
+  const s = c.suspects[ctx.utterance.suspect];
+  if (!s) throw new Error(`no suspect ${ctx.utterance.suspect} in case ${c.id}`);
+  return { c, s };
+}
+
 export function buildMessages(ctx: DialogueContext): ChatMessage[] {
-  const s = SUSPECTS[ctx.utterance.suspect];
+  const { c, s } = dialogueCase(ctx);
   const system = [
-    `You are ${s.name}, ${s.role}, being questioned by a detective about the death of ${VICTIM.name}, ${VICTIM.role}.`,
+    `You are ${s.name}, ${s.role}, being questioned by a detective about the death of ${c.victim.name}, ${c.victim.role}.`,
+    `Setting: ${c.setting}.`,
     `Persona: ${s.persona}`,
     `Voice: ${s.voice}.`,
     "",
@@ -101,14 +123,15 @@ export function validateLine(line: string, ctx: DialogueContext): Validation {
   if (line.length > MAX_LINE_CHARS) reasons.push("too_long");
   for (const m of META) if (text.includes(m)) reasons.push(`meta:${m}`);
   if (CONFESSION.test(line) && !CONFESSION.test(ctx.utterance.gist)) reasons.push("confession");
+  const { c, s } = dialogueCase(ctx);
+  const NAMES_KILLER = namesKiller(c);
   if (NAMES_KILLER.test(line) && !NAMES_KILLER.test(ctx.utterance.gist)) reasons.push("names_killer");
-  const s = SUSPECTS[ctx.utterance.suspect];
   for (const term of s.forbiddenTerms) {
     const t = norm(term);
     if (text.includes(t) && !gist.includes(t)) reasons.push(`forbidden:${term}`);
   }
   // Evidence the player hasn't found must not leak (unless the gist itself carries it).
-  for (const ev of Object.values(EVIDENCE)) {
+  for (const ev of Object.values(c.evidence)) {
     if (ctx.notebook.includes(ev.id)) continue;
     for (const term of ev.leakTerms) {
       const t = norm(term);
@@ -129,9 +152,9 @@ export function offlineLine(ctx: DialogueContext): string {
 }
 
 /** Strip wrapping quotes / speaker labels models sometimes add. */
-export function cleanModelLine(raw: string, suspect: SuspectId): string {
+export function cleanModelLine(raw: string, suspect: SuspectId, caseId?: string): string {
   let t = raw.trim();
-  const name = SUSPECTS[suspect].name;
+  const name = caseById(caseId).suspects[suspect]?.name ?? suspect;
   for (const label of [name, name.split(" ")[0]!]) {
     if (t.toLowerCase().startsWith(`${label.toLowerCase()}:`)) t = t.slice(label.length + 1).trim();
   }
@@ -145,7 +168,7 @@ export function finalizeLine(
   ctx: DialogueContext,
 ): { text: string; source: "llm" | "offline"; validation: Validation | null } {
   if (modelText == null) return { text: offlineLine(ctx), source: "offline", validation: null };
-  const cleaned = cleanModelLine(modelText, ctx.utterance.suspect);
+  const cleaned = cleanModelLine(modelText, ctx.utterance.suspect, ctx.utterance.caseId);
   const v = validateLine(cleaned, ctx);
   if (v.ok) return { text: cleaned, source: "llm", validation: v };
   return { text: offlineLine(ctx), source: "offline", validation: v };

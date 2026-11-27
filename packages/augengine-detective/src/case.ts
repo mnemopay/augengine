@@ -1,16 +1,32 @@
 /**
- * The Wrenfield Observatory — the hand-authored case.
+ * Case format + The Wrenfield Observatory (the first hand-authored case).
  *
- * Everything here is ground truth. The rule engine reads it; dialogue (LLM or
- * offline) only ever rephrases lines chosen from it. Nothing an LLM writes can
- * change who did it, how, when, or which clue exists where.
+ * Everything in a case is ground truth. The rule engine reads it; dialogue
+ * (LLM or offline) only ever rephrases lines chosen from it. Nothing an LLM
+ * writes can change who did it, how, when, or which clue exists where.
+ *
+ * Ids are plain strings so several cases can share one engine. Conventions:
+ * clue ids start with `C_`, testimony ids with `T_`. Each case is a `CaseDef`
+ * (see the bottom of this file); `cases.ts` registers them.
  *
  * Original setting and characters (no existing franchise, game or novel).
  */
 
-export type RoomId = "parlour" | "dome" | "library" | "kitchen" | "conservatory";
-export type SuspectId = "mara" | "desmond" | "ines" | "teodor";
-export type ClueId =
+export type RoomId = string;
+export type SuspectId = string;
+/** A physical clue found by examining an object (`C_…`). */
+export type ClueId = string;
+/** A statement a suspect makes that enters the notebook (`T_…`). */
+export type TestimonyId = string;
+/** Anything that can sit in the notebook and be presented to a suspect. */
+export type EvidenceId = ClueId | TestimonyId;
+export type MethodId = string;
+export type MotiveId = string;
+
+/** Wrenfield's own literal ids (kept so its tables stay typo-checked). */
+export type WrenfieldRoomId = "parlour" | "dome" | "library" | "kitchen" | "conservatory";
+export type WrenfieldSuspectId = "mara" | "desmond" | "ines" | "teodor";
+export type WrenfieldEvidenceId =
   | "C_FLASK"
   | "C_LOG"
   | "C_LETTER"
@@ -18,18 +34,52 @@ export type ClueId =
   | "C_IOU"
   | "C_CABINET"
   | "C_TEA_NOTE"
-  | "C_GLOVE";
-export type TestimonyId = "T_TEODOR_SAW_DESMOND" | "T_TEODOR_ARGUED" | "T_INES_GARDEN" | "T_MARA_CARRIED";
-/** Anything that can sit in the notebook and be presented to a suspect. */
-export type EvidenceId = ClueId | TestimonyId;
-
-export type MethodId = "poison_tea" | "struck" | "fall" | "smothered";
-export type MotiveId = "inheritance" | "stolen_research" | "credit" | "grudge";
+  | "C_GLOVE"
+  | "T_TEODOR_SAW_DESMOND"
+  | "T_TEODOR_ARGUED"
+  | "T_INES_GARDEN"
+  | "T_MARA_CARRIED";
 
 export interface Room {
   id: RoomId;
   name: string;
   blurb: string;
+}
+
+/**
+ * One hand-authored case. The engine, guardrails, memory and mood all read a
+ * CaseDef; nothing outside it is case-specific.
+ */
+export interface CaseDef {
+  /** Stable id (URL- and storage-safe). */
+  id: string;
+  title: string;
+  /** Spoiler-free one-liner for the case-select screen. */
+  tagline: string;
+  /** Place, era and tone, given to the model so the voice fits the setting. */
+  setting: string;
+  intro: string;
+  victim: { name: string; role: string; portraitId: string; keywords: string[] };
+  /** Who rules on the accusation ("the magistrate"). */
+  authority: string;
+  /** The room where suspects can be questioned. */
+  interviewRoom: RoomId;
+  /** Error shown when the player tries to question someone elsewhere. */
+  interviewHint: string;
+  rooms: Room[];
+  /** Ordered keyword lists that turn a question into a `room:` topic. */
+  roomKeywords: Array<[RoomId, string[]]>;
+  objects: RoomObject[];
+  evidence: Record<EvidenceId, Evidence>;
+  suspects: Record<SuspectId, Suspect>;
+  suspectOrder: SuspectId[];
+  truth: CaseTruth;
+  methods: Record<MethodId, string>;
+  motives: Record<MotiveId, string>;
+  /** Reply to a question the rules can't place. */
+  unknownLine: string;
+  /** Sub-folder for this case's portraits/busts ("" for the first case, else "<id>/"). */
+  assetPrefix: string;
 }
 
 export interface RoomObject {
@@ -119,6 +169,8 @@ export interface CaseTruth {
   killer: SuspectId;
   method: MethodId;
   motive: MotiveId;
+  /** Headline for a solved case. */
+  solvedHeadline: string;
   /** Shown after the accusation. */
   explanation: string[];
 }
@@ -131,7 +183,7 @@ export const CASE_INTRO =
 
 export const VICTIM = { name: "Professor Aurel Vance", role: "astronomer, owner of Wrenfield Observatory" } as const;
 
-export const ROOMS: Room[] = [
+export const ROOMS: Array<Room & { id: WrenfieldRoomId }> = [
   { id: "parlour", name: "Parlour", blurb: "The household waits here under the magistrate's eye. Question them here." },
   { id: "dome", name: "Observatory Dome", blurb: "Cold air, the great brass telescope, and the chair where Vance was found." },
   { id: "library", name: "Library", blurb: "Star charts, a dying fire, and Vance's writing desk." },
@@ -139,7 +191,7 @@ export const ROOMS: Room[] = [
   { id: "conservatory", name: "Conservatory", blurb: "Glass walls onto the dark garden, orchids, and wet planters." },
 ];
 
-export const OBJECTS: RoomObject[] = [
+export const OBJECTS: Array<RoomObject & { room: WrenfieldRoomId }> = [
   { id: "dome.flask", room: "dome", name: "Tea flask", clue: "C_FLASK", text: "A steel tea flask beside the telescope. A bitter, green-tinged residue clings to the bottom." },
   { id: "dome.log", room: "dome", name: "Observation log", clue: "C_LOG", text: "Vance's log. The last entry, 23:05: 'Tea bitter tonight. Heart racing — must be the cold.'" },
   { id: "dome.desk", room: "dome", name: "Crumpled letter", clue: "C_LETTER", text: "A letter signed T. Lisk: 'You stole my comet. I will see you answer for it.'" },
@@ -154,7 +206,7 @@ export const OBJECTS: RoomObject[] = [
   { id: "conservatory.orchids", room: "conservatory", name: "Orchids", text: "Vance's prize orchids. Through the glass you can see the whole garden path." },
 ];
 
-export const EVIDENCE: Record<EvidenceId, Evidence> = {
+export const EVIDENCE: Record<WrenfieldEvidenceId, Evidence> = {
   C_FLASK: { id: "C_FLASK", name: "Poisoned tea flask", text: "Vance's tea flask has a bitter green residue. The tea was poisoned.", keywords: ["flask", "tea", "residue", "drink"], leakTerms: ["residue"], supports: ["method"] },
   C_LOG: { id: "C_LOG", name: "Observation log", text: "Last entry 23:05: the tea tasted bitter and his heart was racing. He was alive and already poisoned at 23:05.", keywords: ["log", "entry", "23:05", "notebook"], leakTerms: ["23:05", "observation log"], supports: ["method"] },
   C_LETTER: { id: "C_LETTER", name: "Teodor's angry letter", text: "Teodor Lisk accused Vance of stealing his comet discovery.", keywords: ["letter", "comet", "stole", "stolen"], leakTerms: ["see you answer"], supports: ["motive"], pointsAt: "teodor" },
@@ -169,7 +221,7 @@ export const EVIDENCE: Record<EvidenceId, Evidence> = {
   T_MARA_CARRIED: { id: "T_MARA_CARRIED", name: "Mara carried the tea", text: "Mara carried the flask from the kitchen counter to the dome at 22:00.", keywords: ["carried", "took up"], leakTerms: [], supports: [] },
 };
 
-export const SUSPECTS: Record<SuspectId, Suspect> = {
+export const SUSPECTS: Record<WrenfieldSuspectId, Suspect> = {
   mara: {
     id: "mara",
     name: "Mara Quell",
@@ -343,6 +395,7 @@ export const TRUTH: CaseTruth = {
   killer: "desmond",
   method: "poison_tea",
   motive: "inheritance",
+  solvedHeadline: "Case closed. Desmond Pike poisoned Professor Vance's tea to keep the inheritance.",
   explanation: [
     "Desmond Pike owed forty thousand pounds by the first of the month. His uncle meant to sign a new will tomorrow, leaving Wrenfield to Mara and cutting Desmond out.",
     "At 21:40 Ines left the professor's tea on the kitchen counter and went out to the garden, leaving her herb cabinet unlocked as she always did while cooking.",
@@ -366,6 +419,36 @@ export const MOTIVES: Record<MotiveId, string> = {
   grudge: "An old household grudge",
 };
 
-export function evidenceName(id: EvidenceId): string {
-  return EVIDENCE[id].name;
+export const UNKNOWN_LINE = "I'm not sure what you're asking, detective. Ask me about tonight.";
+
+export const WRENFIELD: CaseDef = {
+  id: "wrenfield",
+  title: CASE_TITLE,
+  tagline: "1930s English country house. An astronomer dead at his telescope, four guests, one night.",
+  setting: "an English country-house observatory in the 1930s, on a cold winter night; gothic, formal, candlelit",
+  intro: CASE_INTRO,
+  victim: { name: VICTIM.name, role: VICTIM.role, portraitId: "vance", keywords: ["vance", "professor", "victim", "uncle", "aurel", "employer"] },
+  authority: "the magistrate",
+  interviewRoom: "parlour",
+  interviewHint: "The household is in the parlour. Go there to question them.",
+  rooms: ROOMS,
+  roomKeywords: [
+    ["kitchen", ["kitchen"]],
+    ["dome", ["dome", "telescope", "upstairs"]],
+    ["library", ["library"]],
+    ["conservatory", ["conservatory", "garden", "orchid"]],
+  ],
+  objects: OBJECTS,
+  evidence: EVIDENCE,
+  suspects: SUSPECTS,
+  suspectOrder: ["mara", "desmond", "ines", "teodor"],
+  truth: TRUTH,
+  methods: METHODS,
+  motives: MOTIVES,
+  unknownLine: UNKNOWN_LINE,
+  assetPrefix: "",
+};
+
+export function evidenceName(id: EvidenceId, c: CaseDef = WRENFIELD): string {
+  return c.evidence[id]?.name ?? id;
 }

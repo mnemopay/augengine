@@ -1,0 +1,20 @@
+{
+ "case": "deadair",
+ "victim": "femi",
+ "styleRefs": { "woman": "ines/calm.webp", "man": "desmond/calm.webp" },
+ "calmInstruction": "Use the attached painting ONLY as a style reference: copy its oil-paint brushwork, single warm key light from the upper left, deep chiaroscuro shadow, muted palette, plain dark smoky background, head-and-shoulders framing and three-quarter pose. Do NOT copy the person in it. Paint a completely NEW, different person, described below, as the next portrait in the same series.",
+ "style": "painted noir portrait, oil painting with visible brushwork, 1950s, dramatic chiaroscuro single warm key light from upper left, deep shadows, muted desaturated palette of umber, slate blue and ochre, plain dark smoky painted background with soft gradient, absolutely no writing, no letters, no symbols, no objects in the background, head-and-shoulders bust, facing three-quarter toward viewer, cinematic, fine art, original character, not a real person, no text, no watermark, hands not visible, consistent portrait series",
+ "moodInstruction": "Keep exactly the same person, face, hair, clothing, framing, background, lighting and painting style. Natural skin tone, no added redness. Change only the facial expression to:",
+ "moods": {
+  "evasive": "evasive and guarded: eyes glancing away to the side, lips pressed into a tight polite half-smile, chin slightly lowered, as if hiding something",
+  "angry": "angry: brows drawn hard together, eyes narrowed and glaring at the viewer, jaw clenched, nostrils slightly flared",
+  "cracked": "cracked and distressed: brows raised and pinched in the middle, eyes glistening close to tears, mouth slightly open, the composure gone"
+ },
+ "subjects": {
+  "ebun": { "ref": "woman", "text": "a 44-year-old Yoruba Nigerian woman in 1957 Lagos, a radio station's secretary and bookkeeper, dark brown skin, composed and proper, a neat indigo headwrap tied high, small gold stud earrings, a high-necked cream lace blouse, reading spectacles on a thin chain, calm neutral polite expression" },
+  "kunle": { "ref": "man", "text": "a 41-year-old Nigerian man in 1957, a radio station's chief engineer, dark brown skin, close-cropped hair, a short moustache, sturdy shoulders, a sweat-darkened khaki work shirt with the collar open, a pencil tucked behind one ear, calm neutral guarded expression" },
+  "adaeze": { "ref": "woman", "text": "a 24-year-old Igbo Nigerian woman in 1957, a highlife singer, dark brown skin, an elegant pressed and curled 1950s hairstyle, small pearl earrings, an emerald satin evening dress with a modest neckline, calm neutral expression with a hint of pride" },
+  "sammy": { "ref": "man", "text": "a 38-year-old Ghanaian man in 1957, a highlife bandleader and trumpeter, dark brown skin, short neatly parted hair, a thin moustache, a cream dinner jacket with a black bow tie, calm neutral expression with a wry hint of a smile" },
+  "femi": { "ref": "man", "text": "a 52-year-old Nigerian man in 1957 Lagos, a charismatic radio presenter and station owner, dark brown skin, greying temples, a broad confident face, round tortoiseshell spectacles, a crisp white shirt with a dark tie under a cream linen jacket, calm commanding expression" }
+ }
+}

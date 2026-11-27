@@ -218,6 +218,7 @@ export {
 export { collectSceneLights, type FrameLights } from "./webgpu/lights.js";
 export {
   loadGltfIntoRenderer,
+  loadLodIntoRenderer,
   type LoadGltfOptions,
   type LoadedGltfIntoRenderer,
 } from "./gltf.js";

@@ -1,6 +1,6 @@
 {
   "name": "@mnemopay/augengine-lod",
-  "version": "0.1.0-alpha.0",
+  "version": "0.2.0-alpha.0",
   "description": "LOD baking for AugEngine: glTF/GLB in, LOD0..LOD3 out (meshoptimizer simplification + impostor), plus an original procedural city kit (buildings, rooftops, street props, trees) baked through it.",
   "license": "Apache-2.0",
   "author": "Jeremiah Omiagbo (Blackpig Films LLC)",

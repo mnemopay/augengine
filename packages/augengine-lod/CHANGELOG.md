@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.2.0-alpha.0 (unreleased, not on npm)
+
+- Preserve material groups and embedded PBR textures through the GLB bake. Generated levels reuse the same images.
+- Write a v2 manifest with per-primitive materials, texture memory estimates and impostor atlas layout.
+- Choose source normals, material handling and impostor colour from the CLI. The default file bake uses an atlas.
+- Known limits: with textures kept, UV seams are locked, so fragmented UV atlases (image-to-3D meshes) barely simplify past LOD1; the impostor atlas samples PNG only (JPEG falls back to the factor colour).
 
 - `simplifySmooth(mesh, targetTriangles, maxError)` in `@mnemopay/augengine-lod/runtime`:
   simplification for organic meshes with smooth, seam-safe normals and compacted vertices. In the

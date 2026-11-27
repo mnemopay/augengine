@@ -151,3 +151,31 @@ test("model mode: a real model line streams in and passes the guardrail", async 
   await page.screenshot({ path: join(SHOTS, "model-mode-ines.png") });
   writeFileSync(join(SHOTS, "model-mode-transcript.json"), JSON.stringify(t, null, 2));
 });
+
+test("Dead Air: case selection, evidence, verdict and share card", async ({ page }) => {
+  await page.goto("/?offline=1");
+  await page.getByTestId("case-card-deadair").click();
+  await page.getByTestId("start").click();
+  await page.getByTestId("room-studio").click();
+  await page.getByTestId("obj-studio.mic").click();
+  await page.getByTestId("room-office").click();
+  for (const id of ["office.ledger", "office.basket"]) await page.getByTestId("obj-" + id).click();
+  await page.getByTestId("room-lobby").click();
+  const headline = await accuse(page, "ebun", "electrocuted", "hide_theft", ["C_CABLE","C_LEDGER","C_TAG"]);
+  expect(headline).toMatch(/Case closed/);
+  await expect(page.getByTestId("share-download")).toHaveAttribute("href", /^(data:image|blob:)/);
+  await expect(page.getByTestId("share-text")).not.toHaveValue("");
+});
+
+test("Dead Air: a mobile player can choose a case and inspect its rooms", async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.goto("/?offline=1");
+  await page.getByTestId("case-card-deadair").click();
+  await page.getByTestId("start").click();
+  const toggle = page.getByTestId("toggle-rooms");
+  if (await toggle.getAttribute("aria-expanded") === "false") await toggle.click();
+  await page.getByTestId("room-studio").click();
+  await page.getByTestId("obj-studio.mic").click();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({path:join(SHOTS,"deadair-mobile.png")});
+});

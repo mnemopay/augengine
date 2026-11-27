@@ -5,7 +5,9 @@
  * right. Not the engine's renderer; it exists to check shape and LOD loss.
  */
 import { deflateSync } from "node:zlib";
-import { bounds, type KitMesh } from "./mesh.js";
+import { bounds, groupsOf, type KitMesh } from "./mesh.js";
+import { textureImage, type LodImage, type LodMaterialSet } from "./material.js";
+import { encodePngWith, type RgbaImage } from "./png.js";
 
 export interface PreviewOptions {
   size?: number;
@@ -13,6 +15,9 @@ export interface PreviewOptions {
   yaw?: number;
   pitch?: number;
   background?: [number, number, number];
+  /** Source materials: base colour factors and (decodable) baseColor textures are applied. */
+  materials?: LodMaterialSet;
+  decodeImage?: (img: LodImage) => RgbaImage | null;
 }
 
 /** Render to RGBA pixels. */
@@ -46,15 +51,37 @@ export function renderPreview(m: KitMesh, opts: PreviewOptions = {}): { width: n
     return [W / 2 + x1 * s, H / 2 - y2 * s, -z2];
   };
   const light = normalize([0.45, 0.8, 0.4]);
+  const triMat = new Uint32Array(m.indices.length / 3);
+  for (const g of groupsOf(m)) triMat.fill(g.material, g.start / 3, (g.start + g.count) / 3);
+  const decoded = new Map<number, RgbaImage | null>();
+  const matInfo = (mi: number): { f: number[]; tex: RgbaImage | null } => {
+    const mat = opts.materials?.materials[mi];
+    const pbr = mat?.pbrMetallicRoughness ?? {};
+    const f: number[] = pbr.baseColorFactor ?? [1, 1, 1, 1];
+    let tex: RgbaImage | null = null;
+    if (opts.materials && pbr.baseColorTexture && opts.decodeImage) {
+      const img = textureImage(opts.materials, pbr.baseColorTexture.index);
+      if (img !== undefined) {
+        if (!decoded.has(img)) decoded.set(img, opts.materials.images[img] ? opts.decodeImage(opts.materials.images[img]!) : null);
+        tex = decoded.get(img) ?? null;
+      }
+    }
+    return { f, tex };
+  };
+  const infos = new Map<number, { f: number[]; tex: RgbaImage | null }>();
   for (let t = 0; t < m.indices.length / 3; t++) {
     const ids = [m.indices[t * 3]!, m.indices[t * 3 + 1]!, m.indices[t * 3 + 2]!];
     const pts = ids.map((v) => project(m.positions[v * 3]!, m.positions[v * 3 + 1]!, m.positions[v * 3 + 2]!));
-    const n = [m.normals[ids[0]! * 3]!, m.normals[ids[0]! * 3 + 1]!, m.normals[ids[0]! * 3 + 2]!];
+    // Average of the corner normals: the face normal for flat meshes, a smoothed one for smooth meshes.
+    const n = normalize([0, 1, 2].map((k) => m.normals[ids[0]! * 3 + k]! + m.normals[ids[1]! * 3 + k]! + m.normals[ids[2]! * 3 + k]!));
     // Back-face cull like the engine's main pipelines (cullMode "back").
     if (sp * n[1]! + cp * (sy * n[0]! + cy * n[2]!) <= 0) continue;
     const lambert = Math.max(0, n[0]! * light[0]! + n[1]! * light[1]! + n[2]! * light[2]!);
     const shade = 0.38 + 0.62 * lambert;
-    const col = [0, 1, 2].map((k) => (m.colors[ids[0]! * 4 + k]! + m.colors[ids[1]! * 4 + k]! + m.colors[ids[2]! * 4 + k]!) / 3);
+    const mi = triMat[t]!;
+    if (!infos.has(mi)) infos.set(mi, matInfo(mi));
+    const info = infos.get(mi)!;
+    const col = [0, 1, 2].map((k) => ((m.colors[ids[0]! * 4 + k]! + m.colors[ids[1]! * 4 + k]! + m.colors[ids[2]! * 4 + k]!) / 3) * info.f[k]!);
     const [a, bb, cc] = pts as [[number, number, number], [number, number, number], [number, number, number]];
     const area = (bb[0] - a[0]) * (cc[1] - a[1]) - (bb[1] - a[1]) * (cc[0] - a[0]);
     if (Math.abs(area) < 1e-9) continue;
@@ -72,10 +99,22 @@ export function renderPreview(m: KitMesh, opts: PreviewOptions = {}): { width: n
         const z = w0 * a[2] + w1 * bb[2] + w2 * cc[2];
         const o = py * W + px;
         if (z >= depth[o]!) continue;
+
+        let tr = 1, tg = 1, tb = 1;
+        if (info.tex) {
+          const u = w0 * m.uvs[ids[0]! * 2]! + w1 * m.uvs[ids[1]! * 2]! + w2 * m.uvs[ids[2]! * 2]!;
+          const v = w0 * m.uvs[ids[0]! * 2 + 1]! + w1 * m.uvs[ids[1]! * 2 + 1]! + w2 * m.uvs[ids[2]! * 2 + 1]!;
+          const T = info.tex;
+          const tx = ((Math.floor(u * T.width) % T.width) + T.width) % T.width, ty = ((Math.floor(v * T.height) % T.height) + T.height) % T.height;
+          const q = (ty * T.width + tx) * 4;
+          const mat = opts.materials?.materials[mi];
+          if (mat?.alphaMode === "MASK" && info.f[3]! * T.rgba[q + 3]! / 255 < (mat.alphaCutoff ?? 0.5)) continue;
+          tr = T.rgba[q]! / 255; tg = T.rgba[q + 1]! / 255; tb = T.rgba[q + 2]! / 255;
+        }
         depth[o] = z;
-        rgba[o * 4] = clamp255(col[0]! * shade);
-        rgba[o * 4 + 1] = clamp255(col[1]! * shade);
-        rgba[o * 4 + 2] = clamp255(col[2]! * shade);
+        rgba[o * 4] = clamp255(col[0]! * tr * shade);
+        rgba[o * 4 + 1] = clamp255(col[1]! * tg * shade);
+        rgba[o * 4 + 2] = clamp255(col[2]! * tb * shade);
       }
     }
   }
@@ -95,54 +134,9 @@ export function contactSheet(images: { width: number; height: number; rgba: Uint
   return { width: W, height: H, rgba };
 }
 
-/** Encode RGBA pixels as a PNG (no dependencies). */
+/** Encode RGBA pixels as a PNG (node:zlib deflate). */
 export function encodePng(img: { width: number; height: number; rgba: Uint8Array }): Uint8Array {
-  const { width: W, height: H, rgba } = img;
-  const raw = new Uint8Array(H * (W * 4 + 1));
-  for (let y = 0; y < H; y++) {
-    raw[y * (W * 4 + 1)] = 0;
-    raw.set(rgba.subarray(y * W * 4, (y + 1) * W * 4), y * (W * 4 + 1) + 1);
-  }
-  const chunk = (type: string, data: Uint8Array) => {
-    const out = new Uint8Array(12 + data.length);
-    const dv = new DataView(out.buffer);
-    dv.setUint32(0, data.length);
-    out.set(new TextEncoder().encode(type), 4);
-    out.set(data, 8);
-    dv.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
-    return out;
-  };
-  const ihdr = new Uint8Array(13);
-  const dv = new DataView(ihdr.buffer);
-  dv.setUint32(0, W);
-  dv.setUint32(4, H);
-  ihdr.set([8, 6, 0, 0, 0], 8);
-  const parts = [
-    new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
-    chunk("IHDR", ihdr),
-    chunk("IDAT", new Uint8Array(deflateSync(raw))),
-    chunk("IEND", new Uint8Array(0)),
-  ];
-  const total = parts.reduce((s, p) => s + p.length, 0);
-  const png = new Uint8Array(total);
-  let o = 0;
-  for (const p of parts) { png.set(p, o); o += p.length; }
-  return png;
-}
-
-let CRC_TABLE: Uint32Array | null = null;
-function crc32(data: Uint8Array): number {
-  if (!CRC_TABLE) {
-    CRC_TABLE = new Uint32Array(256);
-    for (let n = 0; n < 256; n++) {
-      let c = n;
-      for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-      CRC_TABLE[n] = c >>> 0;
-    }
-  }
-  let crc = 0xffffffff;
-  for (let i = 0; i < data.length; i++) crc = CRC_TABLE[(crc ^ data[i]!) & 0xff]! ^ (crc >>> 8);
-  return (crc ^ 0xffffffff) >>> 0;
+  return encodePngWith(img, (d) => new Uint8Array(deflateSync(d)));
 }
 
 function clamp255(x: number): number {

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Encounter Studio · AugEngine</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#18211f;color:#f4eedf;font:16px/1.5 system-ui}main{max-width:760px;margin:auto;padding:clamp(20px,6vw,64px)}header{font:700 .8rem system-ui;letter-spacing:.15em;color:#eeb676}h1,h2{font-family:Georgia,serif;font-weight:normal;line-height:1.12}h1{font-size:clamp(2.4rem,7vw,4.2rem);margin:.45em 0}section,fieldset{border:1px solid #57645a;border-radius:8px;padding:20px;margin:18px 0}label{display:block;margin:12px 0;color:#e5d6ba}input,textarea{display:block;width:100%;background:#101815;color:white;border:1px solid #748075;border-radius:4px;padding:10px;font:inherit}textarea{min-height:4em}button,a{font:inherit;color:#ffe0ae}button{background:#303e36;border:1px solid #748075;border-radius:5px;padding:9px 14px;cursor:pointer;margin:4px}button:disabled{opacity:.55}button.primary{background:#f4c288;color:#181e1b}output{display:block}blockquote{font:1.4rem/1.45 Georgia,serif;margin:1em 0}details{margin:16px 0}#link{overflow-wrap:anywhere} [hidden]{display:none!important}
+</style>
+<main><header>AUGENGINE / ENCOUNTERS</header>
+<div id="editor"><h1>Write an encounter</h1><p>Give one witness a secret. Choose the clue that makes them talk.</p><form id="form"><fieldset><legend>Scene and testimony</legend><div id="fields"></div></fieldset><button class="primary">Playtest</button><button type="button" id="share">Create player link</button></form><output id="draft"></output>
+<div id="sharing" hidden><label>Player link<input id="link" readonly></label><button id="copy">Copy link</button> <a id="open" target="_blank" rel="noopener">Open as player</a></div></div>
+<div id="player" hidden><h1 id="heading"></h1><p id="setting"></p><section><h2 id="name"></h2><blockquote id="speech" aria-live="polite"></blockquote><div id="actions"></div></section><output id="inventory"></output><details id="inspect"><summary>Inspect witness memory</summary><p id="memory"></p></details><button id="restart">Replay encounter</button><button id="edit">Return to draft</button></div>
+<p id="message" role="status"></p></main>
+<script type="module">
+const $=id=>document.getElementById(id);
+const fields=[
+ ['title','Title','The last broadcast',60],
+ ['room','Room','Rain taps against the shutter of a silent radio booth.',180],
+ ['witness','Witness','The night engineer',48],
+ ['clue','Clue','A tape marked 11:42',72],
+ ['first','First testimony','The transmitter went quiet before midnight.',180],
+ ['refusal','After an accusation','You already decided it was me. Show me your evidence.',180],
+ ['reveal','When shown the clue','That tape was recorded after shutdown. Someone came back.',180]
+];
+const draftKey='augengine.encounter.draft.v1';
+const draft=Object.fromEntries(fields.map(([key,,value])=>[key,value]));
+function valid(data){return data && data.version===1 && fields.every(([key,,,limit])=>typeof data[key]==='string' && data[key].trim() && data[key].length<=limit)}
+try{const saved=JSON.parse(localStorage.getItem(draftKey));if(valid(saved))for(const [key] of fields)draft[key]=saved[key]}catch{}
+for(const [key,label,,limit] of fields){
+ const wrapper=document.createElement('label');wrapper.textContent=label;
+ const input=document.createElement(limit>100?'textarea':'input');input.name=key;input.value=draft[key];input.maxLength=limit;input.required=true;wrapper.append(input);$('fields').append(wrapper);
+}
+function read(){return Object.fromEntries([['version',1],...fields.map(([key])=>[key,$('form').elements.namedItem(key).value.trim()])])}
+function ready(){if(!$('form').reportValidity())return false;if(!valid(read())){$('message').textContent='Enter text in each field.';return false}return true}
+$('form').oninput=()=>{$('sharing').hidden=true;$('message').textContent='';try{localStorage.setItem(draftKey,JSON.stringify(read()));$('draft').textContent='Draft saved on this device.'}catch{$('draft').textContent='Device storage unavailable. Save a player link to keep this version.'}};
+let scene,shared=false,found,accused,solved;
+function action(label,fn){const button=document.createElement('button');button.textContent=label;button.onclick=fn;$('actions').append(button)}
+function draw(line){
+ $('speech').textContent=line;$('actions').replaceChildren();
+ $('inventory').textContent=found?'Notebook · '+scene.clue:'Notebook · Empty';
+ $('memory').textContent=[accused?'Remembers your accusation.':'No accusation recorded.',solved?'Has seen the evidence.':'Has not seen the evidence.'].join(' ');
+ if(solved){$('inventory').textContent+=' · Encounter complete';return}
+ action('Ask what happened',()=>draw(accused?scene.refusal:scene.first));
+ if(!accused)action('Accuse the witness',()=>{accused=true;draw(scene.refusal)});
+ if(!found)action('Search the room',()=>{found=true;draw('You found '+scene.clue+'.')});
+ if(found)action('Present '+scene.clue,()=>{solved=true;draw(scene.reveal)});
+}
+function start(data){scene=data;found=accused=solved=false;$('message').textContent='';$('editor').hidden=true;$('player').hidden=false;$('edit').hidden=$('inspect').hidden=shared;
+ $('heading').textContent=data.title;$('setting').textContent=data.room;$('name').textContent=data.witness;draw(data.first);window.scrollTo(0,0)}
+$('form').onsubmit=e=>{e.preventDefault();if(ready())start(read())};
+$('restart').onclick=()=>start(scene);$('edit').onclick=()=>{$('player').hidden=true;$('editor').hidden=false};
+$('share').onclick=()=>{if(!ready())return;const url=new URL(location.href);url.hash='play='+encodeURIComponent(JSON.stringify(read()));$('link').value=$('open').href=url.href;$('sharing').hidden=false};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('link').value);$('message').textContent='Player link copied.'}catch{$('link').select();$('message').textContent='Select Copy to copy this link.'}};
+if(location.hash){try{if(!location.hash.startsWith('#play='))throw Error();const data=JSON.parse(decodeURIComponent(location.hash.slice(6)));if(!valid(data))throw Error();shared=true;start(data)}catch{$('editor').hidden=true;$('message').textContent='This encounter link is incomplete. Ask the creator for a fresh link.'}}
+</script></html>

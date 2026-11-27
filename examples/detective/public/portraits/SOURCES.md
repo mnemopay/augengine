@@ -51,3 +51,7 @@ likeness and no existing franchise characters were requested or used.
 
 The OpenRouter key's usage rose by $1.4887 over the whole task (the extra
 $0.0001 is the game's own model-mode e2e test). `_source/ledger.json` lists every call.
+
+## Dead Air
+
+The five new characters have original generated portraits. Seventeen image calls (estimated $0.663) are recorded in _source/deadair-ledger.json. The four suspects appear on painted portrait plaques in the radio-station lobby.

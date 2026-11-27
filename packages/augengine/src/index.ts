@@ -50,6 +50,7 @@ export * from './fighter/index.js';
 // One-call glTF loading into a live renderer (no browser API touched at import time).
 export {
   loadGltfIntoRenderer,
+  loadLodIntoRenderer,
   type LoadGltfOptions,
   type LoadedGltfIntoRenderer,
 } from './runtime/live/gltf.js';

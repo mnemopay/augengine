@@ -114,3 +114,28 @@ export {
   type TwoBoneSolution,
   type ApplyIkOptions,
 } from "./ik-runtime.js";
+
+export {
+  FACE_RIG_SHAPES,
+  FACE_RIG_INDEX,
+  FACE_RIG_APPROXIMATE,
+  VISEME_SHAPES,
+  faceRigWeights,
+  remapFaceRigWeights,
+  visemeFrameToFaceRig,
+  findHeadBox,
+  faceMaps,
+  proportionalLandmarks,
+  detectFaceLandmarks,
+  buildFaceRig,
+  shapeDelta,
+  OrthoCaster,
+  type FaceRigShape,
+  type FaceSourceMesh,
+  type FaceTextureSampler,
+  type HeadBox,
+  type FaceLandmarks,
+  type FaceMaps,
+  type FaceRigOptions,
+  type FaceRigResult,
+} from "./face-rig.js";

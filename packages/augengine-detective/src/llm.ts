@@ -9,7 +9,8 @@
  * - `Budget` enforces per-session and global caps.
  */
 
-import { EVIDENCE, SUSPECTS, type EvidenceId, type SuspectId } from "./case.js";
+import type { EvidenceId, SuspectId } from "./case.js";
+import { DEFAULT_CASE_ID, caseById, isCaseId } from "./cases.js";
 import type { ChatMessage, DialogueContext } from "./dialogue.js";
 import { isEvidenceId, isSuspectId, type Utterance } from "./rules.js";
 
@@ -17,23 +18,25 @@ export const DEFAULT_MODEL = "openai/gpt-4o-mini";
 export const MAX_REPLY_TOKENS = 140;
 
 /** Every gist the rules can produce for a suspect. */
-export function allowedGists(suspect: SuspectId): Set<string> {
-  const s = SUSPECTS[suspect];
+export function allowedGists(suspect: SuspectId, caseId: string = DEFAULT_CASE_ID): Set<string> {
+  const c = caseById(caseId);
+  const s = c.suspects[suspect];
   const out = new Set<string>();
+  if (!s) return out;
   for (const a of Object.values(s.answers)) if (a) out.add(a.line);
   for (const l of s.lies) {
     out.add(l.lie);
     out.add(l.truth);
     out.add(l.crackLine);
   }
-  // Multiple lies can crack on one presentation; their lines are joined.
+  // Several lies can crack on one presentation; the rules join their crack
+  // lines in declaration order, so every ordered subset is a possible gist.
   const cracks = s.lies.map((l) => l.crackLine);
-  for (let i = 0; i < cracks.length; i++) {
-    for (let j = 0; j < cracks.length; j++) if (i !== j) out.add(`${cracks[i]} ${cracks[j]}`);
+  for (let mask = 1; mask < 1 << Math.min(cracks.length, 10); mask++) {
+    out.add(cracks.filter((_, i) => mask & (1 << i)).join(" "));
   }
-  if (cracks.length >= 3) out.add(cracks.join(" "));
   out.add(s.shrug);
-  out.add("I'm not sure what you're asking, detective. Ask me about tonight.");
+  out.add(c.unknownLine);
   return out;
 }
 
@@ -46,6 +49,8 @@ const MEMORY_LINE = [
 ];
 
 export interface DialoguePayload {
+  /** Case id (absent = the first case). */
+  caseId?: string;
   suspect: SuspectId;
   gist: string;
   topic: string;
@@ -58,12 +63,14 @@ export interface DialoguePayload {
 export function checkPayload(body: unknown): { ok: true; ctx: DialogueContext } | { ok: false; error: string } {
   if (!body || typeof body !== "object") return { ok: false, error: "bad body" };
   const b = body as Record<string, unknown>;
-  if (!isSuspectId(b.suspect)) return { ok: false, error: "bad suspect" };
-  if (typeof b.gist !== "string" || !allowedGists(b.suspect).has(b.gist)) return { ok: false, error: "gist not produced by the rules" };
+  if (b.caseId !== undefined && !isCaseId(b.caseId)) return { ok: false, error: "bad case" };
+  const c = caseById(b.caseId as string | undefined);
+  if (!isSuspectId(b.suspect, c)) return { ok: false, error: "bad suspect" };
+  if (typeof b.gist !== "string" || !allowedGists(b.suspect, c.id).has(b.gist)) return { ok: false, error: "gist not produced by the rules" };
   if (typeof b.playerText !== "string" || b.playerText.length > 400) return { ok: false, error: "bad playerText" };
   if (typeof b.topic !== "string" || b.topic.length > 60) return { ok: false, error: "bad topic" };
-  const notebook = Array.isArray(b.notebook) ? b.notebook.filter(isEvidenceId) : [];
-  if (notebook.length > Object.keys(EVIDENCE).length) return { ok: false, error: "bad notebook" };
+  const notebook = Array.isArray(b.notebook) ? b.notebook.filter((e): e is EvidenceId => isEvidenceId(e, c)) : [];
+  if (notebook.length > Object.keys(c.evidence).length) return { ok: false, error: "bad notebook" };
   let memoryLine: string | null = null;
   if (b.memoryLine != null) {
     if (typeof b.memoryLine !== "string" || !MEMORY_LINE.some((re) => re.test(b.memoryLine as string))) {
@@ -72,6 +79,7 @@ export function checkPayload(body: unknown): { ok: true; ctx: DialogueContext } 
     memoryLine = b.memoryLine;
   }
   const utterance: Utterance = {
+    caseId: c.id,
     suspect: b.suspect,
     topic: b.topic as Utterance["topic"],
     gist: b.gist,

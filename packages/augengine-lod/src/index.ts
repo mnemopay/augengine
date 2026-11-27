@@ -9,10 +9,13 @@
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
+import { inflateSync } from "node:zlib";
 import { bakeLods, type BakeOptions, type BakeResult } from "./bake.js";
-import { readGlb, writeGlb } from "./gltf.js";
+import { readGlb, withImpostorMaterial, writeLodGlb } from "./gltf.js";
 import { buildManifest, lodKey, type LodManifest } from "./manifest.js";
+import { materialSetFromKit, type LodImage } from "./material.js";
 import type { KitMaterial, KitMesh } from "./mesh.js";
+import { decodePng, isPng, type RgbaImage } from "./png.js";
 import { buildKit, impostorFor } from "./kit/index.js";
 import { contactSheet, encodePng, renderPreview } from "./preview.js";
 import { kitMeshKey } from "./runtime.js";
@@ -29,7 +32,18 @@ export interface WrittenAsset {
   warnings: string[];
 }
 
-/** Bake one mesh and write GLB + manifest (+ a contact-sheet PNG of all LODs). */
+/** PNG decoder for the impostor render and previews (JPEG / KTX2 / WebP: null). */
+export function decodeImageNode(img: LodImage): RgbaImage | null {
+  if (!isPng(img.bytes)) return null;
+  return decodePng(img.bytes, (d) => new Uint8Array(inflateSync(d)));
+}
+
+/**
+ * Bake one mesh and write GLB + manifest (+ a contact-sheet PNG of all LODs).
+ * Pass the source's `materials` (from `readGlb`) to carry textures through;
+ * without them the asset gets one material from `material` (the kit).
+ * The impostor defaults to a baked atlas here (`impostorTexture: "atlas"`).
+ */
 export async function writeBaked(
   name: string,
   mesh: KitMesh,
@@ -38,11 +52,18 @@ export async function writeBaked(
   opts: BakeOptions & { meshKey?: string; preview?: boolean } = {},
 ): Promise<{ result: BakeResult; written: WrittenAsset }> {
   await mkdir(outDir, { recursive: true });
-  const result = await bakeLods(mesh, opts);
+  const result = await bakeLods(mesh, { impostorTexture: "atlas", decodeImage: decodeImageNode, ...opts });
   const meshKey = opts.meshKey ?? name;
   const glbName = `${name}.lods.glb`;
-  const glb = writeGlb(result.levels.map((l) => ({ name: lodKey(meshKey, l.level), lod: l.level, mesh: l.mesh })), material);
-  const manifest = buildManifest(name, meshKey, glbName, result, material);
+  let set = opts.materials ?? materialSetFromKit(material);
+  let impostorMaterial: number | undefined;
+  if (result.impostor) ({ set, material: impostorMaterial } = withImpostorMaterial(set, result.impostor, encodePng));
+  const glb = writeLodGlb(result.levels.map((l) => ({
+    name: lodKey(meshKey, l.level),
+    lod: l.level,
+    mesh: l.kind === "impostor" && impostorMaterial !== undefined ? { ...l.mesh, groups: [{ material: impostorMaterial, start: 0, count: l.mesh.indices.length }] } : l.mesh,
+  })), set);
+  const manifest = buildManifest(name, meshKey, glbName, result, material, { set, ...(impostorMaterial !== undefined ? { impostorMaterial } : {}) });
   const glbPath = join(outDir, glbName);
   const manifestPath = join(outDir, `${name}.lod.json`);
   await writeFile(glbPath, glb);
@@ -50,20 +71,39 @@ export async function writeBaked(
   let previewPath: string | null = null;
   if (opts.preview !== false) {
     previewPath = join(outDir, `${name}.lods.png`);
-    await writeFile(previewPath, encodePng(contactSheet(result.levels.map((l) => renderPreview(l.mesh, { size: 220 })))));
+    const shots = result.levels.map((l, i) => renderPreview(
+      i === result.levels.length - 1 && result.impostor && impostorMaterial !== undefined ? { ...l.mesh, groups: [{ material: impostorMaterial, start: 0, count: l.mesh.indices.length }] } : l.mesh,
+      { size: 220, materials: set, decodeImage: decodeImageNode },
+    ));
+    await writeFile(previewPath, encodePng(contactSheet(shots)));
   }
-  return { result, written: { manifest, glbPath, manifestPath, previewPath, warnings: [] } };
+  return { result, written: { manifest, glbPath, manifestPath, previewPath, warnings: [...result.warnings] } };
+}
+
+export interface BakeFileOptions extends Omit<BakeOptions, "materials"> {
+  preview?: boolean;
+  /** "keep" (default): carry materials + textures; "fold": the 0.1 behaviour (factors into vertex colours, no textures). */
+  materialMode?: "keep" | "fold";
+  /** Sources without NORMAL: "auto"/"flat" (glTF spec) or "smooth" (organic scans). */
+  normals?: "auto" | "flat" | "smooth";
+  /** Output name stem (default: the input file name). */
+  name?: string;
 }
 
 /** CLI/API entry for an external GLB (e.g. a Blender or Maya glTF export). */
-export async function bakeGlbFile(inPath: string, outDir: string, opts: BakeOptions & { preview?: boolean } = {}): Promise<WrittenAsset> {
-  const src = readGlb(new Uint8Array(await readFile(inPath)));
-  const name = basename(inPath, extname(inPath));
+export async function bakeGlbFile(inPath: string, outDir: string, opts: BakeFileOptions = {}): Promise<WrittenAsset> {
+  const src = readGlb(new Uint8Array(await readFile(inPath)), {
+    ...(opts.materialMode ? { materials: opts.materialMode } : {}),
+    ...(opts.normals ? { missingNormals: opts.normals } : {}),
+  });
+  const name = opts.name ?? basename(inPath, extname(inPath));
+  const { materialMode: _m, normals: _n, name: _nm, ...bake } = opts;
   const { written } = await writeBaked(name, src.mesh, src.material, outDir, {
-    ...opts,
+    ...bake,
+    materials: src.materials,
     preserveUvSeams: opts.preserveUvSeams ?? src.hasTextures,
   });
-  written.warnings.push(...src.warnings);
+  written.warnings.unshift(...src.warnings);
   return written;
 }
 

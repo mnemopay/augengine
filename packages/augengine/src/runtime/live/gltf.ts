@@ -98,3 +98,24 @@ export async function loadGltfIntoRenderer(
   }
   return { loaded, meshKeys, instance };
 }
+
+/** Upload a baked GLB once and resolve the renderable primitive keys for each
+ * detail level. Both manifest versions name their meshes in the GLB. V2
+ * can have several primitives (and therefore several materials) per level. */
+export async function loadLodIntoRenderer(
+  renderer: Pick<LiveRenderer, "uploadMesh" | "uploadPbrTextures">,
+  url: string,
+  manifest: { format: string; lods: ReadonlyArray<{ level: number; mesh: string }> },
+  opts: LoadGltfOptions = {},
+): Promise<Map<number, string[]>> {
+  if (!["augengine-lod/1", "augengine-lod/2"].includes(manifest.format)) throw new Error("Unsupported LOD manifest format");
+  const { loaded, meshKeys } = await loadGltfIntoRenderer(renderer, null, url, opts);
+  const levels = new Map<number, string[]>();
+  for (const level of manifest.lods) {
+    const meshIndex = loaded.parsed.root.meshes?.findIndex(mesh => mesh.name === level.mesh);
+    const keys = loaded.primitives.filter(p => p.meshIndex === meshIndex).map(p => meshKeys[p.primitiveIndex]!);
+    if (!keys.length || levels.has(level.level)) throw new Error("Invalid LOD manifest entry: " + level.mesh);
+    levels.set(level.level, keys);
+  }
+  return levels;
+}

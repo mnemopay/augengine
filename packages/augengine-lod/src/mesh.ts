@@ -15,6 +15,19 @@ export interface KitMesh {
   uvs: Float32Array; // 2 per vertex
   colors: Float32Array; // 4 per vertex (RGBA, linear)
   indices: Uint32Array; // 3 per triangle
+  /**
+   * Material ranges over `indices` (start/count in indices, sorted by start,
+   * covering the buffer). Absent means one material (index 0) for the whole
+   * mesh, which is what the kit and v1 bakes use.
+   */
+  groups?: MeshGroup[];
+}
+
+/** One material's slice of the index buffer. */
+export interface MeshGroup {
+  material: number;
+  start: number;
+  count: number;
 }
 
 /** Simple PBR parameters for a whole mesh (per-part colour lives in vertex colours). */
@@ -96,16 +109,105 @@ export function triangleArea2(m: KitMesh, t: number): number {
   return Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx);
 }
 
-/** Drop triangles with repeated indices or (near-)zero area. */
+/** Drop triangles with repeated indices or (near-)zero area. Material groups are kept. */
 export function removeDegenerates(m: KitMesh, minArea2 = 1e-10): KitMesh {
   const keep: number[] = [];
+  const mats = m.groups ? triangleMaterials(m) : null;
+  const keptMats: number[] = [];
   for (let t = 0; t < m.indices.length / 3; t++) {
     const a = m.indices[t * 3]!, b = m.indices[t * 3 + 1]!, c = m.indices[t * 3 + 2]!;
     if (a === b || b === c || a === c) continue;
     if (triangleArea2(m, t) <= minArea2) continue;
     keep.push(a, b, c);
+    if (mats) keptMats.push(mats[t]!);
   }
-  return { ...m, indices: Uint32Array.from(keep) };
+  const indices = Uint32Array.from(keep);
+  if (!mats) return { ...m, indices };
+  return { ...m, ...regroup(indices, Uint32Array.from(keptMats)) };
+}
+
+/** Material index of every triangle (0 everywhere when the mesh has no groups). */
+export function triangleMaterials(m: KitMesh): Uint32Array {
+  const out = new Uint32Array(m.indices.length / 3);
+  for (const g of m.groups ?? []) out.fill(g.material, g.start / 3, (g.start + g.count) / 3);
+  return out;
+}
+
+/** The mesh's material groups, or one group covering everything. */
+export function groupsOf(m: KitMesh): MeshGroup[] {
+  return m.groups && m.groups.length > 0 ? m.groups : [{ material: 0, start: 0, count: m.indices.length }];
+}
+
+/**
+ * Sort triangles by material (stable) and return the reordered index buffer
+ * plus one group per material present. Empty materials are omitted.
+ */
+export function regroup(indices: Uint32Array, triMaterial: Uint32Array): { indices: Uint32Array; groups: MeshGroup[] } {
+  const tris = indices.length / 3;
+  const order = Array.from({ length: tris }, (_, t) => t).sort((a, b) => triMaterial[a]! - triMaterial[b]! || a - b);
+  const out = new Uint32Array(indices.length);
+  const groups: MeshGroup[] = [];
+  order.forEach((t, k) => {
+    out.set(indices.subarray(t * 3, t * 3 + 3), k * 3);
+    const mat = triMaterial[t]!;
+    const last = groups[groups.length - 1];
+    if (last && last.material === mat) last.count += 3;
+    else groups.push({ material: mat, start: k * 3, count: 3 });
+  });
+  return { indices: out, groups };
+}
+
+/**
+ * Is the mesh faceted? True when (almost) every triangle corner's normal
+ * matches its face normal, or when most positions carry several different
+ * normals (hard edges everywhere) — i.e. the source was authored flat
+ * (hard-surface kit, low-poly, faceted terrain) rather than with smooth
+ * shared normals. Mixed meshes (smoothing groups) count as smooth: the
+ * smooth path keeps their hard edges as normal seams. Used to keep a
+ * baked chain shaded the way its source was.
+ */
+export function isFlatShaded(m: KitMesh, tolerance = 0.999, share = 0.95): boolean {
+  const tris = m.indices.length / 3;
+  if (tris === 0) return true;
+  let flat = 0, corners = 0;
+  const p = m.positions, n = m.normals;
+  for (let t = 0; t < tris; t++) {
+    const ia = m.indices[t * 3]!, ib = m.indices[t * 3 + 1]!, ic = m.indices[t * 3 + 2]!;
+    const ux = p[ib * 3]! - p[ia * 3]!, uy = p[ib * 3 + 1]! - p[ia * 3 + 1]!, uz = p[ib * 3 + 2]! - p[ia * 3 + 2]!;
+    const vx = p[ic * 3]! - p[ia * 3]!, vy = p[ic * 3 + 1]! - p[ia * 3 + 1]!, vz = p[ic * 3 + 2]! - p[ia * 3 + 2]!;
+    let fx = uy * vz - uz * vy, fy = uz * vx - ux * vz, fz = ux * vy - uy * vx;
+    const l = Math.hypot(fx, fy, fz);
+    if (l < 1e-20) continue;
+    fx /= l; fy /= l; fz /= l;
+    for (const v of [ia, ib, ic]) {
+      corners++;
+      if (n[v * 3]! * fx + n[v * 3 + 1]! * fy + n[v * 3 + 2]! * fz >= tolerance) flat++;
+    }
+  }
+  if (corners === 0 || flat / corners >= share) return true;
+  // Faceted sources also show up as positions that carry several different
+  // normals (one per face or quad), even when quads are not planar.
+  return hardEdgeShare(m) >= 0.5;
+}
+
+/** Fraction of referenced positions whose vertices carry more than one distinct normal. */
+export function hardEdgeShare(m: KitMesh): number {
+  const byPos = new Map<string, number[]>();
+  const seen = new Uint8Array(m.positions.length / 3);
+  for (const v of m.indices) {
+    if (seen[v]) continue;
+    seen[v] = 1;
+    const k = `${Math.round(m.positions[v * 3]! * 1e4)},${Math.round(m.positions[v * 3 + 1]! * 1e4)},${Math.round(m.positions[v * 3 + 2]! * 1e4)}`;
+    const list = byPos.get(k);
+    if (list) list.push(v); else byPos.set(k, [v]);
+  }
+  if (byPos.size === 0) return 0;
+  let hard = 0;
+  for (const vs of byPos.values()) {
+    const a = vs[0]!;
+    if (vs.some((v) => m.normals[v * 3]! * m.normals[a * 3]! + m.normals[v * 3 + 1]! * m.normals[a * 3 + 1]! + m.normals[v * 3 + 2]! * m.normals[a * 3 + 2]! < 0.999)) hard++;
+  }
+  return hard / byPos.size;
 }
 
 /**
@@ -139,7 +241,8 @@ export function flatShade(m: KitMesh): KitMesh {
       indices[o] = o;
     }
   }
-  return { positions, normals, uvs, colors, indices };
+  // Triangle t keeps index t, so material groups carry over unchanged.
+  return { positions, normals, uvs, colors, indices, ...(m.groups ? { groups: m.groups.map((g) => ({ ...g })) } : {}) };
 }
 
 /** Area-weighted average colour, used to tint impostors. */

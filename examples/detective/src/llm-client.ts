@@ -73,6 +73,7 @@ export async function speak(
       method: "POST",
       headers: { "content-type": "application/json", "x-dtv-session": sessionId },
       body: JSON.stringify({
+        caseId: ctx.utterance.caseId,
         suspect: ctx.utterance.suspect,
         gist: ctx.utterance.gist,
         topic: ctx.utterance.topic,

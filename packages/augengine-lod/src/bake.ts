@@ -1,22 +1,35 @@
 /**
  * bake — LOD0..LOD3 for one mesh.
  *
- *   LOD0  the source, flat-shaded.
- *   LOD1  meshoptimizer `simplify` to ~1/4 of the triangles, error-bounded.
+ *   LOD0  the source (degenerate triangles dropped), normals as authored.
+ *   LOD1  meshoptimizer attribute-aware simplification to ~1/4 of the
+ *         triangles, error-bounded.
  *   LOD2  ~1/16, with `Prune` so small disconnected parts (window panes,
  *         sills, rooftop plant) can disappear instead of blocking the target.
- *   LOD3  impostor tinted with the mesh's area-weighted average colour:
- *         "cross" = two crossed, two-sided quads (foliage, poles); "box" =
- *         the bounds box (buildings and other solid shapes, which read as
- *         thin slabs from the side as crossed cards). No baked texture yet
- *         (the renderer has no offscreen capture path for it).
+ *   LOD3  an impostor: "box" (the bounds box — buildings and other solid
+ *         shapes) or "cross" (two crossed cards — foliage, poles), showing
+ *         the asset's real colours (see impostor.ts: a baked atlas, per-face
+ *         vertex colours, or one flat tint).
  *
- * Simplification works on a welded copy: vertices are merged when position
- * and colour (and UV, when `preserveUvSeams`) match, so meshoptimizer sees
- * connected surfaces. Where the weld keeps vertices apart (different colour
- * or UV), meshoptimizer treats the shared position as an attribute seam and
- * keeps the seam intact. Output is re-emitted flat-shaded, which recomputes
- * every normal from the simplified triangles.
+ * Materials. Triangles keep their source material (`KitMesh.groups`); every
+ * LOD references the same materials, so textures are never duplicated.
+ *
+ * Shading follows the source (`shading: "auto"`):
+ *   flat   (faceted source — the kit, low-poly): simplification output is
+ *          re-emitted flat-shaded, recomputing face normals.
+ *   smooth (shared normals — scans, characters, organic props): the
+ *          authored normals of the surviving vertices are kept; nothing is
+ *          recomputed (the reader computes normals only when the source has none).
+ *
+ * Simplification runs on a welded copy: vertices merge when position,
+ * material, colour, UV (textured / `preserveUvSeams`) and — for smooth
+ * chains — normal all match, so meshoptimizer sees connected surfaces. Where
+ * the weld keeps vertices apart (a UV, material, colour or hard-normal seam)
+ * meshoptimizer keeps the seam closed; `uvSeams: "lock"` (the default for
+ * textured input) also pins every seam vertex so texture islands cannot
+ * slide. UVs, normals and colours are passed as weighted attributes
+ * (`simplifyWithAttributes`), so collapses that would smear a texture or bend
+ * shading cost error like geometric ones do.
  */
 import { MeshoptSimplifier, type SimplifierFlags } from "meshoptimizer";
 import { MeshBuilder } from "./builder.js";
@@ -25,20 +38,36 @@ import {
   bounds,
   boundingRadius,
   flatShade,
+  isFlatShaded,
+  regroup,
   removeDegenerates,
   triangleCount,
+  triangleMaterials,
   type Aabb,
   type KitMesh,
   type Rgba,
 } from "./mesh.js";
+import { compactVertices, withSmoothNormals } from "./smooth.js";
+import { buildImpostor, type ImpostorKind, type ImpostorOut, type ImpostorTexture } from "./impostor.js";
+import { hasAnyTexture, type LodImage, type LodMaterialSet } from "./material.js";
+import type { RgbaImage } from "./png.js";
+
+export { compactVertices, withSmoothNormals } from "./smooth.js";
 
 export interface BakeOptions {
   /** Target triangle fractions for LOD1 and LOD2 (of LOD0). */
   ratios?: [number, number];
   /** Max simplification error as a fraction of the mesh's bounding radius, for LOD1 and LOD2. */
   maxError?: [number, number];
-  /** Keep UV seams (weld by UV too). Turn on for textured input. */
+  /** Keep UV seams (weld by UV too). Implied when `materials` has textures. */
   preserveUvSeams?: boolean;
+  /**
+   * UV/material seams: "lock" pins seam vertices (no texture swimming, less
+   * reduction on heavily chopped atlases); "preserve" lets meshoptimizer
+   * collapse along a seam while keeping it closed. Default "lock" when
+   * textured, else "preserve".
+   */
+  uvSeams?: "lock" | "preserve";
   /** Never move open-border vertices (for tiles that must meet neighbours). */
   lockBorder?: boolean;
   /**
@@ -46,7 +75,24 @@ export interface BakeOptions {
    * bounds box — solid, boxy things; reads right from every angle), or false.
    * Default "cross"; `true` means "cross".
    */
-  impostor?: boolean | "cross" | "box";
+  impostor?: boolean | ImpostorKind;
+  /**
+   * How the impostor shows colour: "atlas" (baked texture from LOD0),
+   * "vertex" (per-face colour from the same render, untextured), "none"
+   * (one average tint, the 0.1 behaviour). Default "vertex" here; the file
+   * bake (`bakeGlbFile` / `writeBaked` / the CLI) defaults to "atlas".
+   */
+  impostorTexture?: ImpostorTexture;
+  /** Atlas pixels per impostor view. Default 64. */
+  atlasTile?: number;
+  /** Shading of the chain: "auto" (from the source's normals), "flat" or "smooth". */
+  shading?: "auto" | "flat" | "smooth";
+  /** The source's materials: textured materials switch on UV-aware simplification and feed the impostor. */
+  materials?: LodMaterialSet;
+  /** Decode an image for the impostor render (the Node entry supplies a PNG decoder). */
+  decodeImage?: (img: LodImage) => RgbaImage | null;
+  /** Attribute weights for simplification. Defaults: uv 1 (textured), normal 0.5 (smooth), color 1 (varying colours). */
+  weights?: { uv?: number; normal?: number; color?: number };
 }
 
 export interface LodLevelOut {
@@ -62,72 +108,175 @@ export interface BakeResult {
   levels: LodLevelOut[];
   bounds: Aabb;
   radius: number;
+  /** Shading the chain was baked with. */
+  shading: "flat" | "smooth";
+  /** The impostor's material, atlas and layout (absent with `impostor: false`). */
+  impostor?: ImpostorOut & { kind: ImpostorKind };
+  warnings: string[];
 }
 
 export async function bakeLods(source: KitMesh, opts: BakeOptions = {}): Promise<BakeResult> {
   await MeshoptSimplifier.ready;
   const ratios = opts.ratios ?? [0.25, 0.0625];
   const maxError = opts.maxError ?? [0.02, 0.08];
-  const lod0 = flatShade(removeDegenerates(source));
+  const warnings: string[] = [];
+  const textured = !!opts.materials && hasAnyTexture(opts.materials);
+  const clean = removeDegenerates(source);
+  const sourceFlat = isFlatShaded(clean);
+  const shading: "flat" | "smooth" = opts.shading === "flat" || opts.shading === "smooth" ? opts.shading : sourceFlat ? "flat" : "smooth";
+  // LOD0 keeps the authored normals unless a shading override disagrees with them.
+  const lod0 = shading === "flat"
+    ? (sourceFlat ? clean : flatShade(clean))
+    : (sourceFlat ? withSmoothNormals(compactVertices(weld(clean, true))) : clean);
   const b = bounds(lod0);
   const radius = boundingRadius(b);
   const levels: LodLevelOut[] = [{ level: 0, mesh: lod0, triangles: triangleCount(lod0), error: 0, kind: "source" }];
 
-  const welded = weld(lod0, opts.preserveUvSeams ?? false);
+  const byUv = textured || (opts.preserveUvSeams ?? false);
+  const welded = weldFull(lod0, { byUv, byNormal: shading === "smooth" });
+  const colorsVary = varies(welded.mesh.colors, 4);
+  const w = {
+    uv: byUv ? (opts.weights?.uv ?? 1) : 0,
+    normal: shading === "smooth" ? (opts.weights?.normal ?? 0.5) : 0,
+    color: colorsVary ? (opts.weights?.color ?? 1) : 0,
+  };
+  const attr = attributeStream(welded.mesh, w);
+  const lockSeams = (opts.uvSeams ?? (textured ? "lock" : "preserve")) === "lock";
+  const lock = lockSeams ? seamLocks(welded.mesh) : null;
   const baseTris = triangleCount(lod0);
   for (const step of [0, 1] as const) {
     const target = Math.max(3, Math.floor(baseTris * ratios[step]) * 3);
     const flags: SimplifierFlags[] = [];
     if (opts.lockBorder) flags.push("LockBorder");
     if (step === 1) flags.push("Prune");
-    const [idx, err] = MeshoptSimplifier.simplify(welded.indices, welded.positions, 3, target, maxError[step], flags);
-    let mesh = flatShade(removeDegenerates({ ...welded, indices: idx }));
+    const [idx, err] = attr.stride > 0 || lock
+      ? MeshoptSimplifier.simplifyWithAttributes(welded.mesh.indices, welded.mesh.positions, 3, attr.data, attr.stride, attr.weights, lock, target, maxError[step], flags)
+      : MeshoptSimplifier.simplify(welded.mesh.indices, welded.mesh.positions, 3, target, maxError[step], flags);
+    // Triangles keep one material each (collapses only follow same-material edges): group by the first corner's.
+    const triMat = new Uint32Array(idx.length / 3);
+    for (let t = 0; t < triMat.length; t++) triMat[t] = welded.vertexMaterial[idx[t * 3]!]!;
+    const grouped = { ...welded.mesh, ...regroup(idx, triMat) };
+    let mesh = shading === "flat" ? flatShade(removeDegenerates(grouped)) : compactVertices(removeDegenerates(grouped));
     // Never let a coarser level end up with more triangles than the one before it.
     const prev = levels[levels.length - 1]!;
     if (triangleCount(mesh) >= prev.triangles) mesh = prev.mesh;
     levels.push({ level: (step + 1) as 1 | 2, mesh, triangles: triangleCount(mesh), error: err, kind: "simplified" });
   }
+  let impostorOut: BakeResult["impostor"];
   if (opts.impostor !== false) {
-    const color = averageColor(lod0);
-    const imp = opts.impostor === "box" ? boxImpostor(b, color) : impostor(b, color);
-    levels.push({ level: 3, mesh: imp, triangles: triangleCount(imp), error: 0, kind: "impostor" });
+    const kind: ImpostorKind = opts.impostor === "box" ? "box" : "cross";
+    const out = buildImpostor(lod0, b, {
+      kind,
+      texture: opts.impostorTexture ?? "vertex",
+      ...(opts.materials ? { materials: opts.materials } : {}),
+      ...(opts.decodeImage ? { decodeImage: opts.decodeImage } : {}),
+      ...(opts.atlasTile ? { tile: opts.atlasTile } : {}),
+    });
+    warnings.push(...out.warnings);
+    impostorOut = { ...out, kind };
+    levels.push({ level: 3, mesh: out.mesh, triangles: triangleCount(out.mesh), error: 0, kind: "impostor" });
   }
-  return { levels, bounds: b, radius };
+  return { levels, bounds: b, radius, shading, ...(impostorOut ? { impostor: impostorOut } : {}), warnings };
 }
 
 /**
  * Merge vertices that share position + colour (+ UV). Normals are dropped
- * on purpose: they are recomputed after simplification.
+ * on purpose: they are recomputed after simplification. Material groups are kept.
  */
 export function weld(m: KitMesh, byUv: boolean): KitMesh {
+  const out = weldFull(m, { byUv, byNormal: false }).mesh;
+  return { ...out, normals: new Float32Array(out.normals.length).map((_, i) => (i % 3 === 1 ? 1 : 0)) };
+}
+
+/**
+ * Weld for simplification. Keys: position, material, colour, and optionally
+ * UV and normal. Returns the welded mesh (normals of the first vertex in each
+ * class) and each welded vertex's material.
+ */
+function weldFull(m: KitMesh, o: { byUv: boolean; byNormal: boolean }): { mesh: KitMesh; vertexMaterial: Uint32Array } {
+  const triMat = triangleMaterials(m);
+  // A vertex used by two materials is split per material (the key includes it).
   const map = new Map<string, number>();
-  const P: number[] = [], N: number[] = [], UV: number[] = [], C: number[] = [];
-  const remap = new Uint32Array(m.positions.length / 3);
+  const P: number[] = [], N: number[] = [], UV: number[] = [], C: number[] = [], VM: number[] = [];
   const q = (x: number, s: number) => Math.round(x * s);
-  for (let v = 0; v < remap.length; v++) {
+  const indices = new Uint32Array(m.indices.length);
+  // Normals are clustered per position with a tolerance (not quantized), so
+  // near-identical normals never split on a rounding boundary while real
+  // hard edges (> ~2.5 deg) stay apart.
+  const clusters = new Map<string, number[]>();
+  const normalCluster = (v: number, posKey: string): number => {
+    const list = clusters.get(posKey) ?? [];
+    const nx = m.normals[v * 3]!, ny = m.normals[v * 3 + 1]!, nz = m.normals[v * 3 + 2]!;
+    for (let c = 0; c < list.length; c += 3) if (list[c]! * nx + list[c + 1]! * ny + list[c + 2]! * nz >= 0.999) return c / 3;
+    list.push(nx, ny, nz);
+    clusters.set(posKey, list);
+    return list.length / 3 - 1;
+  };
+  for (let t = 0; t < m.indices.length; t++) {
+    const v = m.indices[t]!;
+    const mat = triMat[Math.floor(t / 3)]!;
+    const posKey = `${q(m.positions[v * 3]!, 1e4)},${q(m.positions[v * 3 + 1]!, 1e4)},${q(m.positions[v * 3 + 2]!, 1e4)}`;
     const key = [
+      mat,
       q(m.positions[v * 3]!, 1e4), q(m.positions[v * 3 + 1]!, 1e4), q(m.positions[v * 3 + 2]!, 1e4),
       q(m.colors[v * 4]!, 1e3), q(m.colors[v * 4 + 1]!, 1e3), q(m.colors[v * 4 + 2]!, 1e3), q(m.colors[v * 4 + 3]!, 1e3),
-      ...(byUv ? [q(m.uvs[v * 2]!, 1e4), q(m.uvs[v * 2 + 1]!, 1e4)] : []),
+      ...(o.byUv ? [q(m.uvs[v * 2]!, 1e4), q(m.uvs[v * 2 + 1]!, 1e4)] : []),
+      ...(o.byNormal ? [normalCluster(v, posKey)] : []),
     ].join(",");
     let id = map.get(key);
     if (id === undefined) {
       id = P.length / 3;
       map.set(key, id);
       P.push(m.positions[v * 3]!, m.positions[v * 3 + 1]!, m.positions[v * 3 + 2]!);
-      N.push(0, 1, 0);
+      N.push(m.normals[v * 3]!, m.normals[v * 3 + 1]!, m.normals[v * 3 + 2]!);
       UV.push(m.uvs[v * 2]!, m.uvs[v * 2 + 1]!);
       C.push(m.colors[v * 4]!, m.colors[v * 4 + 1]!, m.colors[v * 4 + 2]!, m.colors[v * 4 + 3]!);
+      VM.push(mat);
     }
-    remap[v] = id;
+    indices[t] = id;
   }
   return {
-    positions: Float32Array.from(P),
-    normals: Float32Array.from(N),
-    uvs: Float32Array.from(UV),
-    colors: Float32Array.from(C),
-    indices: m.indices.map((i) => remap[i]!),
+    mesh: {
+      positions: Float32Array.from(P), normals: Float32Array.from(N), uvs: Float32Array.from(UV), colors: Float32Array.from(C), indices,
+      ...(m.groups ? { groups: m.groups.map((g) => ({ ...g })) } : {}),
+    },
+    vertexMaterial: Uint32Array.from(VM),
   };
+}
+
+function varies(a: Float32Array, stride: number): boolean {
+  for (let i = stride; i < a.length; i++) if (Math.abs(a[i]! - a[i % stride]!) > 1e-4) return true;
+  return false;
+}
+
+/** Interleave the weighted attributes meshoptimizer should respect (zero-weight ones are left out). */
+function attributeStream(m: KitMesh, w: { uv: number; normal: number; color: number }): { data: Float32Array; stride: number; weights: number[] } {
+  const parts: { src: Float32Array; n: number; weight: number }[] = [];
+  if (w.uv > 0) parts.push({ src: m.uvs, n: 2, weight: w.uv });
+  if (w.normal > 0) parts.push({ src: m.normals, n: 3, weight: w.normal });
+  if (w.color > 0) parts.push({ src: m.colors, n: 4, weight: w.color });
+  const stride = parts.reduce((s, p) => s + p.n, 0);
+  const count = m.positions.length / 3;
+  const data = new Float32Array(count * stride);
+  const weights: number[] = [];
+  let o = 0;
+  for (const p of parts) {
+    for (let v = 0; v < count; v++) for (let k = 0; k < p.n; k++) data[v * stride + o + k] = p.src[v * p.n + k]!;
+    for (let k = 0; k < p.n; k++) weights.push(p.weight);
+    o += p.n;
+  }
+  return { data, stride, weights };
+}
+
+/** 1 for every welded vertex that shares its position with another (a UV / material / colour / hard-normal seam). */
+function seamLocks(m: KitMesh): Uint8Array {
+  const count = m.positions.length / 3;
+  const byPos = new Map<string, number>();
+  const key = (v: number) => `${Math.round(m.positions[v * 3]! * 1e4)},${Math.round(m.positions[v * 3 + 1]! * 1e4)},${Math.round(m.positions[v * 3 + 2]! * 1e4)}`;
+  for (let v = 0; v < count; v++) { const k = key(v); byPos.set(k, (byPos.get(k) ?? 0) + 1); }
+  const lock = new Uint8Array(count);
+  for (let v = 0; v < count; v++) if (byPos.get(key(v))! > 1) lock[v] = 1;
+  return lock;
 }
 
 /** The bounds box (bottom face omitted), one colour, flat normals: 10 triangles. */
@@ -188,62 +337,4 @@ export async function simplifySmooth(source: KitMesh, targetTriangles: number, m
   const [idx, err] = MeshoptSimplifier.simplify(welded.indices, welded.positions, 3, Math.max(3, Math.floor(targetTriangles) * 3), maxError, []);
   const mesh = withSmoothNormals(compactVertices(removeDegenerates({ ...welded, indices: idx })));
   return { mesh, triangles: triangleCount(mesh), error: err };
-}
-
-/** Drop vertices no triangle uses (simplification leaves them behind) and renumber. */
-export function compactVertices(m: KitMesh): KitMesh {
-  const count = m.positions.length / 3;
-  const remap = new Int32Array(count).fill(-1);
-  let next = 0;
-  for (const i of m.indices) if (remap[i] === -1) remap[i] = next++;
-  if (next === count) return m;
-  const P = new Float32Array(next * 3), N = new Float32Array(next * 3), UV = new Float32Array(next * 2), C = new Float32Array(next * 4);
-  for (let v = 0; v < count; v++) {
-    const r = remap[v]!;
-    if (r < 0) continue;
-    P.set(m.positions.subarray(v * 3, v * 3 + 3), r * 3);
-    N.set(m.normals.subarray(v * 3, v * 3 + 3), r * 3);
-    UV.set(m.uvs.subarray(v * 2, v * 2 + 2), r * 2);
-    C.set(m.colors.subarray(v * 4, v * 4 + 4), r * 4);
-  }
-  return { positions: P, normals: N, uvs: UV, colors: C, indices: m.indices.map((i) => remap[i]!) };
-}
-
-/**
- * Area-weighted vertex normals. Vertices that share a position (UV or colour
- * seams keep them as separate vertices) share one normal, so seams don't
- * show as a shading crease.
- */
-export function withSmoothNormals(m: KitMesh): KitMesh {
-  const p = m.positions;
-  const count = p.length / 3;
-  const keyOf = (v: number) => `${Math.round(p[v * 3]! * 1e4)},${Math.round(p[v * 3 + 1]! * 1e4)},${Math.round(p[v * 3 + 2]! * 1e4)}`;
-  const slot = new Uint32Array(count);
-  const slots = new Map<string, number>();
-  for (let v = 0; v < count; v++) {
-    const k = keyOf(v);
-    let s2 = slots.get(k);
-    if (s2 === undefined) { s2 = slots.size; slots.set(k, s2); }
-    slot[v] = s2;
-  }
-  const acc = new Float64Array(slots.size * 3);
-  for (let t = 0; t + 2 < m.indices.length; t += 3) {
-    const ia = m.indices[t]!, ib = m.indices[t + 1]!, ic = m.indices[t + 2]!;
-    const a = ia * 3, b = ib * 3, c = ic * 3;
-    const ux = p[b]! - p[a]!, uy = p[b + 1]! - p[a + 1]!, uz = p[b + 2]! - p[a + 2]!;
-    const vx = p[c]! - p[a]!, vy = p[c + 1]! - p[a + 1]!, vz = p[c + 2]! - p[a + 2]!;
-    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
-    for (const i of [ia, ib, ic]) {
-      const o = slot[i]! * 3;
-      acc[o] = acc[o]! + nx; acc[o + 1] = acc[o + 1]! + ny; acc[o + 2] = acc[o + 2]! + nz;
-    }
-  }
-  const n = new Float32Array(count * 3);
-  for (let v = 0; v < count; v++) {
-    const o = slot[v]! * 3;
-    const x = acc[o]!, y = acc[o + 1]!, z = acc[o + 2]!;
-    const l = Math.hypot(x, y, z);
-    if (l > 1e-20) { n[v * 3] = x / l; n[v * 3 + 1] = y / l; n[v * 3 + 2] = z / l; } else n[v * 3 + 1] = 1;
-  }
-  return { ...m, normals: n };
 }

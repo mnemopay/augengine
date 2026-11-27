@@ -1,0 +1,159 @@
+{
+ "capUsd": 3,
+ "totalUsd": 0.663,
+ "calls": [
+  {
+   "at": "2026-11-27T19:57:19.012Z",
+   "label": "ebun_calm",
+   "model": "google/nano-banana",
+   "prediction": "ryp6q52cqsrmt0d23tavkxtpcc",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.277616125
+  },
+  {
+   "at": "2026-11-27T19:58:00.811Z",
+   "label": "kunle_calm",
+   "model": "google/nano-banana",
+   "prediction": "5raf4y7m7nrmy0d23tasaq0as8",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 7.212285689
+  },
+  {
+   "at": "2026-11-27T19:58:22.402Z",
+   "label": "adaeze_calm",
+   "model": "google/nano-banana",
+   "prediction": "bpfkvkt54xrmt0d23tb846f87w",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.149467256
+  },
+  {
+   "at": "2026-11-27T19:58:44.526Z",
+   "label": "sammy_calm",
+   "model": "google/nano-banana",
+   "prediction": "3vasy2wsaxrmt0d23tbbywt0vc",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.707751934000001
+  },
+  {
+   "at": "2026-11-27T19:59:06.528Z",
+   "label": "femi_calm",
+   "model": "google/nano-banana",
+   "prediction": "mmpbfazfjxrmy0d23tbb062w24",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.645709859
+  },
+  {
+   "at": "2026-11-27T19:59:18.091Z",
+   "label": "ebun_evasive",
+   "model": "google/nano-banana",
+   "prediction": "c7qdht8xw9rmw0d23tbv6ty5b0",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.24402461
+  },
+  {
+   "at": "2026-11-27T19:59:29.310Z",
+   "label": "ebun_angry",
+   "model": "google/nano-banana",
+   "prediction": "rzez2h2adnrmw0d23tbt8a4ygg",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 7.419942479
+  },
+  {
+   "at": "2026-11-27T19:59:42.022Z",
+   "label": "ebun_cracked",
+   "model": "google/nano-banana",
+   "prediction": "wbvp803s7xrmt0d23tbtgqwbgg",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.243658564
+  },
+  {
+   "at": "2026-11-27T19:59:52.561Z",
+   "label": "kunle_evasive",
+   "model": "google/nano-banana",
+   "prediction": "94bh6dn5p1rmw0d23tbsc080wg",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.010752787
+  },
+  {
+   "at": "2026-11-27T20:00:02.750Z",
+   "label": "kunle_angry",
+   "model": "google/nano-banana",
+   "prediction": "1hpjvxpc1nrmw0d23tbt93smhw",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.242578446
+  },
+  {
+   "at": "2026-11-27T20:00:13.070Z",
+   "label": "kunle_cracked",
+   "model": "google/nano-banana",
+   "prediction": "0cfyk4qnv9rmw0d23tbrd5nwz8",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.010729291
+  },
+  {
+   "at": "2026-11-27T20:00:22.779Z",
+   "label": "adaeze_evasive",
+   "model": "google/nano-banana",
+   "prediction": "70dk7h0wg1rmw0d23tc99rzydw",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 7.762026236
+  },
+  {
+   "at": "2026-11-27T20:00:45.722Z",
+   "label": "adaeze_angry",
+   "model": "google/nano-banana",
+   "prediction": "3nwhpgbkydrmt0d23tcame5v9g",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.37705039
+  },
+  {
+   "at": "2026-11-27T20:00:57.129Z",
+   "label": "adaeze_cracked",
+   "model": "google/nano-banana",
+   "prediction": "7fkaven099rmr0d23tc98fd4ym",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 8.179123704
+  },
+  {
+   "at": "2026-11-27T20:01:07.876Z",
+   "label": "sammy_evasive",
+   "model": "google/nano-banana",
+   "prediction": "603x7t6c79rmr0d23tc99wgh1w",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 7.850239749
+  },
+  {
+   "at": "2026-11-27T20:01:33.446Z",
+   "label": "sammy_angry",
+   "model": "google/nano-banana",
+   "prediction": "t6n37ps589rmy0d23tcrqh9yj4",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 10.619428314
+  },
+  {
+   "at": "2026-11-27T20:01:42.701Z",
+   "label": "sammy_cracked",
+   "model": "google/nano-banana",
+   "prediction": "e2bxdqjnt9rmt0d23tcs4wknnc",
+   "status": "succeeded",
+   "costUsd": 0.039,
+   "predictTime": 7.496999902
+  }
+ ]
+}

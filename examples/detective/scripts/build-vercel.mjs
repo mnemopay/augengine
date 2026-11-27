@@ -43,6 +43,9 @@ writeFileSync(
     {
       functions: { "api/detective/*.js": { maxDuration: 20 } },
       ...(base ? { redirects: [{ source: "/", destination: `/${base}/`, permanent: false }] } : {}),
+      // augengine.com uses cleanUrls, so /detective/encounter.html reaches this project as
+      // /detective/encounter. Serve the encounter player at both spellings.
+      rewrites: [{ source: base ? `/${base}/encounter` : "/encounter", destination: base ? `/${base}/encounter.html` : "/encounter.html" }],
       headers: [{ source: "/(.*)", headers: [{ key: "X-Content-Type-Options", value: "nosniff" }] }],
     },
     null,
