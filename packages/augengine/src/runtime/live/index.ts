@@ -59,6 +59,15 @@ export {
   type HistogramLayout,
 } from "./webgpu/exposure.js";
 export { EnvironmentLighting, type EnvBakeSettings, type EquirectImage } from "./webgpu/env-lighting.js";
+export {
+  parseRadianceHdr,
+  loadRadianceHdr,
+  rgbeToFloat,
+  floatToRgbe,
+  extractSun,
+  type HdrImage,
+  type ExtractedSun,
+} from "./webgpu/hdr-loader.js";
 export { integrateDfg, envIblResponse, DFG_LUT_SIZE } from "./webgpu/ibl-brdf.js";
 export {
   LIGHTING_PRESETS,

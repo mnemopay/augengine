@@ -120,6 +120,12 @@ export interface ColliderComponent {
   indices?: number[];
   /** Static terrain grid (shape "heightfield"). */
   heightfield?: HeightfieldShape;
+  /**
+   * Sensor: detected by `PhysicsSystem.overlapShape` but produces no contact
+   * forces, and the character controller and `raycast` ignore it. Used for
+   * combat hurtboxes and trigger volumes.
+   */
+  sensor?: boolean;
 }
 
 /**

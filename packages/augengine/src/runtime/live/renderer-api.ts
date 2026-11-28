@@ -23,6 +23,7 @@ import type { ShadowQuality } from "./webgpu/lights.js";
 import type { ProbeGridParams, ProbeTileLike } from "./webgpu/probe-ring.js";
 import type { ImageQualityOptions, LookOptions, NaturalLightOptions, NaturalLightState, RenderFrameOptions, RendererFrameStats } from "./webgpu/renderer.js";
 import type { LightingPreset } from "./webgpu/lighting-presets.js";
+import type { EquirectImage } from "./webgpu/env-lighting.js";
 import type { GpuMsSource, PassTimingSample } from "../perf/timestamp-queries.js";
 
 export type LiveRendererBackend = "webgpu" | "three";
@@ -72,6 +73,8 @@ export interface LiveRenderer {
   /** Physical sun + sky, auto-exposure, white balance (backend A only; docs/LIGHTING.md). */
   setNaturalLight?(opts: NaturalLightOptions | false): void;
   getNaturalLightState?(): NaturalLightState | null;
+  /** HDR equirect environment for setNaturalLight({ environment: "hdr" }) (backend A only). */
+  setEnvironmentHdr?(img: EquirectImage | null, opts?: { intensity?: number; rotationDeg?: number; extractSun?: boolean; horizontalLux?: number }): void;
   /** Natural-light quality preset (backend A only). */
   setLightingPreset?(preset: LightingPreset): void;
 

@@ -65,6 +65,11 @@ export interface PhysicsContact {
   /** Accumulated contact exposure when chemistry runs at a lower rate. */
   durationSeconds?: number;
 }
+/** Query shape for `PhysicsSystem.overlapShape` (capsule axis is local Y). */
+export type OverlapShape =
+  | { kind: "sphere"; radius: number }
+  | { kind: "capsule"; radius: number; halfHeight: number }
+  | { kind: "box"; halfExtents: Vec3 };
 export interface PhysicsSnapshot {
   version: 1;
   rapierVersion: "0.21.0";
@@ -369,6 +374,7 @@ export class PhysicsSystem {
           );
         if (c.centerOffset)
           cd.setTranslation(c.centerOffset[0], c.centerOffset[1], c.centerOffset[2]);
+        if (c.sensor) cd.setSensor(true);
         cd.setFriction(rb?.friction ?? 0.5).setRestitution(
           rb?.restitution ?? 0,
         );
@@ -389,6 +395,37 @@ export class PhysicsSystem {
       b.body.setLinvel(v(rb.velocity), true);
       b.body.setAngvel(v(rb.angularVelocity), true);
     }
+  }
+  /**
+   * Entities whose colliders (sensors included) overlap a query shape at the
+   * given pose, sorted by id. Reflects the poses of the last `stepFixed`
+   * (kinematic bodies included). `exclude` skips entities; `filter` decides
+   * per candidate. Used by combat hitboxes and trigger volumes.
+   */
+  overlapShape(
+    shape: OverlapShape,
+    position: Vec3,
+    rotation: Quat = [0, 0, 0, 1],
+    opts: { exclude?: ReadonlySet<EntityId>; filter?: (id: EntityId) => boolean } = {},
+  ): EntityId[] {
+    if (!this.world || !this.api) throw new Error("Await PhysicsSystem.init() before querying");
+    finite([...position, ...rotation], "query pose");
+    const R = this.api;
+    const s =
+      shape.kind === "sphere"
+        ? new R.Ball(shape.radius)
+        : shape.kind === "capsule"
+          ? new R.Capsule(shape.halfHeight, shape.radius)
+          : new R.Cuboid(shape.halfExtents[0], shape.halfExtents[1], shape.halfExtents[2]);
+    const byHandle = new Map<number, EntityId>();
+    for (const [id, b] of this.bindings) if (b.collider) byHandle.set(b.collider.handle, id);
+    const out: EntityId[] = [];
+    this.world.intersectionsWithShape(v(position), q(rotation), s, (collider) => {
+      const id = byHandle.get(collider.handle);
+      if (id && !opts.exclude?.has(id) && (!opts.filter || opts.filter(id))) out.push(id);
+      return true;
+    });
+    return out.sort();
   }
   applyImpulse(id: EntityId, impulse: Vec3): void {
     finite(impulse, "impulse");

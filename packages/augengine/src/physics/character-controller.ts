@@ -249,6 +249,7 @@ export class KinematicCharacterController {
     for (const entity of this.scene.withComponent(Tag.Collider)) {
       if (entity.id === this.entityId) continue;
       const col = entity.components[Tag.Collider]!;
+      if (col.sensor) continue;
       const tx = entity.components[Tag.Transform];
       if (!tx) continue;
       const resolved = resolveCollider(col, tx.position);

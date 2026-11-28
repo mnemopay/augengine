@@ -6,10 +6,14 @@
  * mouth and eyes are only painted on the texture. Deforming that mesh in place
  * gives a stretched chin, not a mouth. So instead:
  *
- *   1. find the face on the mesh: a front orthographic depth + colour map of
- *      the head gives the nose (depth peak), the chin (where the profile turns
- *      under), the eyes (two dark blobs) and the mouth line (dark/red row);
- *      fixed head proportions fill in anything that isn't found;
+ *   1. find the face on the mesh. Preferred: landmarks from a face-mesh
+ *      detector run on a front orthographic render (MediaPipe in the Studio),
+ *      passed in as `opts.landmarks` via `faceLandmarksFromMeshPoints`, which
+ *      also gives the face outline the patch is cut to. Fallback (heuristic,
+ *      can misplace features on generated heads): a front depth + colour map
+ *      gives the nose (depth peak), the chin (where the profile turns under),
+ *      the eyes (two dark blobs) and the mouth line (dark/red row); fixed head
+ *      proportions fill in anything that isn't found;
  *   2. lay a regular grid over the face and shrink-wrap it onto the generated
  *      surface (orthographic rays along -Z). Each grid vertex copies the
  *      surface's position, normal and texture coordinate, so at rest the patch
@@ -186,6 +190,18 @@ export interface FaceLandmarks {
   eyeHalfW: number;
   eyeHalfH: number;
   mouthHalfW: number;
+  /**
+   * Half-width of the face (cheek to cheek) when a detector measured it; the
+   * patch then spans the whole jaw so jawOpen fades out at the jawline, not
+   * mid-cheek. Omitted by the heuristic.
+   */
+  faceHalfW?: number;
+  /**
+   * Face silhouette (closed polygon, model x / y) when a detector found it.
+   * The patch is cut to this outline, grown by `OUTLINE_GROW`, so it never
+   * reaches past the cheeks and jaw onto hair, ears or a head wrap.
+   */
+  outline?: { x: number; y: number }[];
   /** Where each landmark came from: the mesh/texture, or head proportions. */
   found: { chin: boolean; nose: boolean; eyes: boolean; mouth: boolean };
 }
@@ -531,6 +547,122 @@ export function detectFaceLandmarks(maps: FaceMaps, box: HeadBox): FaceLandmarks
   return L;
 }
 
+// ─── landmarks from a face-mesh detector (MediaPipe Face Landmarker) ────
+
+/**
+ * Indices into the 478-point MediaPipe face mesh (Face Landmarker v2,
+ * Apache-2.0) used to place the patch. "Left/Right" are the subject's own
+ * sides, like ARKit: the character's left eye is on the right of a front
+ * view, at +X in model space.
+ */
+export const FACE_MESH_POINTS = {
+  rightEyeOuter: 33, rightEyeInner: 133, rightEyeUpper: 159, rightEyeLower: 145,
+  leftEyeOuter: 263, leftEyeInner: 362, leftEyeUpper: 386, leftEyeLower: 374,
+  rightBrow: 105, leftBrow: 334,
+  noseTip: 1,
+  mouthRight: 61, mouthLeft: 291,
+  upperLipInner: 13, lowerLipInner: 14,
+  chin: 152,
+  /** Between the eyes, top of the nose bridge. */
+  bridge: 168,
+  /** Face oval at cheekbone height (subject's right / left). */
+  rightCheek: 234, leftCheek: 454,
+  /** Face oval at the jaw angle (subject's right / left). */
+  rightJaw: 172, leftJaw: 397,
+} as const;
+
+/** The face-mesh silhouette, in order around the face (MediaPipe FACEMESH_FACE_OVAL). */
+export const FACE_MESH_OVAL = [
+  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377,
+  152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109,
+] as const;
+
+/** Radial growth of the detected face outline before the patch is cut to it. */
+export const OUTLINE_GROW = 1.18;
+
+/**
+ * Face landmarks from detector points already mapped into model space
+ * (x, y of each point: an orthographic front view along −Z maps image
+ * pixels straight to model x/y). `points` is indexed like the MediaPipe face
+ * mesh (`FACE_MESH_POINTS`); only those indices are read.
+ *
+ * `onSurface(x, y)` — optional — says whether the head surface is under a
+ * point (a ray along −Z hits the mesh); every feature point must be, so a
+ * detection that landed on the background or a hat brim is refused.
+ *
+ * Returns null when the points are missing, out of anatomical order (chin <
+ * mouth < nose < eyes < brows, eyes either side of the midline), or off the
+ * surface — the caller then falls back to `detectFaceLandmarks`.
+ */
+export function faceLandmarksFromMeshPoints(
+  points: ReadonlyArray<{ x: number; y: number } | undefined>,
+  box: HeadBox,
+  onSurface?: (x: number, y: number) => boolean,
+): FaceLandmarks | null {
+  const K = FACE_MESH_POINTS;
+  const p = (i: number) => points[i];
+  // The face-oval points sit on the silhouette, so only the inner features must hit the surface.
+  const oval = new Set<number>([K.rightCheek, K.leftCheek, K.rightJaw, K.leftJaw]);
+  for (const i of Object.values(K)) {
+    const q = p(i);
+    if (!q || !Number.isFinite(q.x) || !Number.isFinite(q.y)) return null;
+    if (onSurface && !oval.has(i) && !onSurface(q.x, q.y)) return null;
+  }
+  const P = (i: number) => p(i)!;
+  const mid = (a: number, b: number) => ({ x: (P(a).x + P(b).x) / 2, y: (P(a).y + P(b).y) / 2 });
+  const rEye = mid(K.rightEyeOuter, K.rightEyeInner), lEye = mid(K.leftEyeOuter, K.leftEyeInner);
+  const rOpen = Math.abs(P(K.rightEyeUpper).y - P(K.rightEyeLower).y), lOpen = Math.abs(P(K.leftEyeUpper).y - P(K.leftEyeLower).y);
+  const rW = Math.hypot(P(K.rightEyeOuter).x - P(K.rightEyeInner).x, P(K.rightEyeOuter).y - P(K.rightEyeInner).y);
+  const lW = Math.hypot(P(K.leftEyeOuter).x - P(K.leftEyeInner).x, P(K.leftEyeOuter).y - P(K.leftEyeInner).y);
+  const mouth = mid(K.upperLipInner, K.lowerLipInner);
+  // Midline: halfway between the eyes, averaged with the mouth and chin so a
+  // slightly turned head still gets a centred patch.
+  const centerX = 0.5 * ((rEye.x + lEye.x) / 2) + 0.25 * mouth.x + 0.25 * P(K.chin).x;
+  const eyeY = (rEye.y + lEye.y) / 2;
+  const eyeX = Math.abs(lEye.x - rEye.x) / 2;
+  // Generated textures paint the eye as a soft dark blob a little larger than
+  // the detector's lid contour; size the lids to cover the blob.
+  const eyeHalfW = 1.2 * (rW + lW) / 4;
+  const chinY = P(K.chin).y;
+  const noseY = P(K.noseTip).y;
+  const mouthY = mouth.y;
+  const browY = (P(K.rightBrow).y + P(K.leftBrow).y) / 2;
+  const mouthHalfW = Math.abs(P(K.mouthLeft).x - P(K.mouthRight).x) / 2;
+  const hw = (box.maxX - box.minX) / 2;
+  const faceHalfW = Math.min(
+    (Math.abs(P(K.leftCheek).x - centerX) + Math.abs(P(K.rightCheek).x - centerX)) / 2,
+    (Math.abs(P(K.leftJaw).x - centerX) + Math.abs(P(K.rightJaw).x - centerX)) / 2 * 1.15,
+  );
+
+  // Anatomical sanity: the detector can lock onto a face-like pattern elsewhere.
+  if (!(chinY < mouthY && mouthY < noseY && noseY < eyeY && eyeY < browY)) return null;
+  if (!(lEye.x > centerX && rEye.x < centerX)) return null;
+  if (!(eyeHalfW > 0 && eyeX > eyeHalfW * 0.6 && mouthHalfW > 0)) return null;
+  if (Math.abs(lEye.y - rEye.y) > 0.5 * (eyeY - chinY)) return null;
+  if (chinY < box.minY - 0.1 * (box.maxY - box.minY) || browY > box.maxY || eyeX > hw) return null;
+
+  // Lid opening → eyelid sheet height; the blink deformer and lid sheet span
+  // eyeY + eyeHalfH (upper lid) down to eyeY − 0.55·eyeHalfH.
+  const open = (rOpen + lOpen) / 2;
+  return {
+    centerX,
+    chinY,
+    mouthY,
+    noseY,
+    eyeY,
+    browY,
+    eyeX,
+    eyeHalfW,
+    eyeHalfH: clamp(1.1 * open, 0.45 * eyeHalfW, 0.8 * eyeHalfW),
+    mouthHalfW,
+    faceHalfW: clamp(faceHalfW, mouthHalfW * 1.5, hw),
+    ...(FACE_MESH_OVAL.every((i) => p(i) && Number.isFinite(p(i)!.x) && Number.isFinite(p(i)!.y))
+      ? { outline: FACE_MESH_OVAL.map((i) => ({ x: p(i)!.x, y: p(i)!.y })) }
+      : {}),
+    found: { chin: true, nose: true, eyes: true, mouth: true },
+  };
+}
+
 // ─── the patch ─────────────────────────────────────────────────────────
 
 export interface FaceRigOptions {
@@ -590,7 +722,9 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
   const hh = box.maxY - box.minY;
   const hw = (box.maxX - box.minX) / 2;
   if (!(hh > 0) || !(hw > 0)) return null;
-  const pad = 0.15 * hh;
+  // Generous margin: the neck estimate can sit above a long chin (it does on
+  // the TRELLIS fixture), and the patch must reach below the chin.
+  const pad = 0.3 * hh;
   const caster = new OrthoCaster(mesh, { minX: box.minX - pad, maxX: box.maxX + pad, minY: box.minY - pad, maxY: box.maxY + pad });
   const L = opts.landmarks ?? detectFaceLandmarks(faceMaps(mesh, box, caster, opts.sampler), box);
   const cx = L.centerX;
@@ -598,8 +732,10 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
   const eps = 0.006 * D;
 
   // Grid extent.
-  const Wp = Math.min(0.92 * hw, Math.max(L.eyeX + 1.9 * L.eyeHalfW, 1.9 * L.mouthHalfW));
-  const yBot = Math.max(box.minY - 0.05 * hh, L.chinY - 0.24 * D);
+  const Wp = Math.min(0.92 * hw, Math.max(L.eyeX + 1.9 * L.eyeHalfW, 1.9 * L.mouthHalfW, L.faceHalfW ?? 0));
+  // Bottom edge below the chin (not clipped at the neck estimate, which can be
+  // above the chin): the jaw needs patch below it to swing into.
+  const yBot = Math.max(box.minY - 0.25 * hh, L.chinY - 0.24 * D);
   const yTop = Math.min(box.maxY - 0.04 * hh, L.browY + 0.32 * D);
   const NU = opts.columns ?? 30, NV = opts.rows ?? 34;
   const merge = (uniform: number[], special: number[], cell: number) => {
@@ -649,11 +785,41 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
   // Face grid.
   const grid = new Int32Array(nx * ny).fill(-1);
   const lower = new Int32Array(nx).fill(-1);
+  const zFront = surface(0, L.noseY)?.z ?? box.maxZ;
+  /** Grid points left out for being far behind the face (see below). */
+  const behind = new Uint8Array(nx * ny);
+  /** Where jawOpen moves the skin by more than 30 % (below the mouth, inside the jaw's reach). */
+  const jawZone = (x: number, y: number) => y < L.mouthY && 1 - smoothstep(L.mouthHalfW * 1.05, Wp, Math.abs(x)) > 0.3;
+  // Detected outline, grown about the nose: grid points outside it are left
+  // out (treated like misses, so the border fade starts at the outline).
+  const outline = L.outline && L.outline.length >= 3
+    ? L.outline.map((q) => ({
+      x: (q.x - cx) * OUTLINE_GROW,
+      // …and further down around the jaw, so the chin moves with the jaw and
+      // the stretch happens under it, on the neck, rather than across the chin.
+      y: L.noseY + (q.y - L.noseY) * OUTLINE_GROW - 0.3 * D * clamp((L.mouthY - q.y) / Math.max(1e-6, L.mouthY - L.chinY), 0, 1),
+    }))
+    : null;
+  const inOutline = (x: number, y: number) => {
+    if (!outline) return true;
+    let inside = false;
+    for (let a = 0, b = outline.length - 1; a < outline.length; b = a++) {
+      const A = outline[a]!, B = outline[b]!;
+      if ((A.y > y) !== (B.y > y) && x < ((B.x - A.x) * (y - A.y)) / (B.y - A.y) + A.x) inside = !inside;
+    }
+    return inside;
+  };
   for (let j = 0; j < ny; j++) {
     for (let i = 0; i < nx; i++) {
       const x = xs[i]!, y = ys[j]!;
+      if (!inOutline(x, y)) continue;
       const hit = surface(x, y);
       if (!hit) { misses++; continue; }
+      // Far behind the face front (the neck behind the jaw, a hanging earring,
+      // the back of a head wrap): not face. Left out like a miss.
+      // Under the jaw allow deeper (the neck right under the chin is the wall
+      // the jaw swings over); further back than that is the far side of the neck.
+      if (hit.z < zFront - (jawZone(x, y) ? 1.2 : 0.9) * D) { misses++; behind[j * nx + i] = 1; continue; }
       const n = normalAt(hit);
       const p: [number, number, number] = [cx + x + n[0] * eps, y + n[1] * eps, hit.z + n[2] * eps];
       const inMouth = j === rm && Math.abs(x) < L.mouthHalfW - 1e-9;
@@ -669,7 +835,9 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
   const queue: number[] = [];
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
     const k = j * nx + i;
-    if (grid[k]! < 0) { dist[k] = 0; queue.push(k); }
+    // Under the jaw the patch ends where the surface drops away behind the
+    // chin; that edge must swing with the jaw, so it does not start a fade.
+    if (grid[k]! < 0) { if (!(behind[k] && jawZone(xs[i]!, ys[j]!))) { dist[k] = 0; queue.push(k); } }
     else if (i === 0 || j === 0 || i === nx - 1 || j === ny - 1) { dist[k] = 0; queue.push(k); }
   }
   for (let q = 0; q < queue.length; q++) {
@@ -692,12 +860,40 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
   }
 
   const idx: number[] = [];
+  const CLIFF = 0.2 * D;
+  /** Grid cells left out as cliffs (index j * nx + i of the cell's lower-left corner). */
+  const cliff = new Uint8Array(nx * ny);
   const tri = (a: number, b: number, c: number) => { if (a >= 0 && b >= 0 && c >= 0) idx.push(a, b, c); };
   for (let j = 0; j + 1 < ny; j++) {
     for (let i = 0; i + 1 < nx; i++) {
       const top = (ii: number) => (j + 1 === rm && lower[ii]! >= 0 ? lower[ii]! : grid[(j + 1) * nx + ii]!);
       const v00 = grid[j * nx + i]!, v10 = grid[j * nx + i + 1]!, v11 = top(i + 1), v01 = top(i);
       if (v00 < 0 || v10 < 0 || v11 < 0 || v01 < 0) continue;
+      // A cliff — the side of the face against a head wrap or hair, the
+      // underside of the chin — projects to one thin cell spanning
+      // centimetres of depth, and its texture smears across atlas charts
+      // into streaks seen from the side. Leave the cell out and keep the
+      // source surface under it (see maskAt below) — except where the jaw
+      // swings (below the mouth, where jawOpen moves it > 30 %): a free edge there
+      // would open a jagged gap along the jawline when the mouth opens.
+      const z0 = meta[v00]!.z, z1 = meta[v10]!.z, z2 = meta[v11]!.z, z3 = meta[v01]!.z;
+      const jawCell = jawZone(Math.max(Math.abs(xs[i]!), Math.abs(xs[i + 1]!)), ys[j + 1]!);
+      const zTop = Math.max(z0, z1, z2, z3);
+      if (zTop - Math.min(z0, z1, z2, z3) > CLIFF) {
+        if (!jawCell) { cliff[j * nx + i] = 1; continue; }
+        // Kept for the jaw: give its far corners (on the neck behind) the
+        // texture of the front corner, so the wall reads as skin under the
+        // jaw instead of streaks of whatever atlas charts lie between.
+        const front = [v00, v10, v11, v01][[z0, z1, z2, z3].indexOf(zTop)]!;
+        const skinCopy = (v: number) => {
+          if (meta[v]!.z > zTop - 0.5 * CLIFF) return v;
+          return pushVertex([pos[v * 3]!, pos[v * 3 + 1]!, pos[v * 3 + 2]!], [nrm[v * 3]!, nrm[v * 3 + 1]!, nrm[v * 3 + 2]!],
+            useUv ? [uv[front * 2]!, uv[front * 2 + 1]!] : null, useCol ? col.slice(front * 4, front * 4 + 4) : null, { ...meta[v]! }, hitTri[front]!);
+        };
+        const a = skinCopy(v00), b = skinCopy(v10), c = skinCopy(v11), d = skinCopy(v01);
+        tri(a, b, c); tri(a, c, d);
+        continue;
+      }
       tri(v00, v10, v11); tri(v00, v11, v01);
     }
   }
@@ -744,6 +940,13 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
   const lipHit = surface(0, L.mouthY - 0.05 * D) ?? mouthHit;
   const lipUv = lipHit ? uvAt(lipHit) : null;
   const zMouth = mouthHit?.z ?? box.maxZ;
+  // The cavity and tongue are flat-ish sheets behind the lips; where the face
+  // recedes (the lower lip and chin slope back) a flat sheet would poke through
+  // the closed mouth, so keep every inner vertex at least `gap` behind the surface.
+  const behindSurface = (x: number, y: number, z: number, gap: number) => {
+    const h = surface(x, y);
+    return h ? Math.min(z, h.z - gap) : z;
+  };
   if (mouthHit) {
     const CC = 9, CR = 6;
     const ids: number[] = [];
@@ -752,7 +955,7 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
       for (let c = 0; c < CC; c++) {
         const u = -1 + (2 * c) / (CC - 1);
         const x = u * 1.08 * L.mouthHalfW;
-        const z = zMouth - 0.045 * D - 0.05 * D * u * u;
+        const z = behindSurface(x, y, zMouth - 0.045 * D - 0.05 * D * u * u, 0.035 * D);
         const m: Meta = { kind: "cavity", x, y, z, lip: y < L.mouthY ? -1 : 1, mask: 1, side: 0, lidT: 0 };
         ids.push(pushVertex([cx + x, y, z], [0, 0, 1], darkUv, useCol ? [0.07, 0.03, 0.03, 1] : null, m, mouthHit.tri));
       }
@@ -769,7 +972,7 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
         const u = -1 + (2 * c) / (TC - 1);
         const x = u * 0.55 * L.mouthHalfW * (1 - 0.25 * t);
         const y = L.mouthY - 0.045 * D - 0.015 * D * Math.abs(u);
-        const z = zMouth - 0.035 * D - 0.045 * D * (1 - t) - 0.02 * D * u * u;
+        const z = behindSurface(x, y, zMouth - 0.035 * D - 0.045 * D * (1 - t) - 0.02 * D * u * u, 0.03 * D);
         const m: Meta = { kind: "tongue", x, y, z, lip: -1, mask: 1, side: 0, lidT: t };
         tids.push(pushVertex([cx + x, y, z], [0, 0.3, 0.95], lipUv, useCol ? [0.55, 0.22, 0.24, 1] : null, m, mouthHit.tri));
       }
@@ -842,6 +1045,10 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
     if (x <= xs[0]! || x >= xs[nx - 1]! || y <= ys[0]! || y >= ys[ny - 1]!) return 0;
     let i = 0; while (i + 2 < nx && xs[i + 1]! < x) i++;
     let j = 0; while (j + 2 < ny && ys[j + 1]! < y) j++;
+    // Under a cliff cell, or a cell with a corner left out, the patch has no
+    // surface (or a free edge that moves with the jaw): keep the source there.
+    if (cliff[j * nx + i]) return 0;
+    if (grid[j * nx + i]! < 0 || grid[j * nx + i + 1]! < 0 || grid[(j + 1) * nx + i]! < 0 || grid[(j + 1) * nx + i + 1]! < 0) return 0;
     const fx = (x - xs[i]!) / (xs[i + 1]! - xs[i]!), fy = (y - ys[j]!) / (ys[j + 1]! - ys[j]!);
     const g = (ii: number, jj: number) => { const v = grid[jj * nx + ii]!; return v >= 0 ? meta[v]!.mask : 0; };
     return (g(i, j) * (1 - fx) + g(i + 1, j) * fx) * (1 - fy) + (g(i, j + 1) * (1 - fx) + g(i + 1, j + 1) * fx) * fy;
@@ -853,7 +1060,7 @@ export function buildFaceRig(mesh: FaceSourceMesh, opts: FaceRigOptions = {}): F
     const hit = surface(x, y);
     if (!hit || Math.abs(z - hit.z) > 0.05 * D) continue;
     coveredVertices[v] = 1;
-    if (maskAt(x, y) > 0.3) strong[v] = 1;
+    if (maskAt(x, y) > 0.6) strong[v] = 1;
   }
   const I = mesh.indices;
   const coveredTriangles = new Uint8Array(I.length / 3);
@@ -932,7 +1139,19 @@ export function shapeDelta(
     if (m.lip > 0) return 0;
     const h = 1 - smoothstep(mw * 1.05, Wp, ax);
     const v = y < L.chinY ? smoothstep(yBot, L.chinY, y) : 1;
-    return (m.lip === 0 ? 0.45 : 1) * h * v;
+    if (m.lip === 0) return 0.45 * (1 - smoothstep(mw, 1.5 * mw, ax)) * h * v;
+    // Past the mouth corners the skin is not split, so the cheek must stretch:
+    // the jaw's pull grows with depth below the mouth line, over a run that
+    // lengthens away from the corner. Without this the row under the mouth
+    // line drops a full jaw-height while the row above stays — a shear line
+    // from each corner out to the edge of the patch.
+    const out = Math.max(0, ax - mw);
+    const ramp = out > 0 ? smoothstep(0, 0.08 * D + 1.2 * out, L.mouthY - y) : 1;
+    // Inside the mouth the lower lip opens less toward the corners (a lens,
+    // not a letterbox); the taper fades out below the lip.
+    const lipT = 1 - smoothstep(0, 0.18 * D, L.mouthY - y);
+    const taper = out > 0 ? 1 : 1 - lipT * 0.55 * smoothstep(0.3 * mw, mw, ax);
+    return h * v * ramp * taper;
   };
   const rotJaw = (angle: number): [number, number, number] => {
     const dy = y - pivot.y, dz = m.z - pivot.z;

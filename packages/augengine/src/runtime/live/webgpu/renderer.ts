@@ -28,10 +28,16 @@ import { EnvironmentLighting } from "./env-lighting.js";
 import { PhysicalSkyPass } from "./physical-sky.js";
 import { AutoExposureMeter } from "./auto-exposure.js";
 import { createDfgLut } from "./ibl-brdf.js";
+import { extractSun, type ExtractedSun } from "./hdr-loader.js";
+import type { EquirectImage } from "./env-lighting.js";
+import { evalSh9, convolveSh9Diffuse, projectEquirectSh9 } from "./sh9.js";
 import { LIGHTING_PRESETS, type LightingPreset } from "./lighting-presets.js";
+import { GiProbes, MAX_GI_BOXES, type GiBox } from "./gi-probes.js";
+import { VolumetricPass } from "./volumetric.js";
 import { packSh9 } from "./sh9.js";
 import {
   SKY_MODEL_FLOATS,
+  aerialExtinction,
   buildSkyModel,
   horizontalSkyIlluminance,
   luminance,
@@ -124,11 +130,10 @@ interface MeshGpu {
   vAttrsBuf?: GPUBuffer;
   vertexCountBuf?: GPUBuffer;
   vcbuf?: GPUBuffer;
-  /** Last frame's skinned positions (motion vectors); copied after the motion pass. */
-  vbufSkinnedPrev?: GPUBuffer;
-  skinnedPrevValid?: boolean;
   morph?: MorphDeltasHandle;
   pbrFactors?: { baseColor: Vec3; metallic: number; roughness: number };
+  /** Object-space bounds (GI proxy boxes). */
+  bounds?: { min: Vec3; max: Vec3 };
   baseColorTexture?: GPUTexture;
   metallicRoughnessTexture?: GPUTexture;
   normalTexture?: GPUTexture;
@@ -184,6 +189,27 @@ interface DrawRecord {
   entityId?: string;
   model?: Float32Array;
   hasMorph?: boolean;
+  /** Skinned draws: this entity's own skinned vertex buffer (see SkinEntry). */
+  skinVbuf?: GPUBuffer;
+}
+
+/**
+ * Per-entity compute-skinning state. Each skinned ENTITY gets its own output
+ * buffer: two characters sharing one mesh (two enemies from the same .glb)
+ * must not skin into the mesh's single buffer, or every instance draws the
+ * last one's pose.
+ */
+interface SkinEntry {
+  meshName: string;
+  boneBuf: GPUBuffer;
+  bindGroup: GPUBindGroup;
+  packed: Float32Array;
+  out: GPUBuffer;
+  /** Last frame's skinned positions (motion vectors). */
+  prev?: GPUBuffer;
+  prevValid: boolean;
+  /** Frame index the entry was last skinned (stale entries are freed). */
+  frame: number;
 }
 
 /** An entity eligible for instancing, held until the frame's groups are known. */
@@ -261,7 +287,8 @@ export class WebGpuLiveRenderer implements LiveRenderer {
   private pbrSampler: GPUSampler | null = null;
   private skinComputePipeline: GPUComputePipeline | null = null;
   private skinComputeUvPipeline: GPUComputePipeline | null = null;
-  private skinCache = new Map<string, { meshName: string; boneBuf: GPUBuffer; bindGroup: GPUBindGroup; packed: Float32Array }>();
+  private skinCache = new Map<string, SkinEntry>();
+  private skinFrame = 0;
   private entityDrawCache = new Map<string, { drawBuf: GPUBuffer; bindGroup: GPUBindGroup; pipelineKey: string; uploaded: Float32Array }>();
   private entityMorphCache = new Map<string, { bindGroup: GPUBindGroup; pipelineKey: string; meshKey: string }>();
   private postRunner: PostProcessingRunner | null = null;
@@ -324,6 +351,11 @@ export class WebGpuLiveRenderer implements LiveRenderer {
   /** Diameter (world units) of the region in front of the camera that the
    *  shadow map covers. Smaller = sharper shadows, shorter reach. */
   private shadowRange = 12;
+  /** Angular diameter (degrees) of the key light for PCSS ("soft" shadows); the sun is 0.533°. */
+  private shadowLightAngleDeg = 0.533;
+  /** Multiplier on that angle (1 = physical). */
+  private shadowSoftness = 1;
+  private shadowFrame = 0;
   /** Lights resolved for the last frame — exposed for HUD / tests. */
   private lastFrameLights: FrameLights | null = null;
   // Per-frame scratch reused across frames (render() used to allocate these).
@@ -402,8 +434,20 @@ export class WebGpuLiveRenderer implements LiveRenderer {
   private lastNaturalFrameMs = 0;
   /** Sky-only horizontal illuminance of the current model (lux), for HUDs/tests. */
   private skyHorizontalLux = 0;
+  /** HDR environment (setEnvironmentHdr): bake source (sun removed), display original, extracted sun. */
+  private hdr: { bake: EquirectImage; display: EquirectImage; sun: ExtractedSun | null; scale: number; rotation: number; horizon: Vec3; upIrradiance: number } | null = null;
+  private hdrDirty = false;
   /** Lighting quality preset last applied (setLightingPreset). */
   private lightingPreset: LightingPreset | null = null;
+  /** Dynamic GI probes (gi-probes.ts) — natural-light tier only. */
+  private giProbes: GiProbes | null = null;
+  private giOn = false;
+  /** True while the probe ring holds GI output (cleared when GI stops). */
+  private ringHoldsGi = false;
+  private giBoxFrame = 0;
+  private giScratchSh = new Float32Array(36);
+  private volumetricPass: VolumetricPass | null = null;
+  private volumetricFrame = 0;
 
   /** Image-based lighting proxy — hemisphere irradiance used as ambient. */
   private iblEnabled = false;
@@ -822,6 +866,16 @@ export class WebGpuLiveRenderer implements LiveRenderer {
   }
 
   /**
+   * Soft-shadow (PCSS) light size: the key light's angular diameter in
+   * degrees (default 0.533°, the sun) and a softness multiplier (1 =
+   * physical). Only used by the "soft" / "soft-high" shadow qualities.
+   */
+  setShadowSoftness(softness: number, lightAngularDiameterDeg?: number): void {
+    if (Number.isFinite(softness) && softness >= 0) this.shadowSoftness = softness;
+    if (lightAngularDiameterDeg !== undefined && Number.isFinite(lightAngularDiameterDeg) && lightAngularDiameterDeg > 0) this.shadowLightAngleDeg = lightAngularDiameterDeg;
+  }
+
+  /**
    * Key-light cascades. 1 (default) = one map over `shadowRange`. 2 = that
    * map plus a far cascade `farScale`× wider (default 4), side by side in one
    * 2:1 depth atlas, blended across the near cascade's outer 15%.
@@ -1182,17 +1236,61 @@ export class WebGpuLiveRenderer implements LiveRenderer {
   /** Current natural-light state (null when the tier is off). */
   getNaturalLightState(): NaturalLightState | null {
     if (!this.natural || !this.skyModel) return null;
+    const hdr = this.natural.environment === "hdr" ? this.hdr : null;
+    const sunDir: Vec3 = hdr ? (hdr.sun ? [...hdr.sun.dir] as Vec3 : [0, 1, 0]) : [...this.skyModel.sunDir] as Vec3;
+    const sunLux = hdr
+      ? (hdr.sun ? luminance(hdr.sun.illuminance) * hdr.scale : 0) * this.natural.sunIntensity
+      : luminance(this.skyModel.sunIlluminance) * this.natural.sunIntensity;
     return {
       ev100: this.ev100,
       preExposure: this.preExposure,
-      sunDir: [...this.skyModel.sunDir] as Vec3,
-      sunElevationDeg: (Math.asin(this.skyModel.sunDir[1]) * 180) / Math.PI,
-      sunIlluminanceLux: luminance(this.skyModel.sunIlluminance) * this.natural.sunIntensity,
+      sunDir,
+      sunElevationDeg: (Math.asin(Math.max(-1, Math.min(1, sunDir[1]))) * 180) / Math.PI,
+      sunIlluminanceLux: sunLux,
+      environment: hdr ? "hdr" : "sky",
       skyHorizontalLux: this.skyHorizontalLux,
       envBakes: this.envLighting?.bakes ?? 0,
       envSize: this.envLighting?.settings.size ?? 0,
       preset: this.lightingPreset,
     };
+  }
+
+  /**
+   * HDR image-based lighting: an equirect radiance image (hdr-loader.ts
+   * parseRadianceHdr / loadRadianceHdr) replaces the analytic sky as the
+   * environment — background, SH9 diffuse and prefiltered specular — when
+   * setNaturalLight({ environment: "hdr" }) is on. The sun is extracted from
+   * the image (extractSun) and shaded as the shadow-casting key light rather
+   * than baked into the environment; pass `extractSun: false` for interiors.
+   * Image units are arbitrary: `horizontalLux` scales the image so the
+   * illuminance on an upward-facing surface (sky + sun) equals it, otherwise
+   * `intensity` multiplies the raw values. `rotationDeg` spins it about +y.
+   */
+  setEnvironmentHdr(img: EquirectImage | null, opts: { intensity?: number; rotationDeg?: number; extractSun?: boolean; horizontalLux?: number } = {}): void {
+    if (!img) {
+      this.hdr = null;
+      this.hdrDirty = true;
+      return;
+    }
+    const rotation = ((opts.rotationDeg ?? 0) * Math.PI) / 180;
+    const bake: EquirectImage = { width: img.width, height: img.height, channels: img.channels, data: new Float32Array(img.data) };
+    const sun = opts.extractSun === false ? null : extractSun(bake, 20, 6, rotation);
+    const step = Math.max(1, Math.floor(img.width / 512));
+    const sh = convolveSh9Diffuse(projectEquirectSh9(bake.data, bake.width, bake.height, bake.channels, step, rotation));
+    const up = evalSh9(sh, [0, 1, 0]);
+    const skyE = Math.PI * luminance(up);
+    const sunE = sun ? luminance(sun.illuminance) * Math.max(sun.dir[1], 0) : 0;
+    const scale = opts.horizontalLux !== undefined && opts.horizontalLux > 0 && skyE + sunE > 0
+      ? opts.horizontalLux / (skyE + sunE)
+      : opts.intensity ?? 1;
+    const horizon: [number, number, number] = [0, 0, 0];
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const h = evalSh9(sh, [Math.cos(a), 0.05, Math.sin(a)]);
+      horizon[0] += (h[0] * scale) / 8; horizon[1] += (h[1] * scale) / 8; horizon[2] += (h[2] * scale) / 8;
+    }
+    this.hdr = { bake, display: img, sun, scale, rotation, horizon, upIrradiance: (skyE + sunE) * scale };
+    this.hdrDirty = true;
   }
 
   /**
@@ -1202,6 +1300,8 @@ export class WebGpuLiveRenderer implements LiveRenderer {
   setLightingPreset(preset: LightingPreset): void {
     this.lightingPreset = preset;
     const p = LIGHTING_PRESETS[preset];
+    this.giOn = p.gi !== null;
+    if (p.gi) this.giProbes?.configure(p.gi);
     this.setShadowQuality(p.shadowQuality);
     this.setShadowCascades(p.cascades);
     this.setShadowRange(p.shadowRange);
@@ -1213,6 +1313,11 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     if (!this.device) return;
     const preset = LIGHTING_PRESETS[this.lightingPreset ?? "medium"];
     this.envLighting ??= new EnvironmentLighting(this.device, { size: preset.envSize, samples: preset.envSamples });
+    if (!this.giProbes) {
+      this.giProbes = new GiProbes(this.device);
+      if (preset.gi) this.giProbes.configure(preset.gi);
+      this.giOn = preset.gi !== null;
+    }
     this.physicalSky ??= new PhysicalSkyPass(this.device, "rgba16float", this.sampleCount);
     this.exposureMeter ??= new AutoExposureMeter(this.device);
     this.envDirty = true;
@@ -1233,11 +1338,106 @@ export class WebGpuLiveRenderer implements LiveRenderer {
    * atmosphere changed (and re-bake the environment), adapt exposure, and
    * replace the scene's key/fill/ambient lights with the sun + sky.
    */
-  private prepareNaturalLight(encoder: GPUCommandEncoder, lights: FrameLights, passTimer: PassTimestampSession | null, dt: number): NaturalFrame | null {
+  /**
+   * Dynamic GI: refresh the proxy boxes every other frame and trace this
+   * frame's probe subset into the probe ring (gi-probes.ts).
+   */
+  private encodeGi(encoder: GPUCommandEncoder, scene: Scene, camPos: Vec3, n: ResolvedNaturalLight, passTimer: PassTimestampSession | null): void {
+    const gi = this.giProbes;
+    const on = this.giOn && n.gi && !!gi && !!this.probeBuffer && !!this.envLighting && !!this.skyModel;
+    if (!on) {
+      if (this.ringHoldsGi && this.device && this.probeBuffer) {
+        this.probeRing.clear();
+        this.device.queue.writeBuffer(this.probeBuffer, 0, this.probeRing.data as BufferSource);
+        this.ringHoldsGi = false;
+      }
+      return;
+    }
+    if (!this.ringHoldsGi) {
+      // Drop any tile-baked probes: GI owns the ring from now on.
+      this.probeRing.clear();
+      this.device!.queue.writeBuffer(this.probeBuffer!, 0, this.probeRing.data as BufferSource);
+      this.ringHoldsGi = true;
+    }
+    const s = gi!.settings;
+    if ((this.giBoxFrame++ & 1) === 0) {
+      gi!.setBoxes(this.collectGiBoxes(scene, camPos, s.columns * s.spacing * 0.75 + 12, n.giGroundY));
+    }
+    const hdr = n.environment === "hdr" ? this.hdr : null;
+    const model = this.skyModel!;
+    const sunDir: Vec3 = hdr ? (hdr.sun?.dir ?? [0, 1, 0]) : model.sunDir;
+    const e = hdr ? (hdr.sun?.illuminance ?? [0, 0, 0]) : model.sunIlluminance;
+    const k = n.sunIntensity * (hdr ? hdr.scale : 1);
+    packSh9(this.giScratchSh, 0, this.envLighting!.sh);
+    const g = n.groundAlbedo;
+    gi!.encode(encoder, this.probeBuffer!, this.envLighting!.radianceView, this.envSampler!, {
+      center: camPos,
+      groundY: n.giGroundY,
+      groundAlbedo: [g * 0.9, g, g * 0.85],
+      sunDir,
+      sunIlluminance: [e[0] * k, e[1] * k, e[2] * k],
+      sh: this.giScratchSh,
+    }, passTimer ? passTimer.writes("gi") : undefined);
+  }
+
+  /** World AABBs (+ base colour) of lit, rigid meshes near `center`, nearest first. */
+  private collectGiBoxes(scene: Scene, center: Vec3, radius: number, groundY: number): GiBox[] {
+    const wt = scene.worldTransforms();
+    const found: Array<GiBox & { d: number }> = [];
+    for (const e of scene.entities.values()) {
+      const m = e.components[Tag.Mesh];
+      if (!m || !m.visible || e.components[Tag.Skin] || e.id.endsWith(".shadow")) continue;
+      const kind = m.material.kind;
+      if (kind === "unlit" || kind === "splat") continue;
+      const mesh = this.meshes.get(this.meshKeyForEntity(e.id, scene));
+      if (!mesh?.bounds) continue;
+      const idx = wt.indexById.get(e.id);
+      if (idx === undefined) continue;
+      const w = wt.worldMatrices.subarray(idx * 16, idx * 16 + 16);
+      const b = mesh.bounds;
+      const c = [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, (b.min[2] + b.max[2]) / 2];
+      const h = [(b.max[0] - b.min[0]) / 2, (b.max[1] - b.min[1]) / 2, (b.max[2] - b.min[2]) / 2];
+      // Arvo's AABB transform: centre by the matrix, extent by |rotation·scale|.
+      const wc: Vec3 = [
+        w[0]! * c[0]! + w[4]! * c[1]! + w[8]! * c[2]! + w[12]!,
+        w[1]! * c[0]! + w[5]! * c[1]! + w[9]! * c[2]! + w[13]!,
+        w[2]! * c[0]! + w[6]! * c[1]! + w[10]! * c[2]! + w[14]!,
+      ];
+      const we: Vec3 = [
+        Math.abs(w[0]!) * h[0]! + Math.abs(w[4]!) * h[1]! + Math.abs(w[8]!) * h[2]!,
+        Math.abs(w[1]!) * h[0]! + Math.abs(w[5]!) * h[1]! + Math.abs(w[9]!) * h[2]!,
+        Math.abs(w[2]!) * h[0]! + Math.abs(w[6]!) * h[1]! + Math.abs(w[10]!) * h[2]!,
+      ];
+      // The ground plane covers flat floor slabs.
+      if (wc[1] + we[1] <= groundY + 0.05) continue;
+      const d = Math.hypot(wc[0] - center[0], wc[2] - center[2]) - Math.max(we[0], we[2]);
+      if (d > radius) continue;
+      const mat = mesh.pbrFactors && kind === "pbr" ? { kind: "pbr", ...mesh.pbrFactors } : m.material;
+      const col = colorOfMaterial(mat);
+      found.push({
+        min: [wc[0] - we[0], wc[1] - we[1], wc[2] - we[2]],
+        max: [wc[0] + we[0], wc[1] + we[1], wc[2] + we[2]],
+        albedo: [Math.min(col[0], 0.9), Math.min(col[1], 0.9), Math.min(col[2], 0.9)],
+        d,
+      });
+    }
+    found.sort((a, b) => a.d - b.d);
+    return found.slice(0, MAX_GI_BOXES);
+  }
+
+  private prepareNaturalLight(encoder: GPUCommandEncoder, scene: Scene, camPos: Vec3, lights: FrameLights, passTimer: PassTimestampSession | null, dt: number): NaturalFrame | null {
     const n = this.natural;
     const env = this.envLighting;
     if (!n || !env) return null;
-    const key = `${n.sunDir.map((v) => v.toFixed(3)).join(",")}|${n.turbidity}|${n.cloudCover}|${n.groundAlbedo}|${n.skyIntensity}`;
+    const hdr = n.environment === "hdr" ? this.hdr : null;
+    if (n.environment === "hdr" && this.hdrDirty) {
+      this.hdrDirty = false;
+      this.skyModelKey = ""; // force the sky path to rebuild if HDR is dropped later
+      if (hdr) env.setEquirect(hdr.bake, hdr.display);
+      else env.setEquirect(null);
+      this.envDirty = true;
+    }
+    const key = `${n.sunDir.map((v) => v.toFixed(3)).join(",")}|${n.turbidity}|${n.cloudCover}|${n.groundAlbedo}|${n.skyIntensity}|${hdr ? "hdr" : "sky"}`;
     if (key !== this.skyModelKey || !this.skyModel) {
       this.skyModel = buildSkyModel({ sunDir: n.sunDir, turbidity: n.turbidity, cloudCover: n.cloudCover, groundAlbedo: n.groundAlbedo });
       this.skyHorizontalLux = luminance(horizontalSkyIlluminance(this.skyModel, 16, 32)) * n.skyIntensity;
@@ -1246,13 +1446,16 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     }
     const model = this.skyModel;
     if (this.envDirty) {
-      env.bakeSky(encoder, model, n.skyIntensity, 1024, passTimer ? passTimer.writes("env") : undefined);
+      if (hdr) env.bakeEquirect(encoder, hdr.bake, hdr.scale * n.skyIntensity, hdr.rotation, passTimer ? passTimer.writes("env") : undefined);
+      else env.bakeSky(encoder, model, n.skyIntensity, 1024, passTimer ? passTimer.writes("env") : undefined);
       this.envDirty = false;
     }
+    if (hdr) this.skyHorizontalLux = hdr.upIrradiance * n.skyIntensity;
     if (env.generation !== this.boundEnvGeneration) {
       this.boundEnvGeneration = env.generation;
       this.shadowGen++; // frame bind groups rebuild against the new cube view
     }
+    this.encodeGi(encoder, scene, camPos, n, passTimer);
 
     // Exposure: manual EV100, or adapt toward the last measured histogram.
     const ae = n.autoExposure;
@@ -1261,7 +1464,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     } else {
       if (!Number.isFinite(this.ev100)) {
         // First frame: meter an 18% grey world under this sun + sky.
-        const sunH = luminance(model.sunIlluminance) * n.sunIntensity * Math.max(model.sunDir[1], 0);
+        const sunH = hdr ? 0 : luminance(model.sunIlluminance) * n.sunIntensity * Math.max(model.sunDir[1], 0);
         this.ev100 = Math.min(ae.maxEv100, Math.max(ae.minEv100, ev100FromAverageLuminance((0.18 * (sunH + this.skyHorizontalLux)) / Math.PI) + ae.compensation));
       }
       const latest = this.exposureMeter?.latest;
@@ -1275,14 +1478,21 @@ export class WebGpuLiveRenderer implements LiveRenderer {
 
     // The sun is the key light; the sky replaces fill + ambient lights.
     const s = n.sunIntensity;
-    lights.key = { dir: [-model.sunDir[0], -model.sunDir[1], -model.sunDir[2]], radiance: [model.sunIlluminance[0] * s, model.sunIlluminance[1] * s, model.sunIlluminance[2] * s] };
+    if (hdr) {
+      const sd = hdr.sun?.dir ?? [0, 1, 0];
+      const k = s * hdr.scale;
+      const e = hdr.sun?.illuminance ?? [0, 0, 0];
+      lights.key = { dir: [-sd[0], -sd[1], -sd[2]], radiance: [e[0] * k, e[1] * k, e[2] * k] };
+    } else {
+      lights.key = { dir: [-model.sunDir[0], -model.sunDir[1], -model.sunDir[2]], radiance: [model.sunIlluminance[0] * s, model.sunIlluminance[1] * s, model.sunIlluminance[2] * s] };
+    }
     lights.extraDirectional = [];
     lights.ambient = null;
     for (const l of lights.local) l.radiance = [l.radiance[0] * n.localLightScale, l.radiance[1] * n.localLightScale, l.radiance[2] * n.localLightScale];
 
-    const horizon = EnvironmentLighting.horizonRadiance(model);
+    const horizon = hdr ? hdr.horizon : EnvironmentLighting.horizonRadiance(model);
     const pre = this.preExposure;
-    packSkyModel(this.skyPacked, 0, model, [pre * wb[0], pre * wb[1], pre * wb[2]], 0, n.skyIntensity);
+    packSkyModel(this.skyPacked, 0, model, [pre * wb[0], pre * wb[1], pre * wb[2]], hdr ? 1 : 0, hdr ? hdr.scale * n.skyIntensity : n.skyIntensity);
     this.physicalSky?.setSkyModel(this.skyPacked);
     return {
       fogColor: [horizon[0] * n.skyIntensity, horizon[1] * n.skyIntensity, horizon[2] * n.skyIntensity],
@@ -1305,11 +1515,13 @@ export class WebGpuLiveRenderer implements LiveRenderer {
 
   /** Store a tile's baked probes in the ring (replaces whatever aliased there). */
   setProbeTile(tile: ProbeTileLike): void {
+    if (this.ringHoldsGi) return; // dynamic GI owns the ring
     this.uploadProbeRanges(this.probeRing.setTile(tile));
   }
 
   /** Invalidate a tile's probes (its slots, if they still hold that tile). */
   clearProbeTile(gi0: number, gj0: number, perAxis: number, layers: number): void {
+    if (this.ringHoldsGi) return;
     this.uploadProbeRanges(this.probeRing.clearTile(gi0, gj0, perAxis, layers));
   }
 
@@ -1619,7 +1831,6 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     m.vbuf.destroy();
     m.ibuf.destroy();
     m.vbufSkinned?.destroy();
-    m.vbufSkinnedPrev?.destroy();
     m.vAttrsBuf?.destroy();
     m.vertexCountBuf?.destroy();
     m.vcbuf?.destroy();
@@ -1702,6 +1913,20 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     }
     
     const meshGpu: MeshGpu = { vbuf, ibuf, indexCount: data.indexCount, vertexCount: data.vertexCount, vertexStride };
+    if (data.vertexCount > 0) {
+      const v = data.vertices;
+      const mn: [number, number, number] = [Infinity, Infinity, Infinity];
+      const mx: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+      for (let i = 0; i < data.vertexCount; i++) {
+        const o = i * vertexStride;
+        for (let a = 0; a < 3; a++) {
+          const c = v[o + a]!;
+          if (c < mn[a]!) mn[a] = c;
+          if (c > mx[a]!) mx[a] = c;
+        }
+      }
+      if (Number.isFinite(mn[0])) meshGpu.bounds = { min: mn, max: mx };
+    }
     if (vbufSkinned) meshGpu.vbufSkinned = vbufSkinned;
     if (vAttrsBuf) meshGpu.vAttrsBuf = vAttrsBuf;
     if (vertexCountBuf) meshGpu.vertexCountBuf = vertexCountBuf;
@@ -2041,10 +2266,16 @@ export class WebGpuLiveRenderer implements LiveRenderer {
 
         let entry = this.skinCache.get(e.id);
         if (!entry || entry.meshName !== meshName) {
-          if (entry) entry.boneBuf.destroy();
+          if (entry) destroySkinEntry(entry);
           const boneBuf = this.device.createBuffer({
             size: skinComp.jointEntities.length * 64,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+          });
+          const out = this.device.createBuffer({
+            label: "skin/out",
+            size: mesh.vbufSkinned.size,
+            // COPY_SRC: the motion pass keeps last frame's skinned positions.
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
           });
           const bindGroup = this.device.createBindGroup({
             layout: computePipeline.getBindGroupLayout(0),
@@ -2052,14 +2283,15 @@ export class WebGpuLiveRenderer implements LiveRenderer {
               { binding: 0, resource: { buffer: mesh.vbuf } },
               { binding: 1, resource: { buffer: mesh.vAttrsBuf } },
               { binding: 2, resource: { buffer: boneBuf } },
-              { binding: 3, resource: { buffer: mesh.vbufSkinned } },
+              { binding: 3, resource: { buffer: out } },
               { binding: 4, resource: { buffer: mesh.vertexCountBuf } },
             ]
           });
           const packed = new Float32Array(skinComp.jointEntities.length * 16);
-          entry = { meshName, boneBuf, bindGroup, packed };
+          entry = { meshName, boneBuf, bindGroup, packed, out, prevValid: false, frame: this.skinFrame };
           this.skinCache.set(e.id, entry);
         }
+        entry.frame = this.skinFrame;
 
         // Exact-length view. writeBuffer's optional byte count is rejected
         // when it is larger than the typed-array length, so the packed
@@ -2076,6 +2308,16 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         computePass.dispatchWorkgroups(Math.ceil(mesh.vertexCount / 64));
       }
       computePass.end();
+      // Free buffers of skinned entities that left the scene (or stayed hidden) for a while.
+      if (this.skinFrame % 120 === 0) {
+        for (const [id, entry] of this.skinCache) {
+          if (this.skinFrame - entry.frame > 120) {
+            destroySkinEntry(entry);
+            this.skinCache.delete(id);
+          }
+        }
+      }
+      this.skinFrame++;
     }
 
     // Particle simulation — a separate compute pass on the SAME encoder, so
@@ -2097,7 +2339,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     const nowMs = typeof performance !== "undefined" ? performance.now() : Date.now();
     const naturalDt = opts.dt ?? (this.lastNaturalFrameMs > 0 ? Math.min(0.1, (nowMs - this.lastNaturalFrameMs) / 1000) : 1 / 60);
     this.lastNaturalFrameMs = nowMs;
-    const natural = this.natural ? this.prepareNaturalLight(encoder, lights, passTimer, naturalDt) : null;
+    const natural = this.natural ? this.prepareNaturalLight(encoder, scene, camPos as Vec3, lights, passTimer, naturalDt) : null;
     if (natural) fogColor = natural.fogColor;
     this.lastFrameLights = lights;
     // Natural light: probes carry absolute irradiance (multiplier 1).
@@ -2121,6 +2363,16 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       frameScratch.fill(0, FRAME_LAYOUT.skySpecSH, FRAME_LAYOUT.skySpecSH + 12);
     }
     if (natural) {
+      const nl = this.natural!;
+      const sig = aerialExtinction(nl.turbidity);
+      frameScratch[FRAME_LAYOUT.atmos] = 1;
+      frameScratch[FRAME_LAYOUT.atmos + 1] = nl.hazeAnisotropy;
+      frameScratch[FRAME_LAYOUT.atmos + 2] = nl.sunInscatter;
+      frameScratch[FRAME_LAYOUT.atmos + 3] = 0;
+      frameScratch[FRAME_LAYOUT.atmosSigma] = sig[0] * nl.aerialScale;
+      frameScratch[FRAME_LAYOUT.atmosSigma + 1] = sig[1] * nl.aerialScale;
+      frameScratch[FRAME_LAYOUT.atmosSigma + 2] = sig[2] * nl.aerialScale;
+      frameScratch[FRAME_LAYOUT.atmosSigma + 3] = 0;
       // The env tier replaces the legacy gradient-sky ambient/specular.
       frameScratch.fill(0, FRAME_LAYOUT.ambientSH, FRAME_LAYOUT.ambientSH + 12);
       frameScratch.fill(0, FRAME_LAYOUT.skySpecSH, FRAME_LAYOUT.skySpecSH + 12);
@@ -2129,15 +2381,24 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       frameScratch.set(natural.exposure, FRAME_LAYOUT.exposure);
     } else {
       frameScratch.fill(0, FRAME_LAYOUT.envSH, FRAME_LAYOUT.envParams + 4);
+      frameScratch.fill(0, FRAME_LAYOUT.atmos, FRAME_LAYOUT.atmosSigma + 4);
       frameScratch[FRAME_LAYOUT.exposure] = 1;
       frameScratch[FRAME_LAYOUT.exposure + 1] = 1;
       frameScratch[FRAME_LAYOUT.exposure + 2] = 1;
       frameScratch[FRAME_LAYOUT.exposure + 3] = 1;
     }
-    frameScratch[FRAME_LAYOUT.probeParams] = this.probesEnabled ? 1 : 0;
-    frameScratch[FRAME_LAYOUT.probeParams + 1] = this.probeGrid.spacing;
-    frameScratch[FRAME_LAYOUT.probeParams + 2] = this.probeGrid.heightAboveGround;
-    frameScratch[FRAME_LAYOUT.probeParams + 3] = this.probeGrid.layerSpacing;
+    if (natural && this.ringHoldsGi && this.giProbes) {
+      const gs = this.giProbes.settings;
+      frameScratch[FRAME_LAYOUT.probeParams] = 1;
+      frameScratch[FRAME_LAYOUT.probeParams + 1] = gs.spacing;
+      frameScratch[FRAME_LAYOUT.probeParams + 2] = gs.height;
+      frameScratch[FRAME_LAYOUT.probeParams + 3] = gs.layerSpacing;
+    } else {
+      frameScratch[FRAME_LAYOUT.probeParams] = this.probesEnabled && !this.ringHoldsGi ? 1 : 0;
+      frameScratch[FRAME_LAYOUT.probeParams + 1] = this.probeGrid.spacing;
+      frameScratch[FRAME_LAYOUT.probeParams + 2] = this.probeGrid.heightAboveGround;
+      frameScratch[FRAME_LAYOUT.probeParams + 3] = this.probeGrid.layerSpacing;
+    }
     const shadowOn = !!(this.shadowSettings && this.shadowView);
     let shadowVP: Float32Array | null = null;
     let shadowVP2: Float32Array | null = null;
@@ -2163,6 +2424,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         const texelWorld2 = (2 * spheres[1]!.radius) / mapSize;
         far = { viewProj: shadowVP2, texelSize: 1 / mapSize, depthBias: 0.0006, normalOffset: texelWorld2 * 1.5, blend: 0.15 };
       }
+      const pcssTaps = this.shadowSettings!.pcss;
       packFrameLights(frameScratch, lights, {
         enabled: true,
         viewProj: shadowVP,
@@ -2171,6 +2433,18 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         normalOffset: texelWorld * 1.5,
         pcfTaps: this.shadowSettings!.pcfTaps,
         ...(far ? { far } : {}),
+        ...(pcssTaps > 0 ? {
+          soft: {
+            tanLight: Math.tan(((this.shadowLightAngleDeg / 2) * Math.PI) / 180) * this.shadowSoftness,
+            worldSize: 2 * spheres[0]!.radius,
+            worldSizeFar: 2 * spheres[1]!.radius,
+            taps: pcssTaps,
+            // Rotate the pattern per frame only when TAA can integrate it;
+            // otherwise keep the uniform bytes still (no per-frame upload).
+            frame: temporalOn ? this.shadowFrame++ : 0,
+            searchHeight: 16,
+          },
+        } : {}),
       });
     } else {
       packFrameLights(frameScratch, lights, null);
@@ -2233,7 +2507,8 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       // matrix for the draw must therefore be identity — applying the entity's
       // world matrix on top would transform the mesh a second time, pushing it
       // off-screen. (Unskinned meshes still use their world matrix below.)
-      const hasSkinning = !!e.components[Tag.Skin] && !!mesh.vbufSkinned;
+      const skinEntry = e.components[Tag.Skin] && mesh.vbufSkinned ? this.skinCache.get(e.id) : undefined;
+      const hasSkinning = !!skinEntry;
 
       // Resolve pipeline for this entity's material.
       const matKind = meshComp.material.kind as MaterialKind["kind"];
@@ -2391,6 +2666,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         // Skinned vertices are already in world space (identity model).
         model: hasSkinning ? IDENTITY_M4 : worldMat,
         hasMorph: !!morphBindGroup,
+        ...(skinEntry ? { skinVbuf: skinEntry.out } : {}),
       });
     }
 
@@ -2452,7 +2728,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
             boundShadow = shadowKey;
           }
           sp.setBindGroup(1, d.drawBindGroup);
-          sp.setVertexBuffer(0, d.hasSkinning ? d.mesh.vbufSkinned! : d.mesh.vbuf);
+          sp.setVertexBuffer(0, d.hasSkinning ? d.skinVbuf! : d.mesh.vbuf);
           sp.setIndexBuffer(d.mesh.ibuf, "uint32");
           sp.drawIndexed(d.mesh.indexCount, d.instanceCount);
         }
@@ -2534,7 +2810,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       pass.setBindGroup(1, d.drawBindGroup);
       if (d.morphBindGroup) pass.setBindGroup(2, d.morphBindGroup);
       if (d.textureBindGroup) pass.setBindGroup(3, d.textureBindGroup);
-      pass.setVertexBuffer(0, d.hasSkinning ? d.mesh.vbufSkinned! : d.mesh.vbuf);
+      pass.setVertexBuffer(0, d.hasSkinning ? d.skinVbuf! : d.mesh.vbuf);
       if (d.entry.compiled.key.hasVertexColors && d.mesh.vcbuf) {
         pass.setVertexBuffer(1, d.mesh.vcbuf);
       }
@@ -2546,7 +2822,9 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     // Sky after opaques. The triangle is on the far plane and tests equal to
     // the clear depth, so it fills only pixels the room did not cover.
     if (natural && this.physicalSky && this.envLighting) {
-      this.physicalSky.encode(pass, camVP, this.envLighting.equirectView ?? this.envLighting.dummyEquirectView, 0, this.natural!.sunDisc);
+      const env = this.envLighting;
+      const hdrOn = this.natural!.environment === "hdr" && !!this.hdr;
+      this.physicalSky.encode(pass, camVP, env.displayView ?? env.equirectView ?? env.dummyEquirectView, hdrOn ? this.hdr!.rotation : 0, this.natural!.sunDisc && !hdrOn);
     } else if (this.skyPass && this.skyEnabled) {
       this.skyPass.encode(pass, camVP, camPos as Vec3);
     }
@@ -2599,6 +2877,28 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       // pass only (WebGPU scopes it per pass), so while water is active the
       // reported `gpu_ms` EXCLUDES the water pass. Do not publish that number
       // as a whole-frame cost in a scene with water.
+    }
+    // Volumetric sun shafts (high/ultra or opt-in): additive into the HDR
+    // target before exposure metering and post. Needs the sampleable 1×
+    // depth buffer and the key light's shadow map.
+    const volSteps = natural ? (this.natural!.volumetrics === false ? 0 : this.natural!.volumetrics === true ? Math.max(12, LIGHTING_PRESETS[this.lightingPreset ?? "medium"].volumetricSteps) : LIGHTING_PRESETS[this.lightingPreset ?? "medium"].volumetricSteps) : 0;
+    if (natural && volSteps > 0 && hasPost && this.sampleCount === 1 && shadowOn && shadowVP && this.shadowView && this.depthViewCached) {
+      this.volumetricPass ??= new VolumetricPass(this.device);
+      const ex = natural.exposure;
+      const k = lights.key;
+      this.volumetricPass.encode(encoder, hdrView, this.depthViewCached, this.shadowView, internal, {
+        viewProj: camVP,
+        cameraPos: camPos as Vec3,
+        shadowViewProj: shadowVP,
+        cascades: this.shadowSettings!.cascades,
+        sunDir: [-k.dir[0], -k.dir[1], -k.dir[2]],
+        sunE: [k.radiance[0] * ex[0], k.radiance[1] * ex[1], k.radiance[2] * ex[2]],
+        density: this.natural!.volumetricDensity,
+        anisotropy: this.natural!.hazeAnisotropy,
+        steps: volSteps,
+        maxDistance: 60,
+        frame: this.volumetricFrame++,
+      }, passTimer ? passTimer.writes("volumetric") : undefined);
     }
     // Auto-exposure: histogram of the finished (pre-exposed) HDR frame.
     let exposureSlot = -1;
@@ -2722,17 +3022,18 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     if (!this.motionVectors || !this.device) return null;
     const motion = this.motionDraws;
     motion.length = 0;
-    const skinned: MeshGpu[] = [];
+    const skinned: SkinEntry[] = [];
     for (const d of draws) {
       if (d.instanced || !d.entityId || !d.model) continue;
       const last = this.lastModels.get(d.entityId);
       const moved = !last || !sameFloats(last, d.model, 16);
-      if (d.hasSkinning && d.mesh.vbufSkinned) {
-        skinned.push(d.mesh);
+      const skin = d.hasSkinning ? this.skinCache.get(d.entityId) : undefined;
+      if (skin) {
+        skinned.push(skin);
         motion.push({
           entityId: d.entityId,
-          vbuf: d.mesh.vbufSkinned!,
-          prevVbuf: d.mesh.skinnedPrevValid ? d.mesh.vbufSkinnedPrev! : null,
+          vbuf: skin.out,
+          prevVbuf: skin.prevValid && skin.prev ? skin.prev : null,
           ibuf: d.mesh.ibuf,
           indexCount: d.mesh.indexCount,
           vertexStride: d.mesh.vertexStride,
@@ -2789,17 +3090,17 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       passTimer ? passTimer.writes("motion") : undefined,
     );
     // Snapshot skinned positions AFTER the motion pass read them as "now".
-    for (const mesh of skinned) {
-      const src = mesh.vbufSkinned!;
-      if (!mesh.vbufSkinnedPrev) {
-        mesh.vbufSkinnedPrev = this.device.createBuffer({
+    for (const skin of skinned) {
+      const src = skin.out;
+      if (!skin.prev) {
+        skin.prev = this.device.createBuffer({
           label: "skin/prev",
           size: src.size,
           usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
       }
-      encoder.copyBufferToBuffer(src, 0, mesh.vbufSkinnedPrev, 0, src.size);
-      mesh.skinnedPrevValid = true;
+      encoder.copyBufferToBuffer(src, 0, skin.prev, 0, src.size);
+      skin.prevValid = true;
     }
     return drew ? this.motionPass.view : null;
   }
@@ -2866,6 +3167,11 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     this.envLighting = null;
     this.exposureMeter?.destroy();
     this.exposureMeter = null;
+    this.giProbes?.destroy();
+    this.giProbes = null;
+    this.volumetricPass?.destroy();
+    this.volumetricPass = null;
+    this.ringHoldsGi = false;
     this.dummyEnvCube?.destroy();
     this.dummyEnvCube = null;
     this.dummyEnvCubeView = null;
@@ -2920,7 +3226,6 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       m.vbuf.destroy();
       m.ibuf.destroy();
       m.vbufSkinned?.destroy();
-      m.vbufSkinnedPrev?.destroy();
       m.vAttrsBuf?.destroy();
       m.vertexCountBuf?.destroy();
       m.vcbuf?.destroy();
@@ -2938,9 +3243,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     this.blendshapePool?.clearAll();
     this.blendshapePool = null;
     this.pbrSampler = null;
-    for (const entry of this.skinCache.values()) {
-      entry.boneBuf.destroy();
-    }
+    for (const entry of this.skinCache.values()) destroySkinEntry(entry);
     this.skinCache.clear();
     this.factory?.invalidate();
     this.timestampSession?.destroy();
@@ -3033,6 +3336,25 @@ export interface NaturalLightOptions {
   multiScatter?: boolean;
   /** Draw the sun disc in the visible sky (default true). */
   sunDisc?: boolean;
+  /**
+   * "sky" (default): the analytic sky. "hdr": the image set with
+   * setEnvironmentHdr() (falls back to the sky until one is set).
+   */
+  environment?: "sky" | "hdr";
+  /** Dynamic GI probes (default: on unless the preset is "low"). */
+  gi?: boolean;
+  /** Height of the GI ground plane (m, default 0). */
+  giGroundY?: number;
+  /** Multiplier on the sky model's aerial extinction (default 1 = physical). */
+  aerialScale?: number;
+  /** Henyey–Greenstein anisotropy of haze (default 0.7, forward-scattering aerosol). */
+  hazeAnisotropy?: number;
+  /** Strength of the sun's in-scattering in fog/haze (default 0.5). */
+  sunInscatter?: number;
+  /** Volumetric sun shafts through the shadow map (default: preset). */
+  volumetrics?: boolean;
+  /** Medium density for the shafts (1/m, default 0.01). */
+  volumetricDensity?: number;
 }
 
 interface ResolvedNaturalLight {
@@ -3051,6 +3373,14 @@ interface ResolvedNaturalLight {
   localLightScale: number;
   multiScatter: boolean;
   sunDisc: boolean;
+  environment: "sky" | "hdr";
+  gi: boolean;
+  giGroundY: number;
+  aerialScale: number;
+  hazeAnisotropy: number;
+  sunInscatter: number;
+  volumetrics: boolean | null;
+  volumetricDensity: number;
 }
 
 /** Fill natural-light defaults and resolve the sun to a direction. */
@@ -3090,6 +3420,14 @@ export function resolveNaturalLight(o: NaturalLightOptions): ResolvedNaturalLigh
     localLightScale: fin(o.localLightScale, 50),
     multiScatter: o.multiScatter !== false,
     sunDisc: o.sunDisc !== false,
+    environment: o.environment === "hdr" ? "hdr" : "sky",
+    gi: o.gi !== false,
+    giGroundY: fin(o.giGroundY, 0),
+    aerialScale: fin(o.aerialScale, 1),
+    hazeAnisotropy: Math.min(0.95, Math.max(-0.95, fin(o.hazeAnisotropy, 0.7))),
+    sunInscatter: fin(o.sunInscatter, 0.5),
+    volumetrics: o.volumetrics === undefined ? null : o.volumetrics,
+    volumetricDensity: fin(o.volumetricDensity, 0.01),
   };
 }
 
@@ -3112,6 +3450,7 @@ export interface NaturalLightState {
   envBakes: number;
   envSize: number;
   preset: LightingPreset | null;
+  environment: "sky" | "hdr";
 }
 
 /** Post look knobs shared by both backends (B maps what three supports). */
@@ -3282,4 +3621,10 @@ export function lookAtTransform(eye: Vec3, target: Vec3, up: Vec3): {
     rotation: [qx, qy, qz, qw] as Quat,
     scale: [1, 1, 1],
   };
+}
+
+function destroySkinEntry(entry: SkinEntry): void {
+  entry.boneBuf.destroy();
+  entry.out.destroy();
+  entry.prev?.destroy();
 }

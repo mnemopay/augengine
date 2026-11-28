@@ -40,7 +40,7 @@ AugEngine is measured against four gates. Honest status:
 4. **Gate 4, a finished game: shipped as alpha.** The detective game, live at
    augengine.com/detective (two cases), source in [`examples/detective`](examples/detective).
 
-Known gaps carried into the next release: the generated-character face rig (`buildFaceRig`) is alpha and can misplace features; textured LOD baking (augengine-lod 0.2.0-alpha.0) is in this repo but not on npm; Kokoro
+Known gaps carried into the next release: the generated-character face rig (`buildFaceRig`) is beta: place it from face-detector landmarks (`faceLandmarksFromMeshPoints`), its built-in heuristic can misplace features; textured LOD baking (augengine-lod 0.2.0-alpha.0) is in this repo but not on npm; Kokoro
 voices need `@mnemopay/augengine-onnx`, which is not public yet. Full list in
 [`packages/augengine/CHANGELOG.md`](packages/augengine/CHANGELOG.md).
 

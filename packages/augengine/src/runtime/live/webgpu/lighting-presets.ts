@@ -9,6 +9,7 @@
  */
 
 import type { ShadowQuality } from "./lights.js";
+import type { GiSettings } from "./gi-probes.js";
 
 export type LightingPreset = "low" | "medium" | "high" | "ultra";
 
@@ -21,13 +22,17 @@ export interface LightingPresetSettings {
   cascades: 1 | 2;
   /** Diameter (m) of the near shadow region in front of the camera. */
   shadowRange: number;
+  /** Dynamic GI probes (gi-probes.ts); null = off (sky SH9 ambient only). */
+  gi: Partial<GiSettings> | null;
+  /** Volumetric sun-shaft ray-march steps (volumetric.ts); 0 = off. */
+  volumetricSteps: number;
 }
 
 export const LIGHTING_PRESETS: Readonly<Record<LightingPreset, LightingPresetSettings>> = {
-  low: { envSize: 32, envSamples: 16, shadowQuality: "low", cascades: 1, shadowRange: 24 },
-  medium: { envSize: 64, envSamples: 32, shadowQuality: "low", cascades: 1, shadowRange: 32 },
-  high: { envSize: 128, envSamples: 48, shadowQuality: "high", cascades: 2, shadowRange: 24 },
-  ultra: { envSize: 256, envSamples: 64, shadowQuality: "high", cascades: 2, shadowRange: 28 },
+  low: { envSize: 32, envSamples: 16, shadowQuality: "low", cascades: 1, shadowRange: 24, gi: null, volumetricSteps: 0 },
+  medium: { envSize: 64, envSamples: 32, shadowQuality: "soft", cascades: 1, shadowRange: 32, gi: { columns: 12, rays: 32, stride: 2, spacing: 4 }, volumetricSteps: 0 },
+  high: { envSize: 128, envSamples: 48, shadowQuality: "soft-high", cascades: 2, shadowRange: 24, gi: { columns: 16, rays: 32, stride: 1, spacing: 3 }, volumetricSteps: 12 },
+  ultra: { envSize: 256, envSamples: 64, shadowQuality: "soft-high", cascades: 2, shadowRange: 28, gi: { columns: 16, rays: 64, stride: 1, spacing: 2.5 }, volumetricSteps: 24 },
 };
 
 export const LIGHTING_PRESET_NAMES: readonly LightingPreset[] = ["low", "medium", "high", "ultra"];

@@ -181,9 +181,20 @@ export const FRAME_LAYOUT = {
   // rgb = pre-exposure × white-balance gain applied to lit output (1 = off),
   // a = scale on emissive + unlit colour (1 = display-referred, as before).
   exposure: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 88,
+  // Contact-hardening (PCSS) shadows: x = tan(light angular radius) × softness,
+  // y = near cascade width (m), z = far cascade width (m), w = Poisson taps (0 = off).
+  shadowSoft: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 92,
+  // x = frame index mod 64 (rotates the per-pixel sample pattern for TAA),
+  // y = blocker search height (m), zw reserved.
+  shadowSoft2: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 96,
+  // Natural atmosphere (sky-model.ts aerialExtinction): x = on, y = HG
+  // anisotropy g, z = sun in-scatter strength, w reserved.
+  atmos: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 100,
+  // rgb = aerial extinction σ (1/m) per channel, w reserved.
+  atmosSigma: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 104,
 } as const;
 
-export const FRAME_UNIFORM_FLOATS = FRAME_LAYOUT.exposure + 4;
+export const FRAME_UNIFORM_FLOATS = FRAME_LAYOUT.atmosSigma + 4;
 export const FRAME_UNIFORM_SIZE = FRAME_UNIFORM_FLOATS * 4;
 
 export interface ShadowUniform {
@@ -195,6 +206,8 @@ export interface ShadowUniform {
   pcfTaps: number;
   /** Second (far) cascade; its map sits in the right half of a 2:1 atlas. */
   far?: { viewProj: Mat4 | Float32Array; texelSize: number; depthBias: number; normalOffset: number; blend: number };
+  /** Contact-hardening soft shadows (PCSS). */
+  soft?: { tanLight: number; worldSize: number; worldSizeFar: number; taps: number; frame: number; searchHeight: number };
 }
 
 /** Write the light + shadow portion of the frame uniform. */
@@ -220,6 +233,18 @@ export function packFrameLights(out: Float32Array, lights: FrameLights, shadow: 
     out[L.shadowParams + 3] = shadow.pcfTaps;
   } else {
     out.fill(0, L.shadowViewProj, L.shadowParams + 4);
+  }
+  if (shadow?.enabled && shadow.soft && shadow.soft.taps > 0) {
+    out[L.shadowSoft] = shadow.soft.tanLight;
+    out[L.shadowSoft + 1] = shadow.soft.worldSize;
+    out[L.shadowSoft + 2] = shadow.soft.worldSizeFar;
+    out[L.shadowSoft + 3] = Math.min(16, Math.max(4, Math.round(shadow.soft.taps)));
+    out[L.shadowSoft2] = shadow.soft.frame % 64;
+    out[L.shadowSoft2 + 1] = shadow.soft.searchHeight;
+    out[L.shadowSoft2 + 2] = 0;
+    out[L.shadowSoft2 + 3] = 0;
+  } else {
+    out.fill(0, L.shadowSoft, L.shadowSoft2 + 4);
   }
   if (shadow?.enabled && shadow.far) {
     out.set(shadow.far.viewProj as ArrayLike<number>, L.shadowViewProj2);
@@ -305,7 +330,13 @@ export function transformPoint(m: ArrayLike<number>, p: Vec3): [number, number, 
 
 // ─── Shadow quality ────────────────────────────────────────────────────
 
-export type ShadowQuality = "off" | "low" | "high";
+/**
+ * "low" / "high": fixed-width PCF (hardware 2×2 / 3×3 over it). "soft" /
+ * "soft-high": contact-hardening PCSS — penumbra width from the light's
+ * angular size and the blocker distance, so shadows are sharp where an object
+ * meets the ground and widen with height, as sunlight does.
+ */
+export type ShadowQuality = "off" | "low" | "high" | "soft" | "soft-high";
 
 export interface ShadowSettings {
   mapSize: number;
@@ -313,11 +344,46 @@ export interface ShadowSettings {
   pcfTaps: number;
   /** 1 = one map; 2 = near + far cascade side by side in a 2:1 atlas. */
   cascades: 1 | 2;
+  /** PCSS Poisson taps for blocker search and filter (0 = fixed PCF). */
+  pcss: number;
 }
 
 export function shadowSettingsFor(quality: ShadowQuality, cascades: 1 | 2 = 1): ShadowSettings | null {
-  if (quality === "off") return null;
-  return quality === "high" ? { mapSize: 2048, pcfTaps: 3, cascades } : { mapSize: 1024, pcfTaps: 1, cascades };
+  switch (quality) {
+    case "off": return null;
+    case "high": return { mapSize: 2048, pcfTaps: 3, cascades, pcss: 0 };
+    case "soft": return { mapSize: 1024, pcfTaps: 1, cascades, pcss: 8 };
+    case "soft-high": return { mapSize: 2048, pcfTaps: 1, cascades, pcss: 16 };
+    default: return { mapSize: 1024, pcfTaps: 1, cascades, pcss: 0 };
+  }
+}
+
+/**
+ * PCSS penumbra width (world units) for a directional light: the light's
+ * angular diameter seen across the receiver–blocker distance,
+ * w = 2 · d · tan(θ/2). Mirrors the shader (pipeline-factory augengine_pcss).
+ */
+export function pcssPenumbraWidth(blockerToReceiver: number, tanHalfAngle: number): number {
+  return 2 * Math.max(blockerToReceiver, 0) * tanHalfAngle;
+}
+
+/**
+ * The PCSS sample pattern (CPU mirror of the shader): a Vogel disc, golden
+ * angle between taps, outermost first, starting at `angle`.
+ */
+export function vogelDisc(taps: number, angle = 0): Array<[number, number]> {
+  const out: Array<[number, number]> = [];
+  for (let i = 0; i < taps; i++) {
+    const r = Math.sqrt(1 - (i + 0.5) / taps);
+    const a = angle + i * 2.39996323;
+    out.push([Math.cos(a) * r, Math.sin(a) * r]);
+  }
+  return out;
+}
+
+/** Depth span (world units) of a cascade fitted by fitDirectionalShadow: far − near = 3.99 r, width = 2 r. */
+export function cascadeDepthRange(worldSize: number): number {
+  return 1.995 * worldSize;
 }
 
 /**

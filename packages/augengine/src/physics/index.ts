@@ -49,4 +49,4 @@ export {
 } from "./particles.js";
 
 export { PhysicsSystem } from "./system.js";
-export type { PhysicsContact, PhysicsSnapshot } from "./system.js";
+export type { PhysicsContact, PhysicsSnapshot, OverlapShape } from "./system.js";

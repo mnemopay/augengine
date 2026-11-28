@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased
+
+- **Fix: several characters sharing one skinned mesh all drew the same pose.** Compute
+  skinning wrote into one output buffer per mesh, so two enemies from the same .glb rendered
+  as one (the last one skinned, at its position). Each skinned entity now gets its own output
+  (and motion-vector history) buffer; buffers of entities that leave the scene are freed after
+  120 frames. Regression test: `examples/arena` e2e "two instances of one skinned mesh"
+  (fails on the old renderer: one of the two is missing).
+- **Gameplay kit (alpha), `./gameplay`:** `AnimGraph` (state machine, phase-synced 1D blend
+  trees, cross-fades, layers, clip events, root motion); combat primitives (`CombatWorld`
+  bone hurtboxes as Rapier sensors, swept `Hitbox`, health with poise and i-frames, knockback,
+  `HitStop`, `CameraShake`, lock-on helpers); `BehaviorTree` and a `MeleeBrain` that takes an
+  injected pathfinder. See docs/GAMEPLAY.md.
+- Physics: `ColliderComponent.sensor` (no contact forces; ignored by the character controller
+  and `raycast`) and `PhysicsSystem.overlapShape(shape, position, rotation, { exclude, filter })`.
+- **Face rig placed from face-detector landmarks.** New `faceLandmarksFromMeshPoints(points,
+  headBox, onSurface?)` turns a 478-point face mesh (MediaPipe indices: `FACE_MESH_POINTS`,
+  `FACE_MESH_OVAL`), mapped into model space, into `FaceLandmarks` for
+  `buildFaceRig(mesh, { landmarks })`, and refuses detections off the head or out of
+  anatomical order. With an `outline` the patch is cut to the face (grown by `OUTLINE_GROW`).
+  On the TRELLIS test mesh jawOpen/Blink now move the lower face / eyes (100 % / 100 %; the
+  heuristic gave 11 % / 0 %). Also: the mouth cavity stays behind receding lips (it showed as
+  a black bar), the patch reaches below a chin that sits under the neck estimate, the jaw
+  stretches the cheeks past the mouth corners instead of shearing, the lower lip opens as a
+  lens, and cliff cells (face side against hair or a head wrap) are left to the source mesh.
+
 ## 0.4.1-alpha.0 — 2026-11-27
 
 Fix release. **The root import works under Vite.**

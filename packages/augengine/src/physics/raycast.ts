@@ -51,6 +51,7 @@ export function raycast(
   for (const entity of scene.withComponent(Tag.Collider)) {
     if (ignore.has(entity.id)) continue;
     const col = entity.components[Tag.Collider]!;
+    if (col.sensor) continue;
     const tx = entity.components[Tag.Transform];
     if (!tx) continue;
     const hit = hitForCollider(origin, dir, maxDist, col, tx.position, tx.rotation);

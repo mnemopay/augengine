@@ -1,0 +1,24 @@
+{
+  "shot": {
+    "name": "furnace-control-singlescatter",
+    "query": "scene=furnace&ms=0"
+  },
+  "extra": "",
+  "state": {
+    "ev100": 0.7369655941662062,
+    "preExposure": 0.5,
+    "sunDir": [
+      0,
+      1,
+      0
+    ],
+    "sunElevationDeg": 90,
+    "sunIlluminanceLux": 0,
+    "environment": "hdr",
+    "skyHorizontalLux": 3.144436161416883,
+    "envBakes": 1,
+    "envSize": 64,
+    "preset": "medium"
+  },
+  "errors": []
+}

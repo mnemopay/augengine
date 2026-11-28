@@ -339,6 +339,34 @@ export function iesClearSky(sunElevation: number): { skyHorizontal: number; sunN
   return { skyHorizontal: (0.8 + 15.5 * Math.sqrt(s)) * 1000, sunNormal: 127.5 * Math.exp(-0.21 * m) * 1000 };
 }
 
+// ─── Aerial perspective ────────────────────────────────────────────────
+
+/** Scale heights (m) of the Rayleigh and aerosol layers (standard atmosphere). */
+export const RAYLEIGH_SCALE_HEIGHT = 8000;
+export const AEROSOL_SCALE_HEIGHT = 1200;
+
+/**
+ * Sea-level extinction coefficient (1/m) per linear-sRGB channel for a
+ * turbidity, from the same optical depths as sunIlluminanceClear (Rayleigh
+ * τ = 0.008735 λ^−4.08, aerosol τ = β λ^−1.3) spread over each layer's scale
+ * height: σ = τ_R/H_R + τ_a/H_a. Turbidity 2.5 gives ≈1.4e-4 /m at 550 nm, a
+ * Koschmieder visibility (3.912/σ) of ~28 km — a clear day.
+ */
+export function aerialExtinction(turbidity: number): Vec3 {
+  const beta = Math.max(0.04608365822050 * turbidity - 0.04586025928522, 0);
+  return CHANNEL_WAVELENGTH_UM.map((lambda) => {
+    const tauR = 0.008735 * Math.pow(lambda, -4.08);
+    const tauA = beta * Math.pow(lambda, -1.3);
+    return tauR / RAYLEIGH_SCALE_HEIGHT + tauA / AEROSOL_SCALE_HEIGHT;
+  }) as unknown as Vec3;
+}
+
+/** Henyey–Greenstein phase function (1/sr); cosTheta between view ray and light. */
+export function henyeyGreenstein(cosTheta: number, g: number): number {
+  const d = Math.max(1 + g * g - 2 * g * cosTheta, 1e-6);
+  return (1 - g * g) / (4 * Math.PI * Math.pow(d, 1.5));
+}
+
 // ─── GPU packing ───────────────────────────────────────────────────────
 
 /** vec4 count of the WGSL `SkyModelU` struct (see SKY_MODEL_WGSL). */

@@ -57,13 +57,22 @@ Name face morph targets after Apple's **ARKit-52** set (`jawOpen`,
 Lip-sync: live speech → in-browser viseme detection; scripted lines → bake offline
 with NVIDIA Audio2Face (open-sourced Sept 2025; runs on an NVIDIA GPU). VRoid and
 MetaHuman ship face shapes; generated (image-to-3D) meshes do not. The engine's
-`buildFaceRig` (alpha) can add one: it finds the head, detects eyes/nose/mouth from the
-texture and depth, and returns a face patch with all 52 ARKit morph targets
-(`FACE_RIG_SHAPES`, audio2face channel order; `visemeFrameToFaceRig` maps visemes onto
-them). Landmark detection is heuristic and can misplace features (in the 2026-11-27
-review the mouth on a test mesh landed at eye height and blink moved the hair), so
-inspect the result before shipping it. The editor in the development monorepo keeps it
-off by default for that reason.
+`buildFaceRig` (beta) can add one: it returns a face patch with all 52 ARKit morph
+targets (`FACE_RIG_SHAPES`, audio2face channel order; `visemeFrameToFaceRig` maps visemes
+onto them), shrink-wrapped onto the head with the lips split on the mouth line, eyelid
+sheets on the eyes and the jaw hinged under the chin.
+
+Place it from a face detector: render the head from the front with an orthographic
+camera, run a 478-point face-mesh detector on the image (the development monorepo's
+editor uses MediaPipe Face Landmarker, Apache-2.0, offline in the browser), map the
+points back to model x / y, and pass them through `faceLandmarksFromMeshPoints(points,
+headBox, onSurface)` (indices in `FACE_MESH_POINTS` / `FACE_MESH_OVAL`) into
+`buildFaceRig(mesh, { landmarks, headBox })`. The patch is then cut to the detected face
+outline. On the 2026-11-27 test mesh this put 100 % of jawOpen's change below the eyes–lips
+midline and 100 % of Blink's in the eye band. Without landmarks, `buildFaceRig` falls back
+to a texture/depth heuristic (`detectFaceLandmarks`) that can misplace features (on that
+test mesh it put the mouth at eye height), so pass detector landmarks when you can and
+inspect the result before shipping it.
 
 ## Limits (honest list)
 
@@ -72,4 +81,4 @@ off by default for that reason.
 - **Retargeting** is humanoid ↔ humanoid; quadrupeds, tails, wings and props
   aren't mapped. Mirror-image rigs aren't detected.
 - **Characters without face morphs get no lip-sync** until a face rig is added
-  (VRoid/MetaHuman routes, or the alpha `buildFaceRig` with the caveat above).
+  (VRoid/MetaHuman routes, or the beta `buildFaceRig` placed from detector landmarks as above).

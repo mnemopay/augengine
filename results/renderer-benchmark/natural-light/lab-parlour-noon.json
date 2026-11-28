@@ -1,0 +1,26 @@
+{
+  "shot": {
+    "name": "parlour-noon",
+    "query": "scene=parlour&tod=12.5"
+  },
+  "extra": "",
+  "state": {
+    "ev100": 15.323430586518102,
+    "preExposure": 0.00002032387480226491,
+    "sunDir": [
+      -0.11975499430229328,
+      0.9525079061220239,
+      0.279977552876468
+    ],
+    "sunElevationDeg": 72.27108125458025,
+    "sunIlluminanceLux": 97975.83548437762,
+    "environment": "sky",
+    "skyHorizontalLux": 14775.622003112008,
+    "envBakes": 1,
+    "envSize": 64,
+    "preset": "medium"
+  },
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ]
+}

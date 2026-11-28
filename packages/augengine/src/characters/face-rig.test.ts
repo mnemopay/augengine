@@ -8,6 +8,10 @@ import {
   FACE_RIG_SHAPES,
   buildFaceRig,
   detectFaceLandmarks,
+  faceLandmarksFromMeshPoints,
+  FACE_MESH_OVAL,
+  FACE_MESH_POINTS,
+  OUTLINE_GROW,
   faceMaps,
   faceRigWeights,
   findHeadBox,
@@ -254,5 +258,115 @@ describe("face patch deformers", () => {
       }
     }
     expect(behind).toBeGreaterThan(5);
+  });
+});
+
+// ── landmarks from a face-mesh detector (MediaPipe indices) ─────────────────
+describe("face rig from detector landmarks", () => {
+  const mesh = character();
+  const box = findHeadBox(mesh);
+  const eyeXTrue = Math.cos(Math.PI / 2 - EYE_DPHI) * HEAD.rx;
+  const chinY = HEAD.y + Math.cos(2.3) * HEAD.ry;
+  const noseY = HEAD.y + Math.cos(1.62) * HEAD.ry;
+  /** The synthetic face as a 478-point detector would report it (model x / y). */
+  const detectorPoints = (shiftY = 0) => {
+    const pts: ({ x: number; y: number } | undefined)[] = new Array(478).fill(undefined);
+    const K = FACE_MESH_POINTS;
+    const set = (i: number, x: number, y: number) => { pts[i] = { x, y: y + shiftY }; };
+    for (const [side, outer, inner, upper, lower] of [[1, K.leftEyeOuter, K.leftEyeInner, K.leftEyeUpper, K.leftEyeLower], [-1, K.rightEyeOuter, K.rightEyeInner, K.rightEyeUpper, K.rightEyeLower]] as const) {
+      set(outer, side * (eyeXTrue + 0.009), eyeY); set(inner, side * (eyeXTrue - 0.009), eyeY);
+      set(upper, side * eyeXTrue, eyeY + 0.004); set(lower, side * eyeXTrue, eyeY - 0.004);
+    }
+    set(K.rightBrow, -eyeXTrue, eyeY + 0.018); set(K.leftBrow, eyeXTrue, eyeY + 0.018);
+    set(K.noseTip, 0, noseY);
+    set(K.mouthRight, -0.02, mouthY); set(K.mouthLeft, 0.02, mouthY);
+    set(K.upperLipInner, 0, mouthY + 0.001); set(K.lowerLipInner, 0, mouthY - 0.001);
+    set(K.chin, 0, chinY); set(K.bridge, 0, eyeY + 0.004);
+    set(K.rightCheek, -0.065, eyeY - 0.01); set(K.leftCheek, 0.065, eyeY - 0.01);
+    set(K.rightJaw, -0.05, mouthY - 0.01); set(K.leftJaw, 0.05, mouthY - 0.01);
+    // Oval: an ellipse from the brow line to the chin.
+    FACE_MESH_OVAL.forEach((idx, k) => {
+      const a = (k / FACE_MESH_OVAL.length) * Math.PI * 2;
+      const cy = (eyeY + 0.03 + chinY) / 2, ry = (eyeY + 0.03 - chinY) / 2;
+      if (pts[idx] === undefined || ![K.chin].includes(idx as never)) set(idx, Math.sin(a) * 0.068, cy + Math.cos(a) * ry);
+    });
+    return pts;
+  };
+
+  it("maps the detector's eyes, lips, nose, chin and brows to face landmarks", () => {
+    const L = faceLandmarksFromMeshPoints(detectorPoints(), box)!;
+    expect(L).not.toBeNull();
+    expect(L.found).toEqual({ chin: true, nose: true, eyes: true, mouth: true });
+    expect(L.eyeY).toBeCloseTo(eyeY, 4);
+    expect(L.mouthY).toBeCloseTo(mouthY, 4);
+    expect(L.noseY).toBeCloseTo(noseY, 4);
+    expect(L.eyeX).toBeCloseTo(eyeXTrue, 4);
+    expect(L.mouthHalfW).toBeCloseTo(0.02, 4);
+    expect(Math.abs(L.centerX)).toBeLessThan(1e-6);
+    expect(L.outline).toHaveLength(FACE_MESH_OVAL.length);
+    expect(L.faceHalfW).toBeGreaterThan(L.mouthHalfW);
+  });
+
+  it("refuses points out of anatomical order, missing, or off the surface", () => {
+    const flipped = detectorPoints();
+    const K = FACE_MESH_POINTS;
+    [flipped[K.chin], flipped[K.bridge]] = [{ x: 0, y: eyeY + 0.01 }, { x: 0, y: chinY }];
+    expect(faceLandmarksFromMeshPoints(flipped, box)).toBeNull();
+    const missing = detectorPoints();
+    missing[K.mouthLeft] = undefined;
+    expect(faceLandmarksFromMeshPoints(missing, box)).toBeNull();
+    expect(faceLandmarksFromMeshPoints(detectorPoints(), box, () => false)).toBeNull();
+    // Oval points sit on the silhouette (|x| ≈ 0.065 here) and may miss the surface; inner features may not.
+    expect(faceLandmarksFromMeshPoints(detectorPoints(), box, (x) => Math.abs(x) < 0.06)).not.toBeNull();
+    expect(faceLandmarksFromMeshPoints(detectorPoints(), box, (x) => Math.abs(x) < 0.015)).toBeNull();
+  });
+
+  const L = faceLandmarksFromMeshPoints(detectorPoints(), box)!;
+  const rig = buildFaceRig(mesh, { sampler, landmarks: L, headBox: box })!;
+  const n = rig.positions.length / 3;
+  const P = rig.positions;
+  const dOf = (shape: (typeof FACE_RIG_SHAPES)[number], v: number) => {
+    const d = rig.morphPositions[FACE_RIG_INDEX[shape]]!;
+    return Math.hypot(d[v * 3]!, d[v * 3 + 1]!, d[v * 3 + 2]!);
+  };
+
+  it("jawOpen moves the lower face and Blink the eyes (placement)", () => {
+    let jawBelow = 0, jawAll = 0, blinkEye = 0, blinkAll = 0;
+    const mid = (eyeY + mouthY) / 2;
+    for (let v = 0; v < n; v++) {
+      const y = P[v * 3 + 1]!;
+      const j = dOf("jawOpen", v), b = dOf("eyeBlinkLeft", v) + dOf("eyeBlinkRight", v);
+      jawAll += j; if (y < mid) jawBelow += j;
+      blinkAll += b; if (y > mid && y < eyeY + (eyeY - mid)) blinkEye += b;
+    }
+    expect(jawAll).toBeGreaterThan(0);
+    expect(jawBelow / jawAll).toBeGreaterThan(0.95);
+    expect(blinkEye / blinkAll).toBeGreaterThan(0.95);
+  });
+
+  it("keeps the mouth cavity and tongue behind the closed lips everywhere", () => {
+    // The 2026-11-27 regression: a flat cavity poked through the receding lower lip as a black bar.
+    const caster = new OrthoCaster(mesh, { minX: -0.2, maxX: 0.2, minY: 1.3, maxY: 1.9 });
+    let inner = 0;
+    for (let v = 0; v < n; v++) {
+      const x = P[v * 3]!, y = P[v * 3 + 1]!, z = P[v * 3 + 2]!;
+      if (Math.abs(y - L.mouthY) > 0.25 * rig.scale || Math.abs(x) > 1.2 * L.mouthHalfW) continue;
+      const hit = caster.cast(x, y);
+      if (!hit || z > hit.z - 0.01 * rig.scale) continue; // patch skin, not the inside
+      inner++;
+      expect(z).toBeLessThan(hit.z - 0.02 * rig.scale);
+    }
+    expect(inner).toBeGreaterThan(20);
+  });
+
+  it("cuts the patch to the grown detector outline", () => {
+    const poly = L.outline!.map((q) => ({ x: (q.x - L.centerX) * OUTLINE_GROW, y: L.noseY + (q.y - L.noseY) * OUTLINE_GROW }));
+    const maxX = Math.max(...poly.map((q) => Math.abs(q.x)));
+    let face = 0;
+    for (let v = 0; v < n; v++) {
+      if (Math.abs(P[v * 3 + 1]! - L.mouthY) < 0.3 * rig.scale) face++;
+      expect(Math.abs(P[v * 3]! - L.centerX)).toBeLessThanOrEqual(maxX + 1e-3);
+    }
+    expect(face).toBeGreaterThan(50);
   });
 });

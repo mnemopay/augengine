@@ -227,6 +227,9 @@ export class EnvironmentLighting {
   /** Equirect source on the GPU (rgba16float) — also sampled by the background pass. */
   equirectTexture: GPUTexture | null = null;
   equirectView: GPUTextureView | null = null;
+  /** Full-resolution image shown by the background (the sun left in), when it differs from the bake source. */
+  displayTexture: GPUTexture | null = null;
+  displayView: GPUTextureView | null = null;
   private dummyEquirect: GPUTexture;
   readonly dummyEquirectView: GPUTextureView;
   /** Diffuse irradiance / π, SH9 (sh9.ts). */
@@ -311,22 +314,37 @@ export class EnvironmentLighting {
     return tex.createView({ dimension: "2d-array", baseMipLevel: mip, mipLevelCount: 1, baseArrayLayer: 0, arrayLayerCount: 6 });
   }
 
-  /** Upload an HDR equirect for bakeEquirect() and the background pass. */
-  setEquirect(img: EquirectImage | null): void {
+  private uploadEquirect(img: EquirectImage, label: string): GPUTexture {
+    const tex = this.device.createTexture({
+      label: `${label}-${img.width}x${img.height}`,
+      size: [img.width, img.height],
+      format: "rgba16float",
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
+    });
+    const half = toHalfRgba(img.data, img.width, img.height, img.channels);
+    this.device.queue.writeTexture({ texture: tex }, half as unknown as BufferSource, { bytesPerRow: img.width * 8 }, [img.width, img.height]);
+    return tex;
+  }
+
+  /**
+   * Upload an HDR equirect for bakeEquirect() (and the background, unless a
+   * separate `display` image is given — e.g. the original with its sun, when
+   * the bake source had the sun extracted).
+   */
+  setEquirect(img: EquirectImage | null, display: EquirectImage | null = null): void {
     this.equirectTexture?.destroy();
+    this.displayTexture?.destroy();
     this.equirectTexture = null;
     this.equirectView = null;
+    this.displayTexture = null;
+    this.displayView = null;
     if (img) {
-      const tex = this.device.createTexture({
-        label: `env/equirect-${img.width}x${img.height}`,
-        size: [img.width, img.height],
-        format: "rgba16float",
-        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
-      });
-      const half = toHalfRgba(img.data, img.width, img.height, img.channels);
-      this.device.queue.writeTexture({ texture: tex }, half as unknown as BufferSource, { bytesPerRow: img.width * 8 }, [img.width, img.height]);
-      this.equirectTexture = tex;
-      this.equirectView = tex.createView();
+      this.equirectTexture = this.uploadEquirect(img, "env/equirect");
+      this.equirectView = this.equirectTexture.createView();
+    }
+    if (display) {
+      this.displayTexture = this.uploadEquirect(display, "env/equirect-display");
+      this.displayView = this.displayTexture.createView();
     }
     this.generation++;
   }
@@ -443,6 +461,7 @@ export class EnvironmentLighting {
     this.equirectUniform.destroy();
     for (const b of this.prefilterUniforms) b.destroy();
     this.equirectTexture?.destroy();
+    this.displayTexture?.destroy();
     this.dummyEquirect.destroy();
   }
 }

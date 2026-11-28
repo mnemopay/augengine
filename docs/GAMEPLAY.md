@@ -103,3 +103,80 @@ moves the character with the kinematic controller and leaves root motion off.
 It has **no jump clip**: "jump" holds one Run frame with both knees raised.
 Clip timings in `examples/arena/src/graph-spec.ts` were measured from the clip
 data (foot heights, sword tip speed), not eyeballed.
+
+## 2. Combat primitives
+
+```ts
+import { PhysicsSystem } from "@mnemopay/augengine/physics";
+import { CombatWorld, Hitbox, applyDamage, createHealth, knockbackVelocity, HitStop, CameraShake, pickLockTarget } from "@mnemopay/augengine/gameplay";
+
+const physics = new PhysicsSystem();
+await physics.init();
+const combat = new CombatWorld(scene, physics);
+const rig = { nodeNames: graph.rig.names, nodeToEntity: instance.nodeToEntity };
+combat.register("hero", "player", rig, [
+  { bone: "Hips", toBone: "Neck", radius: 0.24, zone: "body" },
+  { bone: "Head", toBone: "Head_end", radius: 0.19, zone: "head", damageScale: 1.5 },
+]);
+const sword = new Hitbox(combat, "hero", rig, { bone: "Weapon", toBone: "Weapon_end", radius: 0.09, extend: 0.9 });
+
+// each fixed step, after animation is applied:
+for (const e of graph.update(dt)) {
+  if (e.name === "swingStart") sword.begin();
+  if (e.name === "swingEnd") sword.end();
+}
+combat.syncHurtboxes();          // bone poses → sensor colliders
+physics.stepFixed(scene, dt);    // Rapier picks the poses up
+for (const hit of sword.query()) {
+  const r = applyDamage(healthOf(hit.target), 24 * hit.damageScale, { iFrames: 0.05 });
+  // r.killed / r.staggered → graph flags/triggers; knockbackVelocity(hit.direction, 4)
+}
+```
+
+- **Hurtboxes** are kinematic **sensor** colliders (new `ColliderComponent.sensor`: no contact
+  forces, ignored by the character controller and `raycast`) placed on bones every step: a
+  sphere on one bone, or a capsule between two bones. Bones are named by glTF node name or
+  canonical humanoid id. Sensor poses are read from one world-transform pass, then written;
+  capsule length stays at its registration value (rebuilding Rapier colliders when an elbow
+  bends cost 6 ms a step in the first version of the demo).
+- **Hitboxes** query `PhysicsSystem.overlapShape` (new: sphere/capsule/box overlap through
+  Rapier's `intersectionsWithShape`, sorted, with `exclude`/`filter`). Each query is swept
+  from the previous step's pose in sub-steps no longer than the radius, so a fast blade
+  cannot tunnel through a body between two steps. One hit per target per activation; same
+  team skipped unless `friendlyFire`; disabled owners (dead, dodging) skipped.
+- **Health** (`createHealth`, `applyDamage`, `tickHealth`): HP, **poise** (damage drains it;
+  breaking it staggers and refills it; regenerates after a delay), invulnerability frames.
+  `knockbackVelocity(direction, strength, up)`.
+- **Hit-stop** (`HitStop`): per-entity freeze timers; multiply each participant's dt by
+  `scale(id)`. **Camera shake** (`CameraShake`): trauma model, offset ∝ trauma², seeded smooth
+  noise, linear decay.
+- **Lock-on**: `pickLockTarget` (cone + distance score, optional line-of-sight callback),
+  `cycleLockTarget` (left/right by signed angle, wrapping), `shouldBreakLock`.
+- **Behaviour tree** (`BehaviorTree`, `selector`, `sequence`, `condition`, `action`,
+  `inverter`): reactive, re-evaluated from the root every tick, with a trace of the leaves
+  that ran. **`MeleeBrain`**: idle → chase (with hysteresis) → wind-up → attack on cooldown
+  → recover, pre-empted by stagger and death. Pathing is injected (`pathfind(from, to)`), so
+  the engine has no nav dependency; the demo passes `@mnemopay/augengine-nav` A* on a 2D
+  occupancy grid (obstacles inflated by the capsule radius, line-of-sight simplified,
+  iteration-capped).
+
+Demo: two melee enemies per wave (a tinted copy of the player's model), sword slash driven
+by the clip's swing events, stagger on poise break, additive flinch otherwise, hit-stop
+(75 ms, 130 ms on a kill), sparks at the contact point, shake when the player is involved,
+Tab lock-on with an over-the-shoulder camera, new wave two seconds after the last corpse
+despawns. `?debug=1` draws the sword capsule and one enemy's hurtboxes; that capture is how
+the sword's `extend: 0.9` was matched to the blade mesh (the Weapon bone itself is 0.14 m).
+
+Tests: `combat.test.ts` (blade vs Rapier sensors: hit once per activation, miss when short,
+sweep through a 6 m jump in one step, team/disabled filters, sensors follow bones; health,
+poise regen timing, i-frames; hit-stop; shake decay and determinism; lock-on picking and
+cycling), `behavior-tree.test.ts` (node semantics, chase hysteresis, waypoint following and
+re-planning, wind-up and cooldown timing, pre-emption), `physics/overlap.test.ts` (overlap
+queries, kinematic sensor tracking with no one-step lag, sensors not blocking the
+controller or raycasts) and, on the real rig, `examples/arena/tests/combat.test.ts` (a slash
+at 1.3 m lands inside the swing window and pushes away from the attacker; at 2.6 m it
+misses; an enemy paths around a wall with augengine-nav and attacks).
+
+Engine fix found while building this: compute skinning wrote one output buffer per mesh, so
+two characters from the same .glb drew as one. Each skinned entity now has its own buffer
+(e2e "two instances of one skinned mesh", which fails on the old renderer).
