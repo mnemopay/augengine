@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { aerialExtinction, henyeyGreenstein } from "./sky-model.js";
 import { FRAME_LAYOUT, FRAME_UNIFORM_SIZE } from "./lights.js";
 import { buildWgsl } from "./pipeline-factory.js";
+import { legacyFogVeil, resolveNaturalLight } from "./renderer.js";
 import { LIGHTING_PRESETS } from "./lighting-presets.js";
 
 describe("aerial perspective", () => {
@@ -57,5 +58,38 @@ describe("atmosphere wiring", () => {
     expect(LIGHTING_PRESETS.medium.volumetricSteps).toBe(0);
     expect(LIGHTING_PRESETS.high.volumetricSteps).toBeGreaterThan(0);
     expect(LIGHTING_PRESETS.ultra.volumetricSteps).toBeGreaterThan(LIGHTING_PRESETS.high.volumetricSteps);
+  });
+});
+
+describe("legacy scene fog under natural light", () => {
+  // CPU mirror of augengine_fog_apply's legacy optical depth with the veil.
+  const smoothstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const legacyOpacity = (density: number, dist: number, veil: number) => 1 - Math.exp(-density * dist * (veil > 0 ? smoothstep(0, veil, dist) : 1));
+
+  it("veil is the default and keeps the Loading Range's streaming edge hidden as before", () => {
+    expect(resolveNaturalLight({}).legacyFog).toBe("veil");
+    const veil = legacyFogVeil("veil", 0.012, null);
+    expect(veil).toBeCloseTo(125, 9);
+    // At and past the veil distance the legacy fog is exactly what it was.
+    for (const d of [125, 200, 400]) expect(legacyOpacity(0.012, d, veil)).toBeCloseTo(legacyOpacity(0.012, d, 0), 12);
+    // At the 112 m load radius it still hides tiles almost as well (73% vs 74%).
+    expect(legacyOpacity(0.012, 112, veil)).toBeGreaterThan(0.72);
+    // In the middle distance the scene keeps its contrast: 30 m goes from 30% fog to 5%.
+    expect(legacyOpacity(0.012, 30, 0)).toBeCloseTo(0.30, 2);
+    expect(legacyOpacity(0.012, 30, veil)).toBeLessThan(0.06);
+  });
+
+  it("keep / off / no fog / explicit distance", () => {
+    expect(legacyFogVeil("keep", 0.012, null)).toBe(0);
+    expect(legacyFogVeil("off", 0.012, null)).toBe(0);
+    expect(legacyFogVeil("veil", 0, null)).toBe(0);
+    expect(legacyFogVeil("veil", 0.012, 80)).toBe(80);
+    expect(resolveNaturalLight({ legacyFog: "keep" }).legacyFog).toBe("keep");
+    expect(resolveNaturalLight({ legacyFogVeilDistance: -5 }).legacyFogVeilDistance).toBeNull();
+  });
+
+  it("the shader scales the legacy optical depth by the veil only when atmos.w > 0", () => {
+    const src = buildWgsl({ materialKind: "pbr", vertexStride: 8, sampleCount: 1, natural: true });
+    expect(src).toContain("if (u_frame.atmos.w > 0.0) { optical = optical * smoothstep(0.0, u_frame.atmos.w, dist); }");
   });
 });

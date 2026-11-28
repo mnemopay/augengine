@@ -260,3 +260,78 @@ Captures: `natural-light/stream-level-*-final.png`, `natural-light/lab-*-final.p
 `natural-light/lab-furnace*.png`. Raw JSON: `2026-11-28-webgpu-natural-*`,
 `2026-11-28-{webgpu,three}-light-after-*`.
 
+---
+
+# 2026-11-28 — natural-light follow-up fixes
+
+Intel UHD gen-11, headed Chrome, 1440×900, `?bench=1` (180 warm-up + 600 measured frames). Before/after builds are **interleaved** on the same dev server (the `dist` of `origin/master` vs the change, switched between runs and checked in the served shader), because single runs drift on this shared machine.
+
+## 1. PCSS streaks on grazing receivers (receiver-plane depth bias + anisotropic filter floor)
+
+Diagnosis: shadow-map staircase stretched by the grazing angle, not acne (it halves at 2048²). Details in docs/LIGHTING.md.
+
+| Loading Range, natural medium, tod 15 | before r1 / r2 / r3 | after r1 / r2 / r3 | median before → after |
+|---|---|---|---|
+| fps (raf p50) | 51.3 / 57.8 / 59.5 | 58.1 / 58.5 / 58.5 | 57.8 → 58.5 |
+| GPU sum p50 (ms) | 11.74 / 11.17 / 10.86 | 10.80 / 10.93 / 11.16 | 11.17 → 10.93 |
+| main pass p50 (ms) | 4.05 / 3.98 / 3.95 | 3.73 / 3.73 / 3.73 | **3.98 → 3.73** |
+
+Before r1 ran under visible load (raf 19.5 ms). Raw: `2026-11-28-webgpu-fix1-{before,after}-r{1,2,3}-stream-level.json`. Stills: `natural-light/lab-parlour-noon-eave-before-after.png`, `lab-parlour-{dawn,noon,dusk}-rpdb.png`, `stream-level-{dawn,noon,dusk}-rpdb.png` (compare with the `-final` set: no regressions in contact shadows or at dawn's grazing sun).
+
+## 2. Streaming fog vs physical haze (legacy fog becomes a far veil)
+
+Under natural light, the level's fog now fades in by smoothstep over 1.5 / density (125 m). It is unchanged past that distance and at the 112 m load radius it still hides 73% (was 74%). Nearer, the aerial perspective sets the haze.
+
+| Loading Range, natural medium | keep (old) | veil (new) |
+|---|---|---|
+| luminance σ dawn / noon / dusk | 61.7 / 18.8 / 51.8 | 76.2 / 20.9 / 70.0 |
+| dusk fps (2 runs each, alternating) | 59.2 / 58.8 | 58.1 / 59.5 |
+| dusk main pass p50 (ms) | 3.64 / 3.66 | 3.69 / 3.69 |
+
+Stills: `natural-light/stream-level-{dawn,noon,dusk}-fog-{keep,veil}.png` and `-fog-keep-vs-veil.png`. Raw: `2026-11-28-webgpu-fix2-*-stream-level.json`.
+
+## 3. Legacy-path cost of the natural-light shader code: confirmed (0.25 ms), fixed with variants
+
+The suspected +0.57 ms (single uncontrolled run) is real but smaller. Proof room, natural light **off**, 5 interleaved runs, nothing else of mine running:
+
+| Build | main p50 per run (ms) | median | GPU sum p50 median |
+|---|---|---|---|
+| master (natural + PCSS code in every pipeline) | 4.785, 4.701, 4.620, 4.666, 4.730 | **4.70** | 10.52 |
+| variants (`PipelineKey.natural` / `.pcss`) | 4.454, 4.425, 4.496, 4.480, 4.443 | **4.45** | 10.30 |
+
+Every variant run beats every master run (−0.25 ms, −5%). fps is vsync-bound here (58–60 both). The earlier "4.59 ms before #41" came from another session and cannot be compared directly. Raw: `2026-11-28-webgpu-fix3-{before,after}-r{1..5}-proof-room.json`.
+
+## 4. glTF alphaMode MASK (main + shadow pass) and doubleSided
+
+A cross impostor baked with `augengine-lod bake --impostor cross` (kit tree, 64 px atlas tiles) used to draw opaque black backing cards and rectangular shadows. Now the cards are cut out and the shadow follows the tree: `natural-light/lab-lod-{side,back,top}-mask-compare.png` (top = before, bottom = after).
+
+The unmasked path is unchanged in cost. Proof room, 2 interleaved rounds against master: main pass 4.50 / 4.52 ms before, 4.41 / 4.52 ms after. Raw: `2026-11-28-webgpu-fix4-*-proof-room.json`.
+
+## 5. EXT_texture_webp in the glTF loader
+
+`kael-varr.webp.glb` requires `EXT_texture_webp` and has no core `source`, so the loader found no texture and the model drew white. Now the extension's image is used (browsers decode WebP via `createImageBitmap`), and the core `source` is the fallback when the extension's index is missing.
+
+`natural-light/lab-glb-webp-compare.png` (lab `?scene=glb`): PNG build left, WebP build right, before on top and after below. After the change the two read the same (mean luminance 107.0 vs 106.8). The file is 642 KB with WebP against a 4.2 MB PNG texture. This is loader-only, so there is no frame-time change.
+
+## 6. Natural light "low" as the default look: yes on the Loading Range, no elsewhere
+
+Gate: ≥ 50 fps median across 3 runs **and** better than the old look side by side.
+
+| Loading Range, 3 interleaved rounds | old look | natural low |
+|---|---|---|
+| fps (raf p50) | 59.5 / 58.8 / 59.5 | 58.5 / 59.9 / 59.5 |
+| median fps | 59.5 | **59.5** |
+| GPU sum p50 median (ms) | 8.67 | 9.83 (+1.2) |
+
+After the switch, with no query: 59.5 / 58.8 / 59.5 fps, GPU 9.74–9.80 ms. With `?light=legacy`: 59.2 fps, the old path. The earlier 54.1 vs 55.2 was measured under heavier machine load. Raw: `2026-11-28-webgpu-fix6-*`.
+
+**Look** (`natural-light/stream-level-old-vs-natural-low.png`, left old, right natural low): natural low has a real sky gradient, sunlit warm façades against cool shade, sun shadows and a clearer distance. The old look is a flat grey-blue. **Natural low is better, so it is now the Loading Range default.**
+
+**Not switched:**
+
+- **Proof room** (`natural-light/proof-room-old-vs-natural-low.png`): about the same cost (main 4.63 vs 4.49 ms), but a different look rather than a better one. The open-topped room loses the authored warm key light, and low's hardware-PCF floor shadow shows stair-steps. It stays authored.
+- **Diorama, Addison and Blackpig City maps:** not evaluated, so they stay authored.
+- **Detective game** (`natural-light/detective-parlour-authored-vs-natural-low.png`, top authored, middle natural low at 15:00, bottom at 21:00; evaluated with a temporary, uncommitted hook): daytime natural washes the night-time parlour out in pink haze, and 21:00 is about the same as the authored lamplight. The game's own counter reads 30 fps in all three variants on this machine, so the ≥ 50 fps gate fails anyway. It keeps its own look.
+
+Pre-existing, unrelated: `stream-level-extras.spec.ts` "NPCs keep their state…" fails on master too (`liveState` returns undefined). The other 6 stream-level / proof-head specs pass with the new default.
+

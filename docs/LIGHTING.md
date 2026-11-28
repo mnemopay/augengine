@@ -32,6 +32,8 @@ r.getNaturalLightState(); // { ev100, preExposure, sunDir, sunIlluminanceLux, sk
 r.setNaturalLight(false); // back to the authored lights
 ```
 
+**Smoke game default (2026-11-28):** the Loading Range now opens with natural light at preset `low`. `?light=legacy` keeps the authored look, and an explicit `?light=natural` still defaults to `medium`. Every other map, the proof room included, keeps its authored look, and so does the detective game (see SCORECARD #6 for why).
+
 In the smoke game, the same tier is available through URL parameters:
 
 - `?light=natural&preset=medium&tod=15`
@@ -47,6 +49,19 @@ The lighting lab is at `examples/smoke-game/lighting-lab.html?scene=parlour|macb
 - Scene point and spot lights are display-referred, so they are multiplied by `localLightScale` (default 50; intensity 1 gives about 10 lux at 2 m).
 - Emissive and unlit colours stay display-referred (`emissiveScale` 1), so markers and UI-like props keep their look at any exposure.
 - Water and particles are not exposed. Their look is still authored for the legacy path (known gap).
+- The scene's own distance fog becomes a far **veil** (`legacyFog`, below).
+
+### Scene fog under natural light
+
+A streaming level keeps its authored fog to hide tiles arriving at the load radius. Under natural light that fog used to sit at full density on top of the physical haze, so the Loading Range lost its contrast at every time of day, worst at dusk.
+
+`legacyFog` (smoke game: `?fog=`) now chooses what happens to it:
+
+- **`"veil"` (default):** the legacy optical depth is multiplied by smoothstep(0, D, distance), with D = `legacyFogVeilDistance` (default 1.5 / fogDensity, 125 m on the Loading Range). Past D the fog is exactly what it was, and at the 112 m load radius it still hides 73% (74% before). Nearer, the aerial perspective alone sets the haze; at 30 m the legacy fog drops from 30% to under 5%.
+- **`"keep"`:** the old behaviour.
+- **`"off"`:** aerial perspective only.
+
+Side by side (left keep, right veil): `natural-light/stream-level-{dawn,noon,dusk}-fog-keep-vs-veil.png`. Luminance standard deviation, as a crude contrast measure: dawn 61.7 → 76.2, noon 18.8 → 20.9, dusk 51.8 → 70.0. It costs one smoothstep: dusk main pass 3.64 / 3.66 ms (keep) vs 3.69 / 3.69 ms (veil), within noise.
 
 ## The pieces
 
@@ -58,10 +73,23 @@ The lighting lab is at `examples/smoke-game/lighting-lab.html?scene=parlour|macb
 | Exposure | `exposure.ts`, `auto-exposure.ts` | EV100 (camera or metered). Saturation-based exposure H = 1/(1.2·2^EV). Lighting is pre-exposed. A centre-weighted 64-bin GPU log-luminance histogram (40–90th percentile) is read back asynchronously and adapted at 3 EV/s brightening and 1.5 EV/s darkening. | Lagarde & de Rousiers 2014 |
 | White balance | `exposure.ts` | Von Kries gains in linear sRGB from the Planckian locus. | Kim et al. 2002 |
 | HDR IBL | `hdr-loader.ts` | Radiance RGBE decoder (adaptive RLE, flat and old RLE, ±Y, EXPOSURE). The sun is extracted and becomes a shadow-casting key light. Same cube/prefilter/SH pipeline as the sky. **No OpenEXR**: convert .exr to .hdr. | Ward 1991 |
-| Sun shadows | `lights.ts`, `pipeline-factory.ts` | PCSS over the existing near/far cascades (with blend and normal offset): blocker search, then penumbra = 2·d·tan(sun radius), then PCF. Vogel disc, rotated by per-frame IGN, early-outs. | Fernando 2005 |
+| Sun shadows | `lights.ts`, `pipeline-factory.ts` | PCSS over the existing near/far cascades (with blend and normal offset): blocker search, then penumbra = 2·d·tan(sun radius), then PCF. Vogel disc, rotated by per-frame IGN, early-outs. Every tap compares against the receiver plane; the filter has an anisotropic floor (see below). | Fernando 2005; Isidoro 2006 |
 | Indirect light | `gi-probes.ts` | DDGI-lite: a camera-centred probe window, ray-traced in compute against scene AABB proxies plus a ground plane, with infinite bounce through history. Stored as L1 irradiance/π in the existing probe ring. Gives specular occlusion. | Majercik et al. 2019 (simplified) |
 | Atmosphere | `pipeline-factory.ts`, `sky-model.ts`, `volumetric.ts` | Per-channel aerial extinction from the sky model's own optical depths. In-scatter = horizon sky + sun × Henyey–Greenstein. Optional half-resolution shadow-map ray march for sun shafts. | — |
 | Camera post | `bloom-chain.ts`, `post-processing.ts`, `temporal.ts` | Energy-conserving mip-chain bloom (13-tap Karis down, tent up, `mix(scene, bloom, 4%)`). Lens dirt and film grain are included, **off by default**. ACES / AgX / Khronos Neutral tonemappers already existed. | Jimenez 2014 |
+
+### Shadows on receivers at a grazing angle
+
+A wall under a high sun (the noon parlour, N·L ≈ 0.28) used to show a sawtooth of streaks along the eave's shadow. It was **not depth acne**: at 2048² the teeth halve in pitch and height (`lab-parlour-noon-diag-high.png`), so they are the shadow map's own staircase. The eave edge runs at 23° to the map's texel rows, and the grazing angle stretches each step about 3.4× down the wall. A one-texel PCF cannot smooth that, and the filter could not be wider because the old flat bias let a grazing receiver shadow itself.
+
+The fix has two parts (`pipeline-factory.ts`, CPU mirrors in `lights.ts`):
+
+- **Receiver-plane depth bias.** Screen derivatives of the light-space position give the receiver's depth gradient per shadow uv (`receiverPlaneDepthGradient`, capped at 5.7 ≈ 85° from facing the light). Every blocker-search and PCF tap compares against the receiver's own plane at its offset, minus 0.7 texel of slope for the texel-centre quantisation. A grazing wall no longer finds itself in the blocker search, so it early-outs as lit and the filter can widen safely.
+- **Anisotropic filter floor** (`pcssFilterAxes`). The minimum radius is 1.5 texels across the receiver's slope and rises to 3 texels along its iso-depth line as the slope steepens. Blur along the slope is magnified by 1/N·L on screen, while the staircase repeats along the edge, so this removes the teeth and keeps the edge crisp.
+
+`lab-parlour-noon-eave-before-after.png`, top to bottom: before, 2048² diagnostic, an isotropic 2.5-texel floor (rejected: the teeth go but the edge spreads over ~40% of the wall), the shipped fix. Fixed-PCF qualities (`low`, `high`) are unchanged.
+
+Cost on the Loading Range at medium (3 interleaved rounds, `2026-11-28-webgpu-fix1-*`): main pass median **3.98 → 3.73 ms**, fps median 57.8 → 58.5. It is slightly cheaper because grazing receivers now take the lit early-out.
 
 ### Why GI probes and not SSGI
 
@@ -95,6 +123,38 @@ Per-pass costs at medium (stills and benchmark runs):
 | Physical bloom | +0.45 ms over threshold bloom |
 | Sun shafts (half resolution) | 3.6 ms (7.3 ms at full resolution) |
 | Environment bake | only on frames where the sun or atmosphere changed |
+
+### Shader variants
+
+WGSL has no preprocessor. Override constants cannot remove code either: a dead branch still costs registers on Intel UHD. So the natural-light and PCSS code sits between `// @natural-begin` / `// @natural-end` and `// @pcss-begin` / `// @pcss-end` lines, and `specializeWgsl` cuts out the blocks a pipeline does not use.
+
+The renderer picks the variant:
+
+- `natural` whenever `setNaturalLight` is on;
+- `pcss` whenever the shadow quality is `soft` or `soft-high`.
+
+A natural variant keeps the legacy branches as a runtime fallback. The legacy PBR shader shrinks from 26.3k to 16.9k characters. Switching tiers compiles the other variant once.
+
+Proof-room main pass with natural light off, 5 interleaved runs on Intel UHD (`2026-11-28-webgpu-fix3-*`):
+
+- master, natural code compiled in: 4.79 / 4.70 / 4.62 / 4.67 / 4.73 ms, **median 4.70**;
+- variants: 4.45 / 4.43 / 4.50 / 4.48 / 4.44 ms, **median 4.45**.
+
+The ranges do not overlap. Natural-light output is unchanged: the mean pixel difference against the previous build is 0.08–0.29, which is TAA noise (`natural-light/*-variants.png`).
+
+### Cut-out materials (glTF alphaMode MASK)
+
+A MASK material discards fragments whose base colour alpha (texture × factor) is below `alphaCutoff` (glTF default 0.5). This happens in the main pass and in an alpha-tested shadow pass, so a cut-out card casts the shape of its texture. `doubleSided` draws without culling, with the normal flipped on back faces.
+
+- These are pipeline variants (`PipelineKey.alphaMask` / `.doubleSided`) and are never instanced.
+- Until the texture decodes, the mesh draws opaque.
+- The motion-vector pass has no alpha test, so masked draws keep camera reprojection. That is exact for static impostors; a moving cut-out can ghost slightly under TAA.
+
+Verified with an `augengine-lod --impostor cross` bake of a kit tree (`examples/smoke-game/public/lab/tree-cross.*`, lab `?scene=lod`). Before, the LOD3 cards drew an opaque black backing and cast rectangular shadows. After, they show only the tree, from the side, back and top (`natural-light/lab-lod-{side,back,top}-mask-compare.png`, top = before).
+
+### WebP textures
+
+The glTF loader reads `EXT_texture_webp`: the extension's image wins, and the core `source` is the fallback. `kael-varr.webp.glb`, where the extension is required, now renders textured, the same as the PNG build (`natural-light/lab-glb-webp-compare.png`).
 
 ## Correctness checks
 
@@ -133,10 +193,10 @@ Captures are in `results/renderer-benchmark/natural-light/`:
 
 **What does not read as a photograph yet:**
 
-- The Loading Range's authored fog (0.012/m, there to hide tile streaming) washes out contrast at every time of day.
+- ~~The Loading Range's authored fog washes out contrast at every time of day~~ Fixed 2026-11-28: it is now a far veil (above).
 - The flat-colour, untextured low-poly assets have no surface detail.
 - There is no contact darkening under the tree in overcast, because the 4 m probe spacing is too coarse and SSAO is off at medium.
-- The noon parlour shows jagged overhang-shadow streaks under the eave (1024² over 32 m at grazing angles).
+- ~~The noon parlour shows jagged overhang-shadow streaks under the eave~~ Fixed 2026-11-28 (receiver-plane bias + anisotropic filter floor, above).
 - A thin dark line appears on the Loading Range horizon at dawn: the unlit far impostor stays display-referred.
 
 Against a reference street photograph, the *lighting* is plausible. The *image* still looks like a clean CG massing render. More light won't close that gap; assets, materials and fog tuning will.
@@ -149,4 +209,4 @@ Against a reference street photograph, the *lighting* is plausible. The *image* 
 - Scene geometry is approximated by up to 256 AABBs. Skinned meshes are not GI occluders.
 - Water, particles, the unlit far impostor and emissive markers are not physically exposed.
 - Hosek–Wilkie would model low suns better than Preetham. It is not implemented, for its table size.
-- **Possible legacy-path cost (unconfirmed):** in the cleanest proof-room run, the main pass with natural light *off* measured 5.17 ms against 4.59 ms before (+12%). The likely cause is the larger shader. The machine load prevented isolating it. The fix is to compile the natural-light code as a pipeline variant.
+- ~~Possible legacy-path cost (unconfirmed)~~ **Confirmed and fixed 2026-11-28.** The natural-light shader code cost the legacy look about **0.25 ms** (5%) of proof-room main pass, not the suspected 0.57 ms. Natural-light (sky/HDR IBL, SH9, aerial perspective) and PCSS code is now compiled only into the pipeline variants that use them (`PipelineKey.natural` / `.pcss`, see "Shader variants" below).

@@ -11,7 +11,7 @@
  */
 
 import type { MaterialKind } from "../../../scene/material.js";
-import { MAX_EXTRA_DIRECTIONAL, MAX_LOCAL_LIGHTS } from "./lights.js";
+import { MAX_EXTRA_DIRECTIONAL, MAX_LOCAL_LIGHTS, PCSS_ALONG_FILTER_TEXELS, PCSS_MIN_FILTER_TEXELS, RPDB_MAX_GRADIENT } from "./lights.js";
 import { PROBE_RING } from "./probe-ring.js";
 
 export interface PipelineKey {
@@ -41,6 +41,23 @@ export interface PipelineKey {
    * vertex-colour-free unlit/pbr/cel draws (the renderer gates this).
    */
   instanced?: boolean;
+  /**
+   * Natural-light variant: compiles the sky/HDR image-based lighting, SH9
+   * irradiance and aerial-perspective code. Without it those paths are left
+   * out of the shader entirely (the renderer picks this variant whenever
+   * setNaturalLight is on), so the legacy look pays nothing for them.
+   */
+  natural?: boolean;
+  /** PCSS variant: compiles the contact-hardening shadow filter ("soft" qualities). */
+  pcss?: boolean;
+  /**
+   * glTF alphaMode MASK (PBR with a base-colour texture only): discard the
+   * fragment when the base colour alpha is below u_draw.params.z (the cutoff
+   * divided by the factor alpha).
+   */
+  alphaMask?: boolean;
+  /** glTF doubleSided: no back-face culling; back faces use the flipped normal. */
+  doubleSided?: boolean;
 }
 
 export interface CompiledPipeline {
@@ -196,7 +213,7 @@ export class PipelineFactory {
       },
       primitive: {
         topology: "triangle-list",
-        cullMode: key.materialKind === "outline" ? "front" : "back",
+        cullMode: key.materialKind === "outline" ? "front" : key.doubleSided ? "none" : "back",
       },
       depthStencil: {
         depthWriteEnabled: true,
@@ -224,7 +241,7 @@ export class PipelineFactory {
 
 /** Cache key for a pipeline variant. The renderer uses the same string. */
 export function pipelineKeyString(k: PipelineKey): string {
-  return `${k.materialKind}|${k.vertexStride}|${k.sampleCount}|static|${k.hasMorphTargets ? "morph" : "rigid"}|${k.hasVertexColors ? "color" : "nocolor"}|${k.hasPbrBaseColorTexture ? "basecolor" : "flat"}|${k.hasPbrMetallicRoughnessTexture ? "mr" : "nomr"}|${k.hasPbrNormalTexture ? "normal" : "nonormal"}${k.instanced ? "|instanced" : ""}`;
+  return `${k.materialKind}|${k.vertexStride}|${k.sampleCount}|static|${k.hasMorphTargets ? "morph" : "rigid"}|${k.hasVertexColors ? "color" : "nocolor"}|${k.hasPbrBaseColorTexture ? "basecolor" : "flat"}|${k.hasPbrMetallicRoughnessTexture ? "mr" : "nomr"}|${k.hasPbrNormalTexture ? "normal" : "nonormal"}${k.instanced ? "|instanced" : ""}${k.natural ? "|natural" : ""}${k.pcss ? "|pcss" : ""}${k.alphaMask ? "|mask" : ""}${k.doubleSided ? "|2side" : ""}`;
 }
 
 /** True when `buildWgsl` can produce an instanced variant for this key. */
@@ -233,7 +250,7 @@ export function canInstance(k: PipelineKey): boolean {
     k.vertexStride !== 16 &&
     // Vertex colours are a per-vertex stream shared by every instance (slot 1),
     // so they instance fine; their varying sits below the instanced ones (6-8).
-    !k.hasMorphTargets &&
+    !k.hasMorphTargets && !k.alphaMask && !k.doubleSided &&
     !k.hasPbrBaseColorTexture && !k.hasPbrMetallicRoughnessTexture && !k.hasPbrNormalTexture;
 }
 
@@ -269,10 +286,29 @@ function instancedWgsl(src: string): string {
     .replace(fsHead, `${fsHead}\n  u_draw.color = in.i_color;\n  u_draw.params = in.i_params;\n  u_draw.emissive = in.i_emissive;`);
 }
 
+/**
+ * Strip the feature blocks a variant does not use. WGSL has no preprocessor
+ * and override constants cannot remove code (a dead branch still costs
+ * registers and compile size on Intel UHD), so feature code sits between
+ * `// @<feature>-begin` and `// @<feature>-end` lines and is cut out here.
+ */
+export function specializeWgsl(src: string, features: { natural: boolean; pcss: boolean }): string {
+  let out = src;
+  for (const [name, on] of [["natural", features.natural], ["pcss", features.pcss]] as const) {
+    const re = new RegExp(`^[ \\t]*// @${name}-begin\\n[\\s\\S]*?^[ \\t]*// @${name}-end\\n`, "gm");
+    out = on ? out.replace(new RegExp(`^[ \\t]*// @${name}-(begin|end)\\n`, "gm"), "") : out.replace(re, "");
+  }
+  return out;
+}
+
 export function buildWgsl(key: PipelineKey): string {
+  return specializeWgsl(buildWgslFull(key), { natural: key.natural === true, pcss: key.pcss === true });
+}
+
+function buildWgslFull(key: PipelineKey): string {
   if (key.instanced) {
     if (!canInstance(key)) throw new Error(`no instanced variant for ${pipelineKeyString(key)}`);
-    return instancedWgsl(buildWgsl({ ...key, instanced: false }));
+    return instancedWgsl(buildWgslFull({ ...key, instanced: false }));
   }
   const morph = key.hasMorphTargets === true;
   const morphHead = morph ? `// AUGENGINE_MORPH_TARGETS\n${MORPH_PREAMBLE_WGSL}\n` : "";
@@ -290,13 +326,18 @@ export function buildWgsl(key: PipelineKey): string {
     case "cel":
     case "vrm-mtoon": {
       const vs = getVertexShader(key);
-      const fs = getFragmentShader(
+      if (key.alphaMask && !(key.materialKind === "pbr" && key.hasPbrBaseColorTexture)) {
+        throw new Error("alphaMask pipelines need a PBR base-colour texture");
+      }
+      let fs = getFragmentShader(
         key.materialKind,
         key.hasVertexColors === true,
         key.hasPbrBaseColorTexture === true,
         key.hasPbrMetallicRoughnessTexture === true,
         key.hasPbrNormalTexture === true,
+        key.alphaMask === true,
       );
+      if (key.doubleSided) fs = doubleSidedFragment(fs);
       return morphHead + textureHead + FRAME_UNIFORM_BLOCK + vs + fs;
     }
   }
@@ -395,12 +436,24 @@ fn vs_main(in: VertexIn) -> VertexOut {
   return vertexIn + vertexOut + vsMain;
 }
 
+/**
+ * Double-sided variant of a lit fragment shader: back faces flip the
+ * interpolated normal before any lighting reads it (glTF doubleSided).
+ */
+function doubleSidedFragment(fs: string): string {
+  const head = "fn fs_main(in: VertexOut) -> @location(0) vec4<f32> {";
+  if (!fs.includes(head)) throw new Error("double-sided WGSL: missing fs_main anchor");
+  return fs
+    .replace(head, "fn fs_main(inRaw: VertexOut, @builtin(front_facing) frontFacing: bool) -> @location(0) vec4<f32> {\n  var in = inRaw;\n  in.worldNormal = select(-inRaw.worldNormal, inRaw.worldNormal, frontFacing);");
+}
+
 function getFragmentShader(
   kind: MaterialKind["kind"],
   hasColors: boolean,
   hasBaseColorTexture: boolean,
   hasMetallicRoughnessTexture: boolean,
   hasNormalTexture: boolean,
+  alphaMask = false,
 ): string {
   const colorMult = hasColors ? " * in.color.rgb" : "";
   switch (kind) {
@@ -443,7 +496,9 @@ fn augengine_pbr_light(N: vec3<f32>, V: vec3<f32>, L: vec3<f32>, albedo: vec3<f3
 }
 @fragment
 fn fs_main(in: VertexOut) -> @location(0) vec4<f32> {
-  let albedo = u_draw.color.rgb${colorMult}${hasBaseColorTexture ? " * textureSample(t_base_color, s_pbr, in.uv).rgb" : ""};
+  ${hasBaseColorTexture ? "let baseSample = textureSample(t_base_color, s_pbr, in.uv);" : ""}
+  ${alphaMask ? "// glTF alphaMode MASK: params.z = alphaCutoff / baseColorFactor.a.\n  if (baseSample.a < u_draw.params.z) { discard; }" : ""}
+  let albedo = u_draw.color.rgb${colorMult}${hasBaseColorTexture ? " * baseSample.rgb" : ""};
   let metallic = u_draw.params.x${hasMetallicRoughnessTexture ? " * textureSample(t_metallic_roughness, s_pbr, in.uv).b" : ""};
   let roughness = u_draw.params.y${hasMetallicRoughnessTexture ? " * textureSample(t_metallic_roughness, s_pbr, in.uv).g" : ""};
   var N = normalize(in.worldNormal);
@@ -462,15 +517,19 @@ fn fs_main(in: VertexOut) -> @location(0) vec4<f32> {
     lit = lit + augengine_pbr_light(N, V, la.xyz, albedo, metallic, roughness, F0) * u_frame.localLights[i].radianceInner.rgb * la.w;
   }
   let amb = augengine_ambient(N, in.probeR, in.probeG, in.probeB, in.probeCov);
+  // @natural-begin
   if (u_frame.envParams.x > 0.5) {
     lit = lit + augengine_env_ibl(N, V, albedo, metallic, roughness, F0, amb);
   } else {
+  // @natural-end
     // With sky specular on, metals take their ambient from the reflection
     // instead of the diffuse term; with it off this is the old flat ambient.
     let ambientW = select(1.0, 1.0 - metallic, u_frame.skySpecSH[0].a > 0.5);
     lit = lit + albedo * amb * ambientW;
     lit = lit + augengine_sky_specular(N, V, F0, roughness);
+  // @natural-begin
   }
+  // @natural-end
   let fogged = augengine_fog_apply(lit, in.worldPos);
   return vec4<f32>(fogged * u_frame.exposure.rgb + u_draw.emissive.rgb * u_frame.exposure.a, 1.0);
 }
@@ -600,6 +659,12 @@ fn augengine_morph_normal(vertex_idx: u32) -> vec3<f32> {
 }
 `;
 
+/** A JS number as a WGSL f32 literal (always with a decimal point). */
+export function wgslF32(x: number): string {
+  const t = String(x);
+  return /[.eE]/.test(t) ? t : `${t}.0`;
+}
+
 // Layout MUST match FRAME_LAYOUT in lights.ts (float offsets in comments).
 const FRAME_UNIFORM_BLOCK = /* wgsl */ `
 struct DirLight { dir: vec4<f32>, radiance: vec4<f32>, };
@@ -643,7 +708,7 @@ struct FrameUniforms {
   shadowSoft: vec4<f32>,
   // x frame index mod 64, y blocker search height (m).
   shadowSoft2: vec4<f32>,
-  // Natural atmosphere: x on, y HG g, z sun in-scatter strength.
+  // Natural atmosphere: x on, y HG g, z sun in-scatter strength, w legacy-fog veil distance (m, 0 = full legacy fog).
   atmos: vec4<f32>,
   // rgb aerial extinction (1/m).
   atmosSigma: vec4<f32>,
@@ -726,6 +791,41 @@ fn augengine_probe_coeffs(P: vec3<f32>) -> AugengineProbeCoeffs {
   return out;
 }
 
+// @pcss-begin
+// Receiver-plane depth bias (Isidoro 2006): the change in shadow depth per
+// unit of shadow-map uv across this pixel's surface, from the screen-space
+// derivatives of its light-space position. A PCSS tap at uv offset o then
+// compares against depth + dot(g, o), the receiver's own plane at the tap,
+// instead of the centre depth. Without it a receiver at a grazing angle to
+// the sun (a wall under a high sun) sees its own texels up-slope as blockers,
+// so the filter has to stay about one texel wide, and a one-texel filter
+// cannot hide the shadow-map staircase that grazing angle stretches into
+// streaks. Both cascades share the light basis and scale uv and depth by the
+// same radius, so one gradient serves both. Mirrors lights.ts
+// receiverPlaneDepthGradient. Must run in uniform control flow (derivatives).
+fn augengine_receiver_plane(worldPos: vec3<f32>) -> vec2<f32> {
+  let m = u_frame.shadowViewProj;
+  let m3 = mat3x3<f32>(m[0].xyz, m[1].xyz, m[2].xyz);
+  let ldx = m3 * dpdx(worldPos);
+  let ldy = m3 * dpdy(worldPos);
+  // Clip xy -> uv: u = x/2 + 1/2, v = 1/2 - y/2.
+  let ux = vec2<f32>(0.5 * ldx.x, -0.5 * ldx.y);
+  let uy = vec2<f32>(0.5 * ldy.x, -0.5 * ldy.y);
+  let det = ux.x * uy.y - ux.y * uy.x;
+  if (abs(det) < 1e-14) { return vec2<f32>(0.0); }
+  let g = vec2<f32>(uy.y * ldx.z - ux.y * ldy.z, ux.x * ldy.z - uy.x * ldx.z) / det;
+  // Edge-on receivers (and quads straddling a silhouette) give unbounded
+  // gradients; cap the slope (lights.ts RPDB_MAX_GRADIENT).
+  let len = length(g);
+  return select(g, g * (AUGENGINE_RPDB_MAX / len), len > AUGENGINE_RPDB_MAX);
+}
+const AUGENGINE_RPDB_MAX: f32 = ${wgslF32(RPDB_MAX_GRADIENT)};
+// Smallest PCSS filter radius in shadow texels (lights.ts PCSS_MIN_FILTER_TEXELS).
+// Under one texel the filter cannot smooth the map's staircase; the receiver
+// plane makes a wider floor safe at grazing angles. Fixed PCF is unchanged.
+const AUGENGINE_PCSS_MIN_TEXELS: f32 = ${wgslF32(PCSS_MIN_FILTER_TEXELS)};
+const AUGENGINE_PCSS_ALONG_TEXELS: f32 = ${wgslF32(PCSS_ALONG_FILTER_TEXELS)};
+
 // Contact-hardening shadow (Fernando 2005, PCSS) for an orthographic
 // cascade: average the blockers in a search disc, turn the receiver–blocker
 // distance (depth × the cascade's metric depth span) into a penumbra width
@@ -733,9 +833,10 @@ fn augengine_probe_coeffs(P: vec3<f32>) -> AugengineProbeCoeffs {
 // Vogel (golden-angle) disc generated by incremental rotation — no sample
 // table (a per-invocation private array cost ~2 ms on Intel UHD) and no trig
 // per tap — outermost first, rotated per pixel by interleaved gradient noise
-// that changes every frame so TAA integrates it. Mirrors lights.ts
-// pcssPenumbraWidth / vogelDisc.
-fn augengine_pcss(uv: vec2<f32>, depth: f32, texel: f32, slot: f32, cascades: f32, worldSize: f32, fragXY: vec2<f32>) -> f32 {
+// that changes every frame so TAA integrates it. Every tap compares against
+// the receiver plane (rp) at its own offset. Mirrors lights.ts
+// pcssPenumbraWidth / vogelDisc / receiverPlaneDepthGradient.
+fn augengine_pcss(uv: vec2<f32>, depth: f32, texel: f32, slot: f32, cascades: f32, worldSize: f32, fragXY: vec2<f32>, rp: vec2<f32>) -> f32 {
   let taps = i32(u_frame.shadowSoft.w);
   let dims = vec2<f32>(textureDimensions(t_shadow));
   let tanL = u_frame.shadowSoft.x;
@@ -743,6 +844,9 @@ fn augengine_pcss(uv: vec2<f32>, depth: f32, texel: f32, slot: f32, cascades: f3
   let a = fract(52.9829189 * fract(dot(fragXY + vec2<f32>(u_frame.shadowSoft2.x * 5.588238), vec2<f32>(0.06711056, 0.00583715)))) * 6.2831853;
   let cs = vec2<f32>(cos(a), sin(a));
   let searchUv = clamp(2.0 * tanL * u_frame.shadowSoft2.y / worldSize, 1.5 * texel, 24.0 * texel);
+  // A tap reads the texel it lands in, whose stored depth is the plane at
+  // that texel's centre, up to ~0.7 texel away: allow for that much slope.
+  let quant = (abs(rp.x) + abs(rp.y)) * texel * 0.7;
   let golden = vec2<f32>(-0.7373688, 0.6754903); // cos, sin of 2.39996323 rad
   let invTaps = 1.0 / f32(taps);
   var blockSum = 0.0;
@@ -756,35 +860,49 @@ fn augengine_pcss(uv: vec2<f32>, depth: f32, texel: f32, slot: f32, cascades: f3
     dir = vec2<f32>(dir.x * golden.x - dir.y * golden.y, dir.x * golden.y + dir.y * golden.x);
     let s = clamp(uv + p * searchUv, vec2<f32>(texel), vec2<f32>(1.0 - texel));
     let d = textureLoad(t_shadow, vec2<i32>(vec2<f32>((s.x + slot) / cascades, s.y) * dims), 0);
-    if (d < depth) {
-      blockSum = blockSum + d;
+    let refD = depth + dot(rp, s - uv) - quant;
+    if (d < refD) {
+      blockSum = blockSum + (refD - d);
       blockN = blockN + 1.0;
     }
   }
   if (blockN < 0.5) { return 1.0; }
   // Every search tap blocked: deep umbra, no penumbra to filter.
   if (blockN > f32(taps) - 0.5) { return 0.0; }
-  let penumbraUv = (depth - blockSum / blockN) * depthRange * 2.0 * tanL / worldSize;
-  let radius = clamp(penumbraUv * 0.5, texel, 24.0 * texel);
+  let penumbraUv = (blockSum / blockN) * depthRange * 2.0 * tanL / worldSize;
+  let radius = clamp(penumbraUv * 0.5, AUGENGINE_PCSS_MIN_TEXELS * texel, 24.0 * texel);
+  // Anisotropic filter floor. On a receiver tilted away from the light, the
+  // map's texels stretch on screen along the receiver's slope (rp), by about
+  // 1/N·L, while the staircase steps of a shadow edge repeat along the edge.
+  // So widen the kernel along the receiver's iso-depth line (t), where blur
+  // is not magnified, up to AUGENGINE_PCSS_ALONG_TEXELS as the slope grows,
+  // and keep it tight along the slope (n) so the edge stays crisp.
+  let rpLen = length(rp);
+  let n = select(vec2<f32>(1.0, 0.0), rp / max(rpLen, 1e-6), rpLen > 1e-3);
+  let t = vec2<f32>(-n.y, n.x);
+  let radiusT = max(radius, mix(AUGENGINE_PCSS_MIN_TEXELS, AUGENGINE_PCSS_ALONG_TEXELS, clamp(rpLen * 0.5, 0.0, 1.0)) * texel);
   var lit = 0.0;
   dir = cs;
   for (var i = 0; i < taps; i = i + 1) {
     let p = dir * sqrt(1.0 - (f32(i) + 0.5) * invTaps);
     dir = vec2<f32>(dir.x * golden.x - dir.y * golden.y, dir.x * golden.y + dir.y * golden.x);
-    let s = clamp(uv + p * radius, vec2<f32>(texel), vec2<f32>(1.0 - texel));
-    lit = lit + textureSampleCompareLevel(t_shadow, s_shadow, vec2<f32>((s.x + slot) / cascades, s.y), depth);
+    let s = clamp(uv + t * (p.x * radiusT) + n * (p.y * radius), vec2<f32>(texel), vec2<f32>(1.0 - texel));
+    lit = lit + textureSampleCompareLevel(t_shadow, s_shadow, vec2<f32>((s.x + slot) / cascades, s.y), depth + dot(rp, s - uv) - quant);
   }
   return lit / f32(taps);
 }
 
-fn augengine_shadow_cascade(lp: vec4<f32>, texel: f32, bias: f32, slot: f32, cascades: f32, worldSize: f32, fragXY: vec2<f32>) -> f32 {
+// @pcss-end
+fn augengine_shadow_cascade(lp: vec4<f32>, texel: f32, bias: f32, slot: f32, cascades: f32, worldSize: f32, fragXY: vec2<f32>, rp: vec2<f32>) -> f32 {
   let uv = vec2<f32>(lp.x * 0.5 + 0.5, 0.5 - lp.y * 0.5);
   let depth = lp.z - bias;
   if (uv.x <= 0.0 || uv.x >= 1.0 || uv.y <= 0.0 || uv.y >= 1.0) { return -1.0; }
   if (depth >= 1.0) { return 1.0; }
   // Keep PCF taps inside this cascade's half of the atlas.
   let inset = clamp(uv, vec2<f32>(texel * 1.5), vec2<f32>(1.0 - texel * 1.5));
-  if (u_frame.shadowSoft.w > 0.5) { return augengine_pcss(inset, depth, texel, slot, cascades, worldSize, fragXY); }
+  // @pcss-begin
+  if (u_frame.shadowSoft.w > 0.5) { return augengine_pcss(inset, depth + dot(rp, inset - uv), texel, slot, cascades, worldSize, fragXY, rp); }
+  // @pcss-end
   let auv = vec2<f32>((inset.x + slot) / cascades, inset.y);
   let taps = i32(u_frame.shadowParams.w);
   if (taps <= 1) {
@@ -802,6 +920,12 @@ fn augengine_shadow_cascade(lp: vec4<f32>, texel: f32, bias: f32, slot: f32, cas
 
 fn augengine_shadow(worldPos: vec3<f32>, N: vec3<f32>, fragXY: vec2<f32>) -> f32 {
   if (u_frame.lightColor.a < 0.5) { return 1.0; }
+  // Receiver plane for PCSS, taken before any per-pixel branch (derivatives
+  // need uniform control flow). Fixed-PCF qualities skip it.
+  var rp = vec2<f32>(0.0);
+  // @pcss-begin
+  if (u_frame.shadowSoft.w > 0.5) { rp = augengine_receiver_plane(worldPos); }
+  // @pcss-end
   let L = normalize(-u_frame.lightDir.xyz);
   // Facing away from the light: every caller multiplies by N·L ≤ 0 (or, for
   // toon, treats it as the dark side), so skip the shadow taps entirely.
@@ -810,32 +934,35 @@ fn augengine_shadow(worldPos: vec3<f32>, N: vec3<f32>, fragXY: vec2<f32>) -> f32
   let cascades = select(1.0, 2.0, u_frame.counts.z > 1.5);
   let p0 = worldPos + N * (u_frame.shadowParams.z * (0.25 + grazing));
   let lp0 = u_frame.shadowViewProj * vec4<f32>(p0, 1.0);
-  let near = augengine_shadow_cascade(lp0, u_frame.shadowParams.x, u_frame.shadowParams.y, 0.0, cascades, u_frame.shadowSoft.y, fragXY);
+  let near = augengine_shadow_cascade(lp0, u_frame.shadowParams.x, u_frame.shadowParams.y, 0.0, cascades, u_frame.shadowSoft.y, fragXY, rp);
   if (cascades < 1.5) { return select(near, 1.0, near < 0.0); }
   // Far cascade where the near one does not reach, and a blend across the
   // near cascade's outer rim so the resolution change has no visible seam.
   let p1 = worldPos + N * (u_frame.shadowParams2.z * (0.25 + grazing));
   let lp1 = u_frame.shadowViewProj2 * vec4<f32>(p1, 1.0);
   if (near < 0.0) {
-    let far = augengine_shadow_cascade(lp1, u_frame.shadowParams2.x, u_frame.shadowParams2.y, 1.0, cascades, u_frame.shadowSoft.z, fragXY);
+    let far = augengine_shadow_cascade(lp1, u_frame.shadowParams2.x, u_frame.shadowParams2.y, 1.0, cascades, u_frame.shadowSoft.z, fragXY, rp);
     return select(far, 1.0, far < 0.0);
   }
   let edge = max(abs(lp0.x), abs(lp0.y));
   let w = smoothstep(1.0 - u_frame.shadowParams2.w, 1.0, edge);
   if (w <= 0.0) { return near; }
-  let far = augengine_shadow_cascade(lp1, u_frame.shadowParams2.x, u_frame.shadowParams2.y, 1.0, cascades, u_frame.shadowSoft.z, fragXY);
+  let far = augengine_shadow_cascade(lp1, u_frame.shadowParams2.x, u_frame.shadowParams2.y, 1.0, cascades, u_frame.shadowSoft.z, fragXY, rp);
   return mix(near, select(far, 1.0, far < 0.0), w);
 }
 
 // Ambient for a surface normal: the flat frame ambient, or — when the sky-shaped
 // ambient is on — the zonal SH of the sky: k0 + k1·n.y + k2·(3·n.y² − 1).
 fn augengine_ambient_sky(N: vec3<f32>) -> vec3<f32> {
+  // @natural-begin
   if (u_frame.envParams.x > 0.5) { return augengine_env_irradiance(N); }
+  // @natural-end
   if (u_frame.ambientSH[0].a < 0.5) { return u_frame.ambient.rgb; }
   let y = N.y;
   return max(u_frame.ambientSH[0].rgb + u_frame.ambientSH[1].rgb * y + u_frame.ambientSH[2].rgb * (3.0 * y * y - 1.0), vec3<f32>(0.0));
 }
 
+// @natural-begin
 // Natural-light diffuse: SH9 of the sky / HDR environment, irradiance / π.
 fn augengine_env_irradiance(N: vec3<f32>) -> vec3<f32> {
   var r = u_frame.envSH[0].rgb + u_frame.envSH[1].rgb * N.y + u_frame.envSH[2].rgb * N.z + u_frame.envSH[3].rgb * N.x;
@@ -867,6 +994,7 @@ fn augengine_env_ibl(N: vec3<f32>, V: vec3<f32>, albedo: vec3<f32>, metallic: f3
   return pre * FssEss * specOcc + irr * (multi + kd);
 }
 
+// @natural-end
 // With irradiance probes on, the probes (relative to the flat ambient; their
 // L1 coefficients come from the vertex stage) replace the sky/flat ambient
 // where they cover the surface; outside the streamed area it fades back to
@@ -941,10 +1069,22 @@ struct DrawUniforms {
 // glows toward the sun and blues with distance.
 fn augengine_fog_apply(lit: vec3<f32>, worldPos: vec3<f32>) -> vec3<f32> {
   let f = augengine_fog_factor(worldPos);
-  if (u_frame.atmos.x < 0.5) { return mix(lit, u_frame.fog.rgb, f); }
+  // @natural-begin
+  if (u_frame.atmos.x > 0.5) { return augengine_atmosphere_apply(lit, worldPos, f); }
+  // @natural-end
+  return mix(lit, u_frame.fog.rgb, f);
+}
+
+// @natural-begin
+fn augengine_atmosphere_apply(lit: vec3<f32>, worldPos: vec3<f32>, f: f32) -> vec3<f32> {
   let toP = worldPos - u_frame.cameraPos.xyz;
   let dist = length(toP);
-  let optical = -log(max(1.0 - f, 1e-6));
+  // Legacy (scene) fog under natural light: as a far "veil" it fades in by
+  // smoothstep over atmos.w metres, so the aerial extinction alone sets the
+  // near and middle distance and the scene keeps its contrast (lights.ts
+  // renderer.ts legacyFogVeil).
+  var optical = -log(max(1.0 - f, 1e-6));
+  if (u_frame.atmos.w > 0.0) { optical = optical * smoothstep(0.0, u_frame.atmos.w, dist); }
   let T = exp(-(vec3<f32>(optical) + u_frame.atmosSigma.rgb * dist));
   let V = toP / max(dist, 1e-4);
   let g = u_frame.atmos.y;
@@ -953,6 +1093,8 @@ fn augengine_fog_apply(lit: vec3<f32>, worldPos: vec3<f32>) -> vec3<f32> {
   let inscatter = u_frame.fog.rgb + u_frame.lightColor.rgb * (phase * u_frame.atmos.z);
   return lit * T + inscatter * (vec3<f32>(1.0) - T);
 }
+
+// @natural-end
 
 fn augengine_fog_factor(worldPos: vec3<f32>) -> f32 {
   let density = u_frame.fog.a;

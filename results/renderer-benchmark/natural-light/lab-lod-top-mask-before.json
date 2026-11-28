@@ -1,0 +1,24 @@
+{
+  "shot": {
+    "name": "lod-top",
+    "query": "scene=lod&tod=15&lodcam=top"
+  },
+  "extra": "",
+  "state": {
+    "ev100": 15.218700776384576,
+    "preExposure": 0.000021854120089925103,
+    "sunDir": [
+      -0.6487553732460707,
+      0.7526667382529608,
+      0.11229090262350028
+    ],
+    "sunElevationDeg": 48.82191003893013,
+    "sunIlluminanceLux": 91374.31135429074,
+    "environment": "sky",
+    "skyHorizontalLux": 14074.236774541245,
+    "envBakes": 1,
+    "envSize": 64,
+    "preset": "medium"
+  },
+  "errors": []
+}

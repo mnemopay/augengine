@@ -239,6 +239,17 @@ export interface AugEnginePbrMaterialFromGltf {
   baseColor: readonly [number, number, number];
   metallic: number;
   roughness: number;
+  /**
+   * glTF `alphaMode: "MASK"`: the cutoff the base colour's alpha (texture ×
+   * factor) is compared against; fragments below it are discarded in the
+   * main and shadow passes. Absent for OPAQUE (and BLEND, which the renderer
+   * draws opaque).
+   */
+  alphaCutoff?: number;
+  /** Base colour factor alpha (only kept for MASK, where it scales the texture alpha). */
+  baseColorAlpha?: number;
+  /** glTF `doubleSided`: drawn without back-face culling, back faces lit with the flipped normal. */
+  doubleSided?: boolean;
   baseColorTexture?: AugEngineTextureSource;
   metallicRoughnessTexture?: AugEngineTextureSource;
   normalTexture?: AugEngineTextureSource;
@@ -427,6 +438,11 @@ function extractPbrMaterial(
     metallic: pbr?.metallicFactor ?? 1,
     roughness: pbr?.roughnessFactor ?? 1,
   };
+  if (material.alphaMode === "MASK") {
+    result.alphaCutoff = Number.isFinite(material.alphaCutoff) ? Math.max(0, material.alphaCutoff!) : 0.5;
+    result.baseColorAlpha = factor[3] ?? 1;
+  }
+  if (material.doubleSided === true) result.doubleSided = true;
   const textureIndex = pbr?.baseColorTexture?.index;
   if (textureIndex !== undefined) {
     const source = extractTextureSource(parsed, textureIndex);
@@ -450,11 +466,18 @@ function extractTextureSource(
   textureIndex: number,
 ): AugEngineTextureSource | undefined {
   const texture = parsed.root.textures?.[textureIndex];
-  if (!texture || texture.source === undefined) return undefined;
-  const image = parsed.root.images?.[texture.source];
+  if (!texture) return undefined;
+  // EXT_texture_webp: browsers decode WebP (createImageBitmap), so the
+  // extension's image wins, as the spec asks of a client that supports it.
+  // The core `source` is the optional PNG/JPEG fallback (absent when the
+  // extension is required, as in kael-varr.webp.glb).
+  const webpIndex = texture.extensions?.EXT_texture_webp?.source;
+  const webpImage = webpIndex !== undefined ? parsed.root.images?.[webpIndex] : undefined;
+  const image = webpImage ?? (texture.source !== undefined ? parsed.root.images?.[texture.source] : undefined);
   if (!image) return undefined;
   const result: AugEngineTextureSource = {};
   if (image.mimeType) result.mimeType = image.mimeType;
+  else if (image === webpImage) result.mimeType = "image/webp";
   if (image.uri) result.uri = image.uri;
   if (image.bufferView !== undefined && parsed.bin) {
     const view = parsed.root.bufferViews?.[image.bufferView];

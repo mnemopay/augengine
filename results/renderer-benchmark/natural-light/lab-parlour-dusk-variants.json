@@ -1,0 +1,24 @@
+{
+  "shot": {
+    "name": "parlour-dusk",
+    "query": "scene=parlour&tod=18.9"
+  },
+  "extra": "",
+  "state": {
+    "ev100": 12.327770924206526,
+    "preExposure": 0.00016210257963552083,
+    "sunDir": [
+      -0.8921286394429618,
+      0.09161902004635841,
+      -0.4423939939142423
+    ],
+    "sunElevationDeg": 5.256754977824608,
+    "sunIlluminanceLux": 10657.939088903888,
+    "environment": "sky",
+    "skyHorizontalLux": 6959.380391816885,
+    "envBakes": 1,
+    "envSize": 64,
+    "preset": "medium"
+  },
+  "errors": []
+}

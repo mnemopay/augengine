@@ -1,0 +1,24 @@
+{
+  "shot": {
+    "name": "parlour-dawn",
+    "query": "scene=parlour&tod=5.1"
+  },
+  "extra": "",
+  "state": {
+    "ev100": 12.312472046215237,
+    "preExposure": 0.00016383072278366168,
+    "sunDir": [
+      0.8921286394429618,
+      0.09161902004635811,
+      -0.4423939939142425
+    ],
+    "sunElevationDeg": 5.256754977824589,
+    "sunIlluminanceLux": 10657.939088903784,
+    "environment": "sky",
+    "skyHorizontalLux": 6959.3803918168815,
+    "envBakes": 1,
+    "envSize": 64,
+    "preset": "medium"
+  },
+  "errors": []
+}

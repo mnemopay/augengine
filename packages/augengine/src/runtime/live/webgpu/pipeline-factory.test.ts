@@ -133,7 +133,8 @@ describe("Character Proof Room - PBR base-color texture path", () => {
     expect(src).toContain("@group(3) @binding(2) var t_metallic_roughness");
     expect(src).toContain("@group(3) @binding(3) var t_normal");
     expect(src).toContain("out.uv = in.uv");
-    expect(src).toContain("textureSample(t_base_color, s_pbr, in.uv).rgb");
+    expect(src).toContain("let baseSample = textureSample(t_base_color, s_pbr, in.uv);");
+    expect(src).toContain("\" * baseSample.rgb\"");
     expect(src).toContain("textureSample(t_metallic_roughness, s_pbr, in.uv).b");
     expect(src).toContain("augengine_sample_normal");
   });

@@ -19,7 +19,8 @@ import {
  *   - Indices (UINT16 SCALAR)
  *   - One skin with 2 joints + identity inverseBindMatrices
  */
-function makeMinimalGlb(withSecondPrimitive = false): Uint8Array {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeMinimalGlb(withSecondPrimitive = false, patch?: (json: any) => void): Uint8Array {
   // Binary buffer layout (one BIN chunk):
   //   [0..47]:   4 vertex positions (4 * 3 * 4 = 48 bytes)
   //   [48..59]:  6 indices (6 * 2 = 12 bytes)
@@ -110,6 +111,7 @@ function makeMinimalGlb(withSecondPrimitive = false): Uint8Array {
     ],
     buffers: [{ byteLength: bin.length }],
   };
+  patch?.(json);
   const jsonText = JSON.stringify(json);
   const jsonBytes = new TextEncoder().encode(jsonText);
   // glTF spec: each chunk's data length must be multiple of 4. Pad with spaces (JSON) / zeros (BIN).
@@ -236,5 +238,50 @@ describe("augengine / gltf loader", () => {
     expect(result.primitives.map((primitive) => primitive.meshIndex)).toEqual([0, 0]);
     expect(result.primitives.map((primitive) => primitive.meshPrimitiveIndex)).toEqual([0, 1]);
     expect(result.primitives[1]!.mesh.indexCount).toBe(6);
+  });
+
+  it("alphaMode MASK carries the cutoff (default 0.5), the factor alpha and doubleSided; OPAQUE carries none", () => {
+    const opaque = loadGlb(makeMinimalGlb()).primitives[0]!.mesh.pbrMaterial!;
+    expect(opaque.alphaCutoff).toBeUndefined();
+    expect(opaque.baseColorAlpha).toBeUndefined();
+    expect(opaque.doubleSided).toBeUndefined();
+    const masked = loadGlb(makeMinimalGlb(false, (j) => {
+      j.materials[0].alphaMode = "MASK";
+      j.materials[0].alphaCutoff = 0.3;
+      j.materials[0].doubleSided = true;
+      j.materials[0].pbrMetallicRoughness.baseColorFactor = [1, 1, 1, 0.6];
+    })).primitives[0]!.mesh.pbrMaterial!;
+    expect(masked.alphaCutoff).toBeCloseTo(0.3, 9);
+    expect(masked.baseColorAlpha).toBeCloseTo(0.6, 9);
+    expect(masked.doubleSided).toBe(true);
+    const defaultCutoff = loadGlb(makeMinimalGlb(false, (j) => { j.materials[0].alphaMode = "MASK"; })).primitives[0]!.mesh.pbrMaterial!;
+    expect(defaultCutoff.alphaCutoff).toBe(0.5);
+    // BLEND is drawn opaque (no cutoff).
+    expect(loadGlb(makeMinimalGlb(false, (j) => { j.materials[0].alphaMode = "BLEND"; })).primitives[0]!.mesh.pbrMaterial!.alphaCutoff).toBeUndefined();
+  });
+
+  it("EXT_texture_webp: the extension's image wins over the fallback, and works with no core source", () => {
+    // Required extension, no fallback (kael-varr.webp.glb's layout).
+    const required = loadGlb(makeMinimalGlb(false, (j) => {
+      j.extensionsUsed = ["EXT_texture_webp"];
+      j.extensionsRequired = ["EXT_texture_webp"];
+      j.textures = [{ extensions: { EXT_texture_webp: { source: 0 } } }];
+      j.images = [{ bufferView: 4, mimeType: "image/webp" }];
+    })).primitives[0]!.mesh.pbrMaterial!;
+    expect(required.baseColorTexture!.mimeType).toBe("image/webp");
+    expect(Array.from(required.baseColorTexture!.bytes!)).toEqual([137, 80, 78, 71]);
+    // Optional extension with a PNG fallback: the WebP image is used; mimeType inferred when absent.
+    const both = loadGlb(makeMinimalGlb(false, (j) => {
+      j.extensionsUsed = ["EXT_texture_webp"];
+      j.textures = [{ source: 0, extensions: { EXT_texture_webp: { source: 1 } } }];
+      j.images = [{ bufferView: 4, mimeType: "image/png" }, { uri: "tex.webp" }];
+    })).primitives[0]!.mesh.pbrMaterial!;
+    expect(both.baseColorTexture!.uri).toBe("tex.webp");
+    expect(both.baseColorTexture!.mimeType).toBe("image/webp");
+    // A dangling extension index falls back to the core source.
+    const dangling = loadGlb(makeMinimalGlb(false, (j) => {
+      j.textures = [{ source: 0, extensions: { EXT_texture_webp: { source: 9 } } }];
+    })).primitives[0]!.mesh.pbrMaterial!;
+    expect(dangling.baseColorTexture!.mimeType).toBe("image/png");
   });
 });

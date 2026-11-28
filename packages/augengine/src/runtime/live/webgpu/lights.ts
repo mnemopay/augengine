@@ -381,6 +381,65 @@ export function vogelDisc(taps: number, angle = 0): Array<[number, number]> {
   return out;
 }
 
+/**
+ * Cap on the receiver-plane depth gradient (shadow depth per unit shadow uv).
+ * A cascade fitted by fitDirectionalShadow maps 2r metres to one uv unit and
+ * 3.99r metres to one depth unit, so a receiver tilted θ away from facing the
+ * light has |gradient| ≈ 0.5·tan θ; 5.7 is θ ≈ 85°. Steeper receivers are
+ * nearly edge-on (N·L < 0.09), where the shading is dark anyway.
+ */
+export const RPDB_MAX_GRADIENT = 5.7;
+
+/** Smallest PCSS filter radius, in shadow texels (see receiverPlaneDepthGradient). */
+export const PCSS_MIN_FILTER_TEXELS = 1.5;
+/**
+ * Smallest PCSS filter radius along a steep receiver's iso-depth line, in
+ * shadow texels (reached at |gradient| ≥ 2, about 76° from facing the light).
+ * See pcssFilterAxes.
+ */
+export const PCSS_ALONG_FILTER_TEXELS = 3;
+
+/**
+ * Receiver-plane depth bias (Isidoro 2006), CPU mirror of the shader's
+ * augengine_receiver_plane. Given the change of the light-space position
+ * (clip x, clip y, depth) along one screen pixel in x (`dx`) and in y (`dy`),
+ * returns the depth gradient per unit shadow-map uv (u = x/2 + 1/2,
+ * v = 1/2 − y/2), capped at RPDB_MAX_GRADIENT. A PCSS tap at uv offset o
+ * compares against depth + dot(gradient, o): the receiver's own plane there.
+ */
+export function receiverPlaneDepthGradient(dx: Vec3, dy: Vec3, maxGradient = RPDB_MAX_GRADIENT): [number, number] {
+  const ux = [0.5 * dx[0], -0.5 * dx[1]] as const;
+  const uy = [0.5 * dy[0], -0.5 * dy[1]] as const;
+  const det = ux[0] * uy[1] - ux[1] * uy[0];
+  if (Math.abs(det) < 1e-14) return [0, 0];
+  let gx = (uy[1] * dx[2] - ux[1] * dy[2]) / det;
+  let gy = (ux[0] * dy[2] - uy[0] * dx[2]) / det;
+  const len = Math.hypot(gx, gy);
+  if (len > maxGradient) {
+    gx *= maxGradient / len;
+    gy *= maxGradient / len;
+  }
+  return [gx, gy];
+}
+
+/**
+ * The PCSS filter kernel's axes for a receiver (CPU mirror of the shader):
+ * `n` is the receiver's slope direction in shadow uv (the depth gradient's
+ * direction), `t` its iso-depth line. Along `n` the radius is the penumbra
+ * radius with a PCSS_MIN_FILTER_TEXELS floor; along `t` the floor rises to
+ * PCSS_ALONG_FILTER_TEXELS as |gradient| goes 0 → 2, because a steep
+ * receiver magnifies blur along its slope but not along its iso-depth line,
+ * which is where a shadow edge's staircase steps repeat.
+ */
+export function pcssFilterAxes(gradient: [number, number], penumbraRadiusUv: number, texel: number): { n: [number, number]; t: [number, number]; radiusN: number; radiusT: number } {
+  const len = Math.hypot(gradient[0], gradient[1]);
+  const n: [number, number] = len > 1e-3 ? [gradient[0] / len, gradient[1] / len] : [1, 0];
+  const radiusN = Math.min(Math.max(penumbraRadiusUv, PCSS_MIN_FILTER_TEXELS * texel), 24 * texel);
+  const k = Math.min(Math.max(len * 0.5, 0), 1);
+  const floorT = (PCSS_MIN_FILTER_TEXELS + (PCSS_ALONG_FILTER_TEXELS - PCSS_MIN_FILTER_TEXELS) * k) * texel;
+  return { n, t: [-n[1], n[0]], radiusN, radiusT: Math.max(radiusN, floorT) };
+}
+
 /** Depth span (world units) of a cascade fitted by fitDirectionalShadow: far − near = 3.99 r, width = 2 r. */
 export function cascadeDepthRange(worldSize: number): number {
   return 1.995 * worldSize;

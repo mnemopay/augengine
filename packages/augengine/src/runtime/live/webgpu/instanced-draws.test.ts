@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DRAW_RECORD_FLOATS, INSTANCE_MIN_GROUP, instanceCapacity, packDrawRecord, planInstanceGroups } from "./instanced-draws.js";
 import { buildWgsl, canInstance, pipelineKeyString, type PipelineKey } from "./pipeline-factory.js";
+import { maskCutoff } from "./renderer.js";
 
 describe("instanced draws: grouping", () => {
   it("batches groups at or above the threshold and leaves small ones per entity", () => {
@@ -103,5 +104,41 @@ describe("instanced draws: pipeline variant", () => {
         for (const f of got) expect(["u_draw.color", "u_draw.params", "u_draw.emissive", "u_draw.model"]).toContain(f);
       }
     }
+  });
+});
+
+describe("glTF alphaMode MASK / doubleSided pipeline variants", () => {
+  const tex = { materialKind: "pbr" as const, vertexStride: 8 as const, sampleCount: 1 as const, hasPbrBaseColorTexture: true };
+
+  it("the mask variant discards below params.z before any lighting; others never discard", () => {
+    const src = buildWgsl({ ...tex, alphaMask: true });
+    const fs = src.slice(src.indexOf("fn fs_main("));
+    expect(fs).toContain("let baseSample = textureSample(t_base_color, s_pbr, in.uv);");
+    const discardAt = fs.indexOf("if (baseSample.a < u_draw.params.z) { discard; }");
+    expect(discardAt).toBeGreaterThan(0);
+    expect(discardAt).toBeLessThan(fs.indexOf("augengine_shadow("));
+    expect(buildWgsl(tex)).not.toContain("discard");
+    expect(buildWgsl({ ...tex, natural: true, pcss: true })).not.toContain("discard");
+  });
+
+  it("mask needs a PBR base-colour texture; masked and double-sided draws never instance", () => {
+    expect(() => buildWgsl({ materialKind: "pbr", vertexStride: 8, sampleCount: 1, alphaMask: true })).toThrow(/base-colour texture/);
+    expect(canInstance({ materialKind: "pbr", vertexStride: 8, sampleCount: 1, doubleSided: true })).toBe(false);
+    expect(canInstance({ ...tex, alphaMask: true })).toBe(false);
+    expect(new Set([tex, { ...tex, alphaMask: true }, { ...tex, doubleSided: true }].map(pipelineKeyString)).size).toBe(3);
+  });
+
+  it("double-sided flips the normal on back faces", () => {
+    const src = buildWgsl({ ...tex, doubleSided: true });
+    expect(src).toContain("@builtin(front_facing) frontFacing: bool");
+    expect(src).toContain("in.worldNormal = select(-inRaw.worldNormal, inRaw.worldNormal, frontFacing);");
+    expect(buildWgsl(tex)).not.toContain("front_facing");
+  });
+
+  it("maskCutoff folds the factor alpha into the cutoff", () => {
+    expect(maskCutoff({})).toBeNull();
+    expect(maskCutoff({ alphaCutoff: 0.5 })).toBe(0.5);
+    expect(maskCutoff({ alphaCutoff: 0.3, baseColorAlpha: 0.6 })).toBeCloseTo(0.5, 9);
+    expect(maskCutoff({ alphaCutoff: 0.5, baseColorAlpha: 0 })).toBe(Number.POSITIVE_INFINITY);
   });
 });

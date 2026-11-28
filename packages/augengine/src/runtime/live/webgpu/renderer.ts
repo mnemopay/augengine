@@ -132,6 +132,12 @@ interface MeshGpu {
   vcbuf?: GPUBuffer;
   morph?: MorphDeltasHandle;
   pbrFactors?: { baseColor: Vec3; metallic: number; roughness: number };
+  /** glTF alphaMode MASK: base-colour alpha below this is discarded (already divided by the factor alpha). */
+  alphaCutoff?: number;
+  /** glTF doubleSided. */
+  doubleSided?: boolean;
+  /** Masked shadow casters: base-colour texture + sampler for the alpha-tested shadow pipeline. */
+  shadowMaskBindGroup?: GPUBindGroup;
   /** Object-space bounds (GI proxy boxes). */
   bounds?: { min: Vec3; max: Vec3 };
   baseColorTexture?: GPUTexture;
@@ -159,6 +165,30 @@ fn vs_main(@location(0) position: vec3<f32>) -> @builtin(position) vec4<f32> {
 }
 `;
 
+/** Alpha-tested shadow depth (glTF alphaMode MASK): UV0 + the base-colour
+ *  texture's alpha against u_draw.params.z, so a cutout card casts the shape
+ *  of its texture instead of a quad. */
+const SHADOW_DEPTH_MASK_WGSL = /* wgsl */ `
+struct ShadowFrame { lightViewProj: mat4x4<f32>, };
+@group(0) @binding(0) var<uniform> u_shadow: ShadowFrame;
+struct DrawUniforms { model: mat4x4<f32>, color: vec4<f32>, params: vec4<f32>, emissive: vec4<f32>, };
+@group(1) @binding(0) var<uniform> u_draw: DrawUniforms;
+@group(2) @binding(0) var t_base_color: texture_2d<f32>;
+@group(2) @binding(1) var s_base_color: sampler;
+struct VOut { @builtin(position) pos: vec4<f32>, @location(0) uv: vec2<f32>, };
+@vertex
+fn vs_main(@location(0) position: vec3<f32>, @location(2) uv: vec2<f32>) -> VOut {
+  var o: VOut;
+  o.pos = u_shadow.lightViewProj * (u_draw.model * vec4<f32>(position, 1.0));
+  o.uv = uv;
+  return o;
+}
+@fragment
+fn fs_main(in: VOut) {
+  if (textureSampleLevel(t_base_color, s_base_color, in.uv, 0.0).a < u_draw.params.z) { discard; }
+}
+`;
+
 /** Shadow depth for instanced draws: the draw records are a storage array. */
 const SHADOW_DEPTH_INSTANCED_WGSL = /* wgsl */ `
 struct ShadowFrame { lightViewProj: mat4x4<f32>, };
@@ -182,6 +212,8 @@ interface DrawRecord {
   morphBindGroup: GPUBindGroup | null;
   textureBindGroup: GPUBindGroup | null;
   castsShadow: boolean;
+  /** glTF alphaMode MASK draw (main pass discards; shadow pass alpha-tests). */
+  alphaMask?: boolean;
   /** 1 for a per-entity draw; >1 draws that many records from a storage buffer. */
   instanceCount: number;
   instanced: boolean;
@@ -263,6 +295,8 @@ export interface LiveRendererOptions {
 
 interface PipelineCacheEntry {
   compiled: CompiledPipeline;
+  /** pipelineKeyString(compiled.key). */
+  cacheKey: string;
   /** One frame uniform per pipeline (layouts differ between cached entries). */
   frameBuf: GPUBuffer;
   frameBindGroup: GPUBindGroup;
@@ -343,6 +377,9 @@ export class WebGpuLiveRenderer implements LiveRenderer {
   private shadowInstancedModule: GPUShaderModule | null = null;
   private shadowInstancedDrawLayout: GPUBindGroupLayout | null = null;
   private shadowInstancedPipelines = new Map<number, GPURenderPipeline>();
+  /** Alpha-tested shadow pipeline (glTF MASK), built on first use. */
+  private shadowMaskPipelines = new Map<number, GPURenderPipeline>();
+  private shadowMaskTexLayout: GPUBindGroupLayout | null = null;
   /** Batch entities that share a mesh + pipeline into one instanced draw. */
   private instancingEnabled = true;
   private instanceGroups = new Map<string, InstanceGroupGpu>();
@@ -942,6 +979,65 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     return p;
   }
 
+  /** Alpha-tested shadow pipeline for glTF MASK casters (stride 8 or 16: UV0 at float 6). */
+  private shadowMaskPipelineFor(vertexStride: number): GPURenderPipeline | null {
+    if (!this.device || !this.shadowFrameLayout || !this.shadowDrawLayout || vertexStride < 8) return null;
+    if (!this.shadowMaskTexLayout) {
+      this.shadowMaskTexLayout = this.device.createBindGroupLayout({
+        label: "shadow/mask-texture",
+        entries: [
+          { binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float" } },
+          { binding: 1, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
+        ],
+      });
+    }
+    const cached = this.shadowMaskPipelines.get(vertexStride);
+    if (cached) return cached;
+    const module = this.device.createShaderModule({ label: "shadow/depth-mask", code: SHADOW_DEPTH_MASK_WGSL });
+    const p = this.device.createRenderPipeline({
+      label: `shadow/depth-mask-stride${vertexStride}`,
+      layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.shadowFrameLayout, this.shadowDrawLayout, this.shadowMaskTexLayout] }),
+      vertex: {
+        module,
+        entryPoint: "vs_main",
+        buffers: [{
+          arrayStride: vertexStride * 4,
+          attributes: [
+            { shaderLocation: 0, offset: 0, format: "float32x3" },
+            { shaderLocation: 2, offset: 24, format: "float32x2" },
+          ],
+        }],
+      },
+      fragment: { module, entryPoint: "fs_main", targets: [] },
+      primitive: { topology: "triangle-list", cullMode: "none" },
+      depthStencil: {
+        format: "depth32float",
+        depthWriteEnabled: true,
+        depthCompare: "less",
+        depthBias: 2,
+        depthBiasSlopeScale: 2.5,
+        depthBiasClamp: 0,
+      },
+    });
+    this.shadowMaskPipelines.set(vertexStride, p);
+    return p;
+  }
+
+  /** The masked shadow pass's texture bind group for a mesh (null until its base colour has decoded). */
+  private shadowMaskBindGroupFor(mesh: MeshGpu): GPUBindGroup | null {
+    if (mesh.shadowMaskBindGroup) return mesh.shadowMaskBindGroup;
+    if (!this.device || !mesh.baseColorTexture || !this.pbrSampler || !this.shadowMaskPipelineFor(mesh.vertexStride)) return null;
+    mesh.shadowMaskBindGroup = this.device.createBindGroup({
+      label: "shadow/mask-texture",
+      layout: this.shadowMaskTexLayout!,
+      entries: [
+        { binding: 0, resource: mesh.baseColorTexture.createView() },
+        { binding: 1, resource: this.pbrSampler },
+      ],
+    });
+    return mesh.shadowMaskBindGroup;
+  }
+
   /** Upload this frame's frame uniform once per pipeline, skipping unchanged bytes. */
   private writeFrameUniform(entry: PipelineCacheEntry, cacheKey: string): void {
     if (this.frameWritten.has(cacheKey)) return;
@@ -1008,7 +1104,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       for (const c of items) this.pushSingleDraw(c, shadowOn, draws);
       return;
     }
-    const instKey = pipelineKeyString(entry.compiled.key);
+    const instKey = entry.cacheKey;
     this.writeFrameUniform(entry, instKey);
     let g = this.instanceGroups.get(groupKey);
     if (!g || g.capacity < items.length) {
@@ -1719,6 +1815,8 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     hasPbrMetallicRoughnessTexture = false,
     hasPbrNormalTexture = false,
     instanced = false,
+    alphaMask = false,
+    doubleSided = false,
   ): PipelineCacheEntry | null {
     if (!this.device || !this.factory) return null;
     // Splat materials use a separate point pipeline that doesn't run through
@@ -1734,6 +1832,11 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       hasPbrMetallicRoughnessTexture,
       hasPbrNormalTexture,
       ...(instanced ? { instanced: true } : {}),
+      ...(alphaMask ? { alphaMask: true } : {}),
+      ...(doubleSided ? { doubleSided: true } : {}),
+      // Natural-light / PCSS code is compiled only into pipelines that use it.
+      ...(this.natural ? { natural: true } : {}),
+      ...(this.shadowSettings && this.shadowSettings.pcss > 0 ? { pcss: true } : {}),
     };
     const cacheKey = pipelineKeyString(key);
     let entry = this.pipelineCache.get(cacheKey);
@@ -1754,7 +1857,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         ...this.envBindings(),
       ],
     });
-    entry = { compiled, frameBuf, frameBindGroup, shadowGen: this.shadowGen };
+    entry = { compiled, cacheKey, frameBuf, frameBindGroup, shadowGen: this.shadowGen };
     this.pipelineCache.set(cacheKey, entry);
     return entry;
   }
@@ -1942,6 +2045,9 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         metallic: data.pbrMaterial.metallic,
         roughness: data.pbrMaterial.roughness,
       };
+      const cutoff = maskCutoff(data.pbrMaterial);
+      if (cutoff !== null) meshGpu.alphaCutoff = cutoff;
+      if (data.pbrMaterial.doubleSided) meshGpu.doubleSided = true;
     }
     this.meshes.set(name, meshGpu);
   }
@@ -2026,6 +2132,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       }
     }
     mesh.pbrTextureBindGroups?.clear();
+    delete mesh.shadowMaskBindGroup;
     return uploaded;
   }
 
@@ -2351,7 +2458,8 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     // ambient.a carries the fog height falloff (0 = uniform fog); see augengine_fog_factor.
     frameScratch[20] = frameAmbient[0]; frameScratch[21] = frameAmbient[1]; frameScratch[22] = frameAmbient[2]; frameScratch[23] = Math.max(0, opts.fogHeightFalloff ?? 0);
     frameScratch[24] = camPos[0]; frameScratch[25] = camPos[1]; frameScratch[26] = camPos[2]; frameScratch[27] = 1;
-    frameScratch[28] = fogColor[0]; frameScratch[29] = fogColor[1]; frameScratch[30] = fogColor[2]; frameScratch[31] = fogDensity;
+    frameScratch[28] = fogColor[0]; frameScratch[29] = fogColor[1]; frameScratch[30] = fogColor[2];
+    frameScratch[31] = natural && this.natural!.legacyFog === "off" ? 0 : fogDensity;
     if (this.skyAmbient) {
       // Shape from the visible sky gradient (a neutral dome when the sky is
       // off), level from the frame ambient, so the scene's exposure holds.
@@ -2370,7 +2478,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       frameScratch[FRAME_LAYOUT.atmos] = 1;
       frameScratch[FRAME_LAYOUT.atmos + 1] = nl.hazeAnisotropy;
       frameScratch[FRAME_LAYOUT.atmos + 2] = nl.sunInscatter;
-      frameScratch[FRAME_LAYOUT.atmos + 3] = 0;
+      frameScratch[FRAME_LAYOUT.atmos + 3] = legacyFogVeil(nl.legacyFog, fogDensity, nl.legacyFogVeilDistance);
       frameScratch[FRAME_LAYOUT.atmosSigma] = sig[0] * nl.aerialScale;
       frameScratch[FRAME_LAYOUT.atmosSigma + 1] = sig[1] * nl.aerialScale;
       frameScratch[FRAME_LAYOUT.atmosSigma + 2] = sig[2] * nl.aerialScale;
@@ -2519,6 +2627,9 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       const hasPbrBaseColorTexture = matKind === "pbr" && !!mesh.baseColorTexture && mesh.vertexStride >= 8;
       const hasPbrMetallicRoughnessTexture = matKind === "pbr" && !!mesh.metallicRoughnessTexture && mesh.vertexStride >= 8;
       const hasPbrNormalTexture = matKind === "pbr" && !!mesh.normalTexture && mesh.vertexStride >= 8;
+      // glTF MASK needs the base-colour alpha; until it decodes the mesh draws opaque.
+      const alphaMask = hasPbrBaseColorTexture && mesh.alphaCutoff !== undefined;
+      const doubleSided = matKind === "pbr" && mesh.doubleSided === true;
       const entry = this.getPipelineFor(
         matKind,
         mesh.vertexStride,
@@ -2527,11 +2638,14 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         hasPbrBaseColorTexture,
         hasPbrMetallicRoughnessTexture,
         hasPbrNormalTexture,
+        false,
+        alphaMask,
+        doubleSided,
       );
       if (!entry) continue;
 
       const pipelineKind = entry.compiled.key.materialKind;
-      const cacheKey = `${pipelineKind}|${mesh.vertexStride}|${this.sampleCount}|static|${hasMorphTargets ? "morph" : "rigid"}|${hasColors ? "color" : "nocolor"}|${hasPbrBaseColorTexture ? "basecolor" : "flat"}|${hasPbrMetallicRoughnessTexture ? "mr" : "nomr"}|${hasPbrNormalTexture ? "normal" : "nonormal"}`;
+      const cacheKey = entry.cacheKey;
 
       // Rigid, untextured draws can share an instanced draw with every other
       // visible entity on the same mesh + pipeline (vertex colours ride along:
@@ -2541,6 +2655,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         this.instancingEnabled &&
         !hasSkinning && !hasMorphTargets &&
         !hasPbrBaseColorTexture && !hasPbrMetallicRoughnessTexture && !hasPbrNormalTexture &&
+        !alphaMask && !doubleSided &&
         (pipelineKind === "pbr" || pipelineKind === "unlit" || pipelineKind === "cel") &&
         mesh.vertexStride !== 16
       ) {
@@ -2587,6 +2702,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       const color = colorOfMaterial(materialForDraw);
       drawScratch[16] = color[0]; drawScratch[17] = color[1]; drawScratch[18] = color[2]; drawScratch[19] = 1;
       const params = paramsOfMaterial(materialForDraw);
+      if (alphaMask) params[2] = mesh.alphaCutoff!;
       drawScratch[20] = params[0]; drawScratch[21] = params[1]; drawScratch[22] = params[2]; drawScratch[23] = params[3];
       const emissive = emissiveOfMaterial(materialForDraw);
       drawScratch[24] = emissive[0]; drawScratch[25] = emissive[1]; drawScratch[26] = emissive[2]; drawScratch[27] = 0;
@@ -2664,6 +2780,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
           matKind !== "splat",
         instanceCount: 1,
         instanced: false,
+        ...(alphaMask ? { alphaMask: true } : {}),
         entityId: e.id,
         // Skinned vertices are already in world space (identity model).
         model: hasSkinning ? IDENTITY_M4 : worldMat,
@@ -2722,13 +2839,16 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         let boundShadow = "";
         for (const d of draws) {
           if (!d.castsShadow) continue;
-          const shadowKey = `${d.mesh.vertexStride}|${d.instanced ? "i" : "s"}`;
+          // glTF MASK casters alpha-test their base colour (skinned ones use the plain pass).
+          const maskBg = d.alphaMask && !d.hasSkinning ? this.shadowMaskBindGroupFor(d.mesh) : null;
+          const shadowKey = maskBg ? `${d.mesh.vertexStride}|m` : `${d.mesh.vertexStride}|${d.instanced ? "i" : "s"}`;
           if (shadowKey !== boundShadow) {
-            const pipeline = this.shadowPipelineFor(d.mesh.vertexStride, d.instanced);
+            const pipeline = maskBg ? this.shadowMaskPipelineFor(d.mesh.vertexStride) : this.shadowPipelineFor(d.mesh.vertexStride, d.instanced);
             if (!pipeline) continue;
             sp.setPipeline(pipeline);
             boundShadow = shadowKey;
           }
+          if (maskBg) sp.setBindGroup(2, maskBg);
           sp.setBindGroup(1, d.drawBindGroup);
           sp.setVertexBuffer(0, d.hasSkinning ? d.skinVbuf! : d.mesh.vbuf);
           sp.setIndexBuffer(d.mesh.ibuf, "uint32");
@@ -3026,7 +3146,10 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     motion.length = 0;
     const skinned: SkinEntry[] = [];
     for (const d of draws) {
-      if (d.instanced || !d.entityId || !d.model) continue;
+      // Masked draws: the motion pass has no alpha test, so a moving cutout
+      // would write velocity over the pixels it discarded. They keep the
+      // camera reprojection (exact for static impostor cards).
+      if (d.instanced || !d.entityId || !d.model || d.alphaMask) continue;
       const last = this.lastModels.get(d.entityId);
       const moved = !last || !sameFloats(last, d.model, 16);
       const skin = d.hasSkinning ? this.skinCache.get(d.entityId) : undefined;
@@ -3208,6 +3331,8 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     // A re-init creates a fresh (zeroed) buffer, so forget those bytes.
     this.shadowScratch.fill(Number.NaN);
     this.shadowPipelines.clear();
+    this.shadowMaskPipelines.clear();
+    this.shadowMaskTexLayout = null;
     this.shadowInstancedPipelines.clear();
     for (const g of this.instanceGroups.values()) g.buf.destroy();
     this.instanceGroups.clear();
@@ -3353,6 +3478,22 @@ export interface NaturalLightOptions {
   hazeAnisotropy?: number;
   /** Strength of the sun's in-scattering in fog/haze (default 0.5). */
   sunInscatter?: number;
+  /**
+   * What the scene's own distance fog (`fogDensity`, e.g. a streaming level's
+   * fog that hides tiles arriving at the load radius) does under natural
+   * light, where the sky model's aerial perspective already provides
+   * physical haze:
+   * - "veil" (default): the aerial perspective owns the near and middle
+   *   distance; the legacy fog fades in only toward
+   *   `legacyFogVeilDistance`, so beyond it streaming stays hidden exactly
+   *   as before, while nearer the scene keeps its contrast.
+   * - "keep": legacy fog at full density on top of the haze (the behaviour
+   *   before 2026-11-28).
+   * - "off": aerial perspective only.
+   */
+  legacyFog?: "veil" | "keep" | "off";
+  /** Distance (m) where the "veil" reaches the legacy fog's full density. Default 1.5 / fogDensity. */
+  legacyFogVeilDistance?: number;
   /** Volumetric sun shafts through the shadow map (default: preset). */
   volumetrics?: boolean;
   /** Medium density for the shafts (1/m, default 0.01). */
@@ -3383,9 +3524,23 @@ interface ResolvedNaturalLight {
   aerialScale: number;
   hazeAnisotropy: number;
   sunInscatter: number;
+  legacyFog: "veil" | "keep" | "off";
+  legacyFogVeilDistance: number | null;
   volumetrics: boolean | null;
   volumetricDensity: number;
   physicalBloom: boolean;
+}
+
+/**
+ * Distance (m) over which the legacy fog fades in under natural light
+ * ("veil"), written to atmos.w; 0 = apply it unchanged. The default 1.5 /
+ * density puts the full legacy density at the distance where that fog alone
+ * is ~78% opaque (the Loading Range: 125 m, just past its 112 m load radius),
+ * so streaming stays hidden; nearer, the aerial perspective takes over.
+ */
+export function legacyFogVeil(mode: "veil" | "keep" | "off", fogDensity: number, distance: number | null): number {
+  if (mode !== "veil" || !(fogDensity > 0)) return 0;
+  return distance ?? 1.5 / fogDensity;
 }
 
 /** Fill natural-light defaults and resolve the sun to a direction. */
@@ -3431,6 +3586,8 @@ export function resolveNaturalLight(o: NaturalLightOptions): ResolvedNaturalLigh
     aerialScale: fin(o.aerialScale, 1),
     hazeAnisotropy: Math.min(0.95, Math.max(-0.95, fin(o.hazeAnisotropy, 0.7))),
     sunInscatter: fin(o.sunInscatter, 0.5),
+    legacyFog: o.legacyFog === "keep" || o.legacyFog === "off" ? o.legacyFog : "veil",
+    legacyFogVeilDistance: o.legacyFogVeilDistance !== undefined && Number.isFinite(o.legacyFogVeilDistance) && o.legacyFogVeilDistance > 0 ? o.legacyFogVeilDistance : null,
     volumetrics: o.volumetrics === undefined ? null : o.volumetrics,
     volumetricDensity: fin(o.volumetricDensity, 0.01),
     physicalBloom: o.physicalBloom !== false,
@@ -3528,6 +3685,17 @@ export function autoSampleCountFor(info: {
 }
 
 const IDENTITY_M4 = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+
+/**
+ * Effective alpha cutoff for a glTF MASK material: the test is
+ * textureAlpha × factorAlpha < cutoff, i.e. textureAlpha < cutoff / factorAlpha.
+ * Null for OPAQUE / BLEND (drawn opaque).
+ */
+export function maskCutoff(m: { alphaCutoff?: number; baseColorAlpha?: number }): number | null {
+  if (m.alphaCutoff === undefined || !Number.isFinite(m.alphaCutoff)) return null;
+  const a = m.baseColorAlpha ?? 1;
+  return a > 1e-4 ? m.alphaCutoff / a : Number.POSITIVE_INFINITY;
+}
 
 function sameFloats(a: ArrayLike<number>, b: ArrayLike<number>, n: number): boolean {
   for (let i = 0; i < n; i++) if (a[i] !== b[i]) return false;

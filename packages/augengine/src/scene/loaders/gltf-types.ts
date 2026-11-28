@@ -139,12 +139,19 @@ export interface GltfMaterial {
   emissiveFactor?: [number, number, number];
   emissiveTexture?: { index: number };
   alphaMode?: "OPAQUE" | "MASK" | "BLEND";
+  /** MASK only: fragments with alpha below this are discarded (glTF default 0.5). */
+  alphaCutoff?: number;
   doubleSided?: boolean;
 }
 
 export interface GltfTexture {
   source?: number;
   sampler?: number;
+  extensions?: {
+    /** EXT_texture_webp: the WebP image. `source` (if any) is the PNG/JPEG fallback. */
+    EXT_texture_webp?: { source?: number };
+    [name: string]: unknown;
+  };
 }
 
 export interface GltfImage {
