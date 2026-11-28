@@ -16,7 +16,8 @@ Node 18+. **Alpha.** npm has `0.1.0-alpha.0`; this repo is at `0.2.0-alpha.0` (m
 | Procedural city kit (`kit`) | alpha |
 | Browser-safe in-memory baking (`/runtime`) | alpha |
 | Textures and material groups carried through the bake, `augengine-lod/2` manifest | alpha, repo only (0.2.0-alpha.0, unpublished) |
-| Textured impostor atlas (LOD3) | alpha, PNG sources only (see Limits) |
+| UV-seam-aware simplification of textured meshes (seams stay closed, no island-spanning triangles) | alpha, repo only |
+| Textured impostor atlas (LOD3) from PNG, JPEG and WebP base colours | alpha, repo only |
 | `simplifySmooth` for organic meshes | in the repo, not in the published 0.1.0-alpha.0 |
 
 Part of [AugEngine](https://www.npmjs.com/package/@mnemopay/augengine): the engine's
@@ -29,12 +30,57 @@ npx augengine-lod bake model.glb --out lod-out
 npx augengine-lod kit --out kit-out
 ```
 
-`bake` options: `--ratios 0.25,0.0625` (LOD1/LOD2 triangle ratios), `--error 0.02,0.08`
-(max simplification error as a fraction of the mesh's bounding radius), `--uv-seams` (keep UV seams; on by
-default when the source has textures), `--lock-border` (for tiles that must meet
-neighbours), `--no-impostor`, `--no-preview`. 0.2 (repo only): `--materials keep|fold`
-(default `keep`), `--normals auto|flat|smooth`, `--impostor-texture atlas|vertex|none`
-(default `atlas`).
+`augengine-lod --help` lists every flag; unknown flags are refused. `bake` options:
+
+| Flag | Default | What it does |
+| --- | --- | --- |
+| `--out <dir>` | `lod-out` | output directory |
+| `--name <stem>` | input file name | output file stem |
+| `--ratios a,b` | `0.25,0.0625` | LOD1 / LOD2 triangle ratios of LOD0 |
+| `--error a,b` | `0.02,0.08` | max simplification error, fraction of the bounding radius |
+| `--materials keep\|fold` | `keep` | keep materials + textures, or fold factors into vertex colours (0.1) |
+| `--normals auto\|flat\|smooth` | `auto` | sources without `NORMAL`: flat (glTF default) or smooth |
+| `--shading auto\|flat\|smooth` | `auto` | shading of the baked chain (auto: from the source) |
+| `--uv-seams` | on when textured | weld by UV even without textures |
+| `--seams preserve\|lock\|permissive` | `preserve` | UV seam handling (below) |
+| `--seam-weld <texels>` | `0.5` | snap UV wedges closer than this before simplifying; `0` = off |
+| `--lock-border` | off | never move open-border vertices (tiles that must meet) |
+| `--impostor cross\|box` | `cross` | LOD3 shape |
+| `--no-impostor` | | no LOD3 |
+| `--impostor-texture atlas\|vertex\|none` | `atlas` | LOD3 colour: baked atlas, per-face colour, one tint |
+| `--atlas-tile <px>` | `64` | atlas pixels per impostor view |
+| `--no-preview` | | skip the contact sheet |
+
+`kit` takes `--out <dir>` (default `kit-out`).
+
+### UV seams
+
+A textured mesh is split wherever its UV map is cut; image-to-3D output (TRELLIS,
+generated characters) is cut into hundreds of islands, so 20-45% of its positions sit on a
+seam. The bake handles that in three steps:
+
+1. **Seam weld.** UV wedges at one position closer than half a texel of the material's
+   base-colour image are snapped together (exporter rounding, not a cut).
+2. **`preserve` (default).** Real seams stay closed: a seam vertex only slides along its
+   seam with both of its UVs, and junctions (three or more islands, or a material
+   boundary) stay. Every output triangle samples one UV island.
+3. **`lock`** additionally pins the junctions explicitly (0.2.0-alpha.0 pinned *every*
+   vertex with a UV split, which stopped these meshes near LOD1). **`permissive`** lets
+   collapses cross seams: far more reduction, but triangles spanning two islands stretch
+   the texture across the atlas. The CLI prints how many there are per level.
+
+Measured (default flags, `--normals auto`; triangles LOD0 / LOD1 / LOD2, reduction per level):
+
+| Input | 0.2.0-alpha.0 (seams locked) | Now (`preserve`) | Island-spanning triangles |
+| --- | --- | --- | --- |
+| Kit building (`building-1-5-23`, untextured) | 1,036 / 258 / 64 | 1,036 / 258 / 64 (75.1% / 75.2%, byte-identical GLB) | n/a |
+| TRELLIS bust (`desmond_bust.glb`, 289 seam junctions) | 29,973 / 7,492 / 6,168 | 29,973 / 7,492 / 1,872 (75.0% / 75.0%) | 0 / 0 |
+| Normal-mapped test sphere (two materials, u = 0/1 seam) | 1,472 / 368 / 226 | 1,472 / 368 / 92 (75.0% / 75.0%) | 0 / 0 |
+| Generated character (Studio fishmonger, 199 UV islands, 343 junctions) | 6,370 / 2,864 / 2,858 | 6,370 / 1,592 / 720 (75.0% / **54.8%**) | 0 / 0 |
+| same character, `--seams permissive` | | 6,370 / 1,592 / 398 (75.0% / 75.0%) | 55 / 122 (about 18% of LOD2's area) |
+
+The character's LOD2 stops near 720 triangles because seam junctions cannot be collapsed
+without breaking texture continuity, and that character has 343 of them; see Limits.
 
 Output per model:
 
@@ -103,12 +149,22 @@ assets. Per-part colour lives in vertex colours, so each asset is one mesh and o
 - Published 0.1.0-alpha.0: textures are not carried through the bake; base-colour factors
   and vertex colours are, and the LOD3 impostor is flat-tinted. The repo's 0.2.0-alpha.0
   keeps textures (below).
-- 0.2 with textures kept, UV seams are locked, so meshes with fragmented UV atlases
-  (image-to-3D output such as TRELLIS) barely simplify past LOD1. Measured on the Studio
-  face-rig fixture (6,370 tris): LOD1 2,864, LOD2 2,858 with `--materials keep`, versus
-  1,592 / 720 with `--materials fold` (textures dropped).
-- The impostor atlas samples PNG textures only. JPEG/WebP/KTX2 base colours fall back to
-  the material factor (a warning is printed), which for most textured models is plain white.
+- 0.2 with textures kept: seam junctions (three or more UV islands meeting) never move,
+  so a mesh cut into very many islands bottoms out near its junction count. On the Studio
+  fishmonger (199 islands, 343 junctions) LOD2 is 720 triangles: 54.8% fewer than LOD1,
+  short of the 1/16 target (398). `--seams permissive` reaches 398 but 122 of those
+  triangles span two islands and visibly smear the texture (hands, face, boots). The
+  TRELLIS busts and the kit reach the targets. A few open edges can appear (2 on the
+  fishmonger's LOD1/LOD2, 2-5 on the busts, which already have 3 in the source).
+- The impostor atlas decodes PNG, JPEG (jpeg-js) and WebP (libwebp as WebAssembly, via
+  `@jsquash/webp`) in Node. KTX2/Basis base colours still fall back to the material factor
+  (a warning is printed). The browser entry (`/runtime`) has no decoders: pass `decodeImage`.
+- Engine side (not this package): AugEngine's WebGPU renderer does not honour
+  `alphaMode: "MASK"`, so the default `cross` impostor's atlas draws as an opaque card with
+  a black background. Use `--impostor box` or `--impostor-texture vertex` for engine
+  assets until it does. The engine's glTF loader also does not decode `EXT_texture_webp`
+  textures, so a WebP-only source renders untextured in the engine (the baked atlas, a PNG,
+  is fine).
 - FBX is refused (export glTF Binary instead). Draco- or meshopt-compressed meshes and
   sparse accessors are rejected. Only GLB-embedded buffers are read (no external `.bin`).
 
@@ -125,4 +181,6 @@ Apache-2.0. See [LICENSE](LICENSE).
 
 ### Material-aware baking (0.2 alpha)
 
-Use `augengine-lod bake model.glb --materials keep --normals auto --impostor-texture atlas`. Source images are shared between detail levels. The v2 manifest adds material assignments and image sizes to the existing level keys and distance thresholds. Use `--materials fold` for the earlier factor-to-vertex-colour behavior. The Node atlas renderer samples PNG textures. Other embedded formats are carried through in the GLB; their atlas previews use the available material factors. The engine reads both manifest versions with `loadLodIntoRenderer` (`@mnemopay/augengine`, live runtime). The `.lods.png` contact sheet is untextured shading only.
+Use `augengine-lod bake model.glb --materials keep --normals auto --impostor-texture atlas`. Source images are shared between detail levels. The v2 manifest adds material assignments and image sizes to the existing level keys and distance thresholds. Use `--materials fold` for the earlier factor-to-vertex-colour behavior. The Node entry decodes PNG, JPEG and WebP base colours for the impostor atlas and the `.lods.png` contact sheet (`createImageDecoder`); other embedded formats are carried through in the GLB untouched. The engine reads both manifest versions with `loadLodIntoRenderer` (`@mnemopay/augengine`, live runtime).
+
+Why these decoders: jpeg-js is pure JavaScript with no dependencies, and `@jsquash/webp` is libwebp compiled to WebAssembly (about 140 KB for the decoder). Neither needs a compiler or a platform binary, so `npx @mnemopay/augengine-lod` installs anywhere Node 18+ runs. sharp would have decoded all three, but it ships a native libvips build per platform (tens of MB) that can fail to install.

@@ -96,6 +96,12 @@ export class PipelineFactory {
         { binding: 2, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "comparison" } },
         // Streamed irradiance probe ring (probe-ring.ts), fixed size.
         { binding: 3, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: "read-only-storage" } },
+        // Prefiltered specular environment cube (env-lighting.ts) + its sampler;
+        // a 1×1 cube is bound while natural light is off.
+        { binding: 4, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float", viewDimension: "cube" } },
+        { binding: 5, visibility: GPUShaderStage.FRAGMENT, sampler: { type: "filtering" } },
+        // Split-sum DFG LUT (ibl-brdf.ts): u = N·V, v = roughness.
+        { binding: 6, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: "float" } },
       ],
     });
     const drawLayoutEntries: GPUBindGroupLayoutEntry[] = [
@@ -402,7 +408,7 @@ function getFragmentShader(
       return `
 @fragment
 fn fs_main(in: VertexOut) -> @location(0) vec4<f32> {
-  return vec4<f32>(u_draw.color.rgb${colorMult} + u_draw.emissive.rgb, 1.0);
+  return vec4<f32>((u_draw.color.rgb${colorMult} + u_draw.emissive.rgb) * u_frame.exposure.a, 1.0);
 }
 `;
     case "pbr":
@@ -455,13 +461,18 @@ fn fs_main(in: VertexOut) -> @location(0) vec4<f32> {
     let la = augengine_local_light(i, in.worldPos);
     lit = lit + augengine_pbr_light(N, V, la.xyz, albedo, metallic, roughness, F0) * u_frame.localLights[i].radianceInner.rgb * la.w;
   }
-  // With sky specular on, metals take their ambient from the reflection
-  // instead of the diffuse term; with it off this is the old flat ambient.
-  let ambientW = select(1.0, 1.0 - metallic, u_frame.skySpecSH[0].a > 0.5);
-  lit = lit + albedo * augengine_ambient(N, in.probeR, in.probeG, in.probeB, in.probeCov) * ambientW;
-  lit = lit + augengine_sky_specular(N, V, F0, roughness);
+  let amb = augengine_ambient(N, in.probeR, in.probeG, in.probeB, in.probeCov);
+  if (u_frame.envParams.x > 0.5) {
+    lit = lit + augengine_env_ibl(N, V, albedo, metallic, roughness, F0, amb);
+  } else {
+    // With sky specular on, metals take their ambient from the reflection
+    // instead of the diffuse term; with it off this is the old flat ambient.
+    let ambientW = select(1.0, 1.0 - metallic, u_frame.skySpecSH[0].a > 0.5);
+    lit = lit + albedo * amb * ambientW;
+    lit = lit + augengine_sky_specular(N, V, F0, roughness);
+  }
   let fogged = mix(lit, u_frame.fog.rgb, augengine_fog_factor(in.worldPos));
-  return vec4<f32>(fogged + u_draw.emissive.rgb, 1.0);
+  return vec4<f32>(fogged * u_frame.exposure.rgb + u_draw.emissive.rgb * u_frame.exposure.a, 1.0);
 }
 `;
     case "cel":
@@ -487,7 +498,7 @@ fn fs_main(in: VertexOut) -> @location(0) vec4<f32> {
   }
   let lit = baseColor * (augengine_ambient(N, in.probeR, in.probeG, in.probeB, in.probeCov) + lightTerm);
   let fogged = mix(lit, u_frame.fog.rgb, augengine_fog_factor(in.worldPos));
-  return vec4<f32>(fogged + u_draw.emissive.rgb, 1.0);
+  return vec4<f32>(fogged * u_frame.exposure.rgb + u_draw.emissive.rgb * u_frame.exposure.a, 1.0);
 }
 `;
     case "vrm-mtoon":
@@ -509,7 +520,7 @@ fn fs_main(in: VertexOut) -> @location(0) vec4<f32> {
     lit = lit + baseColor * u_frame.localLights[i].radianceInner.rgb * max(dot(N, la.xyz), 0.0) * la.w;
   }
   let fogged = mix(lit, u_frame.fog.rgb, augengine_fog_factor(in.worldPos));
-  return vec4<f32>(fogged + u_draw.emissive.rgb, 1.0);
+  return vec4<f32>(fogged * u_frame.exposure.rgb + u_draw.emissive.rgb * u_frame.exposure.a, 1.0);
 }
 `;
     default:
@@ -622,12 +633,21 @@ struct FrameUniforms {
   skySpecSH: array<vec4<f32>, 3>,
   // Irradiance probes: x on, y column spacing, z layer-0 height above ground, w layer spacing.
   probeParams: vec4<f32>,
+  // Natural light (env-lighting.ts): irradiance/π SH9, basis constants folded in.
+  envSH: array<vec4<f32>, 9>,
+  // x env on, y specular mips − 1, z specular intensity, w multiple scattering on.
+  envParams: vec4<f32>,
+  // rgb pre-exposure × white balance on lit output, a emissive/unlit scale.
+  exposure: vec4<f32>,
 };
 @group(0) @binding(0) var<uniform> u_frame: FrameUniforms;
 @group(0) @binding(1) var t_shadow: texture_depth_2d;
 @group(0) @binding(2) var s_shadow: sampler_comparison;
 // Probe ring: per probe r, g, b (L1 relative ambient k0 kx ky kz) + meta (gi, gj, groundY, valid).
 @group(0) @binding(3) var<storage, read> u_probes: array<vec4<f32>>;
+@group(0) @binding(4) var t_env: texture_cube<f32>;
+@group(0) @binding(5) var s_env: sampler;
+@group(0) @binding(6) var t_dfg: texture_2d<f32>;
 const AUGENGINE_PROBE_RING: i32 = ${PROBE_RING};
 
 fn augengine_probe_base(i: i32, j: i32, k: i32) -> u32 {
@@ -747,9 +767,36 @@ fn augengine_shadow(worldPos: vec3<f32>, N: vec3<f32>) -> f32 {
 // Ambient for a surface normal: the flat frame ambient, or — when the sky-shaped
 // ambient is on — the zonal SH of the sky: k0 + k1·n.y + k2·(3·n.y² − 1).
 fn augengine_ambient_sky(N: vec3<f32>) -> vec3<f32> {
+  if (u_frame.envParams.x > 0.5) { return augengine_env_irradiance(N); }
   if (u_frame.ambientSH[0].a < 0.5) { return u_frame.ambient.rgb; }
   let y = N.y;
   return max(u_frame.ambientSH[0].rgb + u_frame.ambientSH[1].rgb * y + u_frame.ambientSH[2].rgb * (3.0 * y * y - 1.0), vec3<f32>(0.0));
+}
+
+// Natural-light diffuse: SH9 of the sky / HDR environment, irradiance / π.
+fn augengine_env_irradiance(N: vec3<f32>) -> vec3<f32> {
+  var r = u_frame.envSH[0].rgb + u_frame.envSH[1].rgb * N.y + u_frame.envSH[2].rgb * N.z + u_frame.envSH[3].rgb * N.x;
+  r = r + u_frame.envSH[4].rgb * (N.x * N.y) + u_frame.envSH[5].rgb * (N.y * N.z) + u_frame.envSH[6].rgb * (3.0 * N.z * N.z - 1.0);
+  r = r + u_frame.envSH[7].rgb * (N.x * N.z) + u_frame.envSH[8].rgb * (N.x * N.x - N.y * N.y);
+  return max(r, vec3<f32>(0.0));
+}
+
+// Natural-light image-based lighting for PBR: split-sum specular from the
+// prefiltered cube (lod = roughness × (mips − 1)), the integrated DFG LUT, and
+// Fdez-Agüera's (2019) multiple-scattering compensation so rough and metallic
+// surfaces do not lose the energy single-scatter GGX drops. irr = diffuse
+// irradiance / π (sky SH9 or probes). Mirrors ibl-brdf.ts.
+fn augengine_env_ibl(N: vec3<f32>, V: vec3<f32>, albedo: vec3<f32>, metallic: f32, roughness: f32, F0: vec3<f32>, irr: vec3<f32>) -> vec3<f32> {
+  let R = reflect(-V, N);
+  let nDotV = clamp(dot(N, V), 1e-4, 1.0);
+  let pre = textureSampleLevel(t_env, s_env, R, roughness * u_frame.envParams.y).rgb * u_frame.envParams.z;
+  let AB = textureSampleLevel(t_dfg, s_env, vec2<f32>(nDotV, roughness), 0.0).rg;
+  let FssEss = F0 * AB.x + AB.y;
+  let Ems = clamp(1.0 - (AB.x + AB.y), 0.0, 1.0);
+  let Favg = F0 + (vec3<f32>(1.0) - F0) / 21.0;
+  let multi = FssEss * Favg / (vec3<f32>(1.0) - Ems * Favg) * Ems * u_frame.envParams.w;
+  let kd = albedo * (1.0 - metallic) * max(vec3<f32>(1.0) - FssEss - multi, vec3<f32>(0.0));
+  return pre * FssEss + irr * (multi + kd);
 }
 
 // With irradiance probes on, the probes (relative to the flat ambient; their

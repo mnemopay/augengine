@@ -9,13 +9,12 @@
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
-import { inflateSync } from "node:zlib";
 import { bakeLods, type BakeOptions, type BakeResult } from "./bake.js";
 import { readGlb, withImpostorMaterial, writeLodGlb } from "./gltf.js";
 import { buildManifest, lodKey, type LodManifest } from "./manifest.js";
-import { materialSetFromKit, type LodImage } from "./material.js";
+import { materialSetFromKit } from "./material.js";
 import type { KitMaterial, KitMesh } from "./mesh.js";
-import { decodePng, isPng, type RgbaImage } from "./png.js";
+import { createImageDecoder } from "./decode.js";
 import { buildKit, impostorFor } from "./kit/index.js";
 import { contactSheet, encodePng, renderPreview } from "./preview.js";
 import { kitMeshKey } from "./runtime.js";
@@ -23,19 +22,16 @@ import { kitMeshKey } from "./runtime.js";
 // Node entry: everything in ./runtime (browser-safe) plus file output and PNG previews.
 export * from "./runtime.js";
 export * from "./preview.js";
+export { createImageDecoder, decodeImageNode, decodeJpeg, decodeWebp, type ImageDecoder } from "./decode.js";
 
 export interface WrittenAsset {
   manifest: LodManifest;
   glbPath: string;
   manifestPath: string;
   previewPath: string | null;
+  /** UV-aware bakes: seam counts, the mode used, and island-spanning triangles at LOD1 / LOD2 (0 unless "permissive"). */
+  seams?: NonNullable<BakeResult["seams"]> & { uvIslandBreaks: [number, number] };
   warnings: string[];
-}
-
-/** PNG decoder for the impostor render and previews (JPEG / KTX2 / WebP: null). */
-export function decodeImageNode(img: LodImage): RgbaImage | null {
-  if (!isPng(img.bytes)) return null;
-  return decodePng(img.bytes, (d) => new Uint8Array(inflateSync(d)));
 }
 
 /**
@@ -52,10 +48,12 @@ export async function writeBaked(
   opts: BakeOptions & { meshKey?: string; preview?: boolean } = {},
 ): Promise<{ result: BakeResult; written: WrittenAsset }> {
   await mkdir(outDir, { recursive: true });
-  const result = await bakeLods(mesh, { impostorTexture: "atlas", decodeImage: decodeImageNode, ...opts });
+  let set = opts.materials ?? materialSetFromKit(material);
+  // PNG, JPEG and WebP base colours are decoded for the impostor atlas and the preview.
+  const decodeImage = opts.decodeImage ?? await createImageDecoder(set);
+  const result = await bakeLods(mesh, { impostorTexture: "atlas", ...opts, decodeImage });
   const meshKey = opts.meshKey ?? name;
   const glbName = `${name}.lods.glb`;
-  let set = opts.materials ?? materialSetFromKit(material);
   let impostorMaterial: number | undefined;
   if (result.impostor) ({ set, material: impostorMaterial } = withImpostorMaterial(set, result.impostor, encodePng));
   const glb = writeLodGlb(result.levels.map((l) => ({
@@ -73,11 +71,14 @@ export async function writeBaked(
     previewPath = join(outDir, `${name}.lods.png`);
     const shots = result.levels.map((l, i) => renderPreview(
       i === result.levels.length - 1 && result.impostor && impostorMaterial !== undefined ? { ...l.mesh, groups: [{ material: impostorMaterial, start: 0, count: l.mesh.indices.length }] } : l.mesh,
-      { size: 220, materials: set, decodeImage: decodeImageNode },
+      { size: 220, materials: set, decodeImage },
     ));
     await writeFile(previewPath, encodePng(contactSheet(shots)));
   }
-  return { result, written: { manifest, glbPath, manifestPath, previewPath, warnings: [...result.warnings] } };
+  const seams = result.seams
+    ? { ...result.seams, uvIslandBreaks: [result.levels[1]?.uvIslandBreaks ?? 0, result.levels[2]?.uvIslandBreaks ?? 0] as [number, number] }
+    : undefined;
+  return { result, written: { manifest, glbPath, manifestPath, previewPath, ...(seams ? { seams } : {}), warnings: [...result.warnings] } };
 }
 
 export interface BakeFileOptions extends Omit<BakeOptions, "materials"> {

@@ -198,8 +198,8 @@ export class TimestampSession {
  * Labels the per-pass timer knows about. A frame only reports the passes it
  * actually encoded; "frame" is derived (first begin → last end).
  */
-export type PassLabel = "skin" | "shadow" | "main" | "water" | "post" | "ao" | "taa" | "motion";
-export const PASS_LABELS: readonly PassLabel[] = ["skin", "shadow", "main", "water", "post", "ao", "taa", "motion"];
+export type PassLabel = "skin" | "shadow" | "main" | "water" | "post" | "ao" | "taa" | "motion" | "env" | "exposure" | "gi" | "volumetric";
+export const PASS_LABELS: readonly PassLabel[] = ["skin", "shadow", "main", "water", "post", "ao", "taa", "motion", "env", "exposure", "gi", "volumetric"];
 
 /** One resolved frame of per-pass GPU durations, in milliseconds. */
 export interface PassTimingSample {

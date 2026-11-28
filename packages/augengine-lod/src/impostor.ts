@@ -19,9 +19,12 @@
  *             can still instance it (the city kit uses this).
  *   "none"    one area-weighted average colour for the whole card (0.1).
  *
- * Textures the CPU cannot decode (JPEG, KTX2/Basis, WebP, or PNG without a
- * `decodeImage`) contribute their material's factor colour only; the bake
- * reports this in `warnings`.
+ * Base-colour images come from `decodeImage`. The Node entry decodes PNG,
+ * JPEG and WebP (decode.ts); images larger than the views need are box-
+ * filtered down (in linear space) before sampling so small atlas tiles
+ * average the texture instead of aliasing it. Textures nothing can decode
+ * (KTX2/Basis, or any image when no `decodeImage` is given) contribute their
+ * material's factor colour only; the bake reports this in `warnings`.
  */
 import { averageColor, groupsOf, type Aabb, type KitMesh, type Rgba, type Vec3 } from "./mesh.js";
 import { textureImage, type LodImage, type LodMaterialSet } from "./material.js";
@@ -121,12 +124,17 @@ function buildSamplers(opts: ImpostorOptions, warnings: string[]): Map<number, M
             warnings.push(`impostor: baseColor image ${imgIdx} (${src?.mimeType ?? "?"}) not sampled (${why}); its material's factor colour is used instead`);
             decoded.set(imgIdx, null);
           } else {
-            const lin = new Float32Array(img.width * img.height * 4);
+            let lin: Float32Array = new Float32Array(img.width * img.height * 4);
             for (let p = 0; p < img.width * img.height; p++) {
               for (let k = 0; k < 3; k++) lin[p * 4 + k] = srgbToLinear(img.rgba[p * 4 + k]! / 255);
               lin[p * 4 + 3] = img.rgba[p * 4 + 3]! / 255;
             }
-            decoded.set(imgIdx, { img, lin });
+            // Each view is `tile` px (2x supersampled) across the asset; a few
+            // texels per sample is plenty. Halve with a box filter until it fits.
+            const maxSide = Math.max(256, (opts.tile ?? 64) * 8);
+            let w = img.width, h = img.height;
+            while (Math.max(w, h) > maxSide && w > 1 && h > 1) ({ lin, w, h } = halve(lin, w, h));
+            decoded.set(imgIdx, { img: { width: w, height: h, rgba: new Uint8Array(0) }, lin });
           }
         }
         const d = decoded.get(imgIdx);
@@ -140,6 +148,20 @@ function buildSamplers(opts: ImpostorOptions, warnings: string[]): Map<number, M
     out.set(i, { factor: [f[0], f[1], f[2], f[3]], tex, cutoff: m?.alphaMode === "MASK" ? (m.alphaCutoff ?? 0.5) : null });
   });
   return out;
+}
+
+/** Half-resolution box filter of a linear RGBA buffer (odd edges: the last column/row is dropped). */
+function halve(lin: Float32Array, w: number, h: number): { lin: Float32Array; w: number; h: number } {
+  const W = w >> 1, H = h >> 1;
+  const out = new Float32Array(W * H * 4);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const o = (y * W + x) * 4;
+    for (let k = 0; k < 4; k++) {
+      out[o + k] = (lin[((2 * y) * w + 2 * x) * 4 + k]! + lin[((2 * y) * w + 2 * x + 1) * 4 + k]!
+        + lin[((2 * y + 1) * w + 2 * x) * 4 + k]! + lin[((2 * y + 1) * w + 2 * x + 1) * 4 + k]!) / 4;
+    }
+  }
+  return { lin: out, w: W, h: H };
 }
 
 function wrap(x: number, n: number, mode: number): number {

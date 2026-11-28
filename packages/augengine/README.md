@@ -136,6 +136,7 @@ game; the API can still change before 1.0. "Alpha" means it works with known gap
 | Personas, observation bus, action grammar | `./ai` | alpha | unregistered verbs and unresolvable preconditions are refused |
 | Persistent NPC memory | `./ai` + optional `@mnemopay/sdk` | alpha | memory lives in the optional SDK peer; bundled apps pass `loadRecall` |
 | Characters: humanoid mapping, retargeting, two-bone IK | `./characters` | alpha | Mixamo, VRoid, Unreal, Rigify, Quaternius names; IK refuses disconnected chains |
+| Animation graph: state machine, 1D blend trees, cross-fades, layers, clip events, root motion | `./gameplay` | alpha | data-driven transitions (params, triggers, exit time, any-state); additive/override layers with bone masks. Missing vs Unity/Godot: 2D blend spaces in the graph, IK/look-at nodes, sync groups across layers, a visual graph editor. See [docs/GAMEPLAY.md](https://github.com/mnemopay/augengine/blob/main/docs/GAMEPLAY.md) |
 | Auto-rig for generated characters | Studio | alpha | heuristic 22-joint humanoid: **no fingers, face, hair or cloth bones** |
 | Lip-sync on hand-authored rigs (ARKit-52 morphs) | `./audio` | alpha | needs face morph targets in the GLB |
 | Lip-sync on generated (TRELLIS / auto-rigged) characters | `buildFaceRig`; Studio opt-in | alpha, off by default | adds 52 ARKit morphs on a face patch, but landmark detection misplaces features: on the test mesh the mouth opens at eye height (see docs/CHARACTERS.md) |

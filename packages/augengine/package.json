@@ -115,6 +115,10 @@
     "./fighter": {
       "types": "./dist/fighter/index.d.ts",
       "import": "./dist/fighter/index.js"
+    },
+    "./gameplay": {
+      "types": "./dist/gameplay/index.d.ts",
+      "import": "./dist/gameplay/index.js"
     }
   },
   "scripts": {

@@ -177,7 +177,18 @@ export function crc32(data: Uint8Array): number {
   return (crc ^ 0xffffffff) >>> 0;
 }
 
-/** Width/height from a PNG or JPEG header without decoding (for texture-memory accounting). */
+/** JPEG start-of-image marker (FF D8 FF). */
+export function isJpeg(bytes: Uint8Array): boolean {
+  return bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+}
+
+/** RIFF container with a WEBP form type. */
+export function isWebp(bytes: Uint8Array): boolean {
+  return bytes.length > 16 && bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46
+    && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+}
+
+/** Width/height from a PNG, JPEG, WebP or KTX2 header without decoding (for texture-memory accounting). */
 export function imageSize(bytes: Uint8Array, mimeType: string): { width: number; height: number } | null {
   if (isPng(bytes)) {
     const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -194,6 +205,20 @@ export function imageSize(bytes: Uint8Array, mimeType: string): { width: number;
         return { height: (bytes[o + 5]! << 8) | bytes[o + 6]!, width: (bytes[o + 7]! << 8) | bytes[o + 8]! };
       }
       o += 2 + len;
+    }
+    return null;
+  }
+  if (isWebp(bytes)) {
+    const fourcc = String.fromCharCode(bytes[12]!, bytes[13]!, bytes[14]!, bytes[15]!);
+    if (fourcc === "VP8X" && bytes.length >= 30) {
+      return { width: 1 + (bytes[24]! | (bytes[25]! << 8) | (bytes[26]! << 16)), height: 1 + (bytes[27]! | (bytes[28]! << 8) | (bytes[29]! << 16)) };
+    }
+    if (fourcc === "VP8 " && bytes.length >= 30) {
+      return { width: (bytes[26]! | (bytes[27]! << 8)) & 0x3fff, height: (bytes[28]! | (bytes[29]! << 8)) & 0x3fff };
+    }
+    if (fourcc === "VP8L" && bytes.length >= 25) {
+      const b = bytes[21]! | (bytes[22]! << 8) | (bytes[23]! << 16) | (bytes[24]! << 24);
+      return { width: (b & 0x3fff) + 1, height: ((b >>> 14) & 0x3fff) + 1 };
     }
     return null;
   }

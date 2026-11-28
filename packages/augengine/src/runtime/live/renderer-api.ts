@@ -21,7 +21,8 @@ import type { MeshData } from "./webgpu/primitives.js";
 import type { SkyGradient } from "./webgpu/sky.js";
 import type { ShadowQuality } from "./webgpu/lights.js";
 import type { ProbeGridParams, ProbeTileLike } from "./webgpu/probe-ring.js";
-import type { ImageQualityOptions, LookOptions, RenderFrameOptions, RendererFrameStats } from "./webgpu/renderer.js";
+import type { ImageQualityOptions, LookOptions, NaturalLightOptions, NaturalLightState, RenderFrameOptions, RendererFrameStats } from "./webgpu/renderer.js";
+import type { LightingPreset } from "./webgpu/lighting-presets.js";
 import type { GpuMsSource, PassTimingSample } from "../perf/timestamp-queries.js";
 
 export type LiveRendererBackend = "webgpu" | "three";
@@ -68,6 +69,11 @@ export interface LiveRenderer {
   setProbeTile?(tile: ProbeTileLike): void;
   clearProbeTile?(gi0: number, gj0: number, perAxis: number, layers: number): void;
   getFrameStats(): Readonly<RendererFrameStats>;
+  /** Physical sun + sky, auto-exposure, white balance (backend A only; docs/LIGHTING.md). */
+  setNaturalLight?(opts: NaturalLightOptions | false): void;
+  getNaturalLightState?(): NaturalLightState | null;
+  /** Natural-light quality preset (backend A only). */
+  setLightingPreset?(preset: LightingPreset): void;
 
   /** Frame-level GPU time listener (HUD). */
   enableGpuTimestamps(listener: ((sample: { gpu_ms: number; source: GpuMsSource }) => void) | null): void;

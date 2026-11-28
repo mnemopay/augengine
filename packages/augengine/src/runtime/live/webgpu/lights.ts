@@ -172,9 +172,18 @@ export const FRAME_LAYOUT = {
   // Streamed irradiance probes (probe-ring.ts): x = on, y = column spacing,
   // z = layer-0 height above ground, w = layer spacing.
   probeParams: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 44,
+  // Natural-light tier (env-lighting.ts). Diffuse irradiance / π as SH9:
+  // 9 × vec4 (rgb, 0) with the basis constants folded in (sh9.ts packSh9).
+  envSH: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 48,
+  // x = 1 when the env cube + SH9 drive ambient/specular, y = specular mip
+  // count − 1, z = specular intensity, w = multiple-scattering compensation (0/1).
+  envParams: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 84,
+  // rgb = pre-exposure × white-balance gain applied to lit output (1 = off),
+  // a = scale on emissive + unlit colour (1 = display-referred, as before).
+  exposure: 60 + MAX_EXTRA_DIRECTIONAL * 8 + MAX_LOCAL_LIGHTS * 12 + 88,
 } as const;
 
-export const FRAME_UNIFORM_FLOATS = FRAME_LAYOUT.probeParams + 4;
+export const FRAME_UNIFORM_FLOATS = FRAME_LAYOUT.exposure + 4;
 export const FRAME_UNIFORM_SIZE = FRAME_UNIFORM_FLOATS * 4;
 
 export interface ShadowUniform {

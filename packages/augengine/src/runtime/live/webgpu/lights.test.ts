@@ -156,12 +156,15 @@ describe("scene lights", () => {
     expect(below[2]).toBeLessThan(1);
   });
 
-  it("packs key radiance and the shadow flag on a 16-byte-aligned 912-byte frame (far shadow cascade + sky specular + probe params added 2026-11-23)", () => {
-    expect(FRAME_UNIFORM_FLOATS).toBe(228);
+  it("packs key radiance and the shadow flag on a 16-byte-aligned 1088-byte frame (natural-light env SH9 + exposure added 2026-11-27)", () => {
+    expect(FRAME_UNIFORM_FLOATS).toBe(272);
     expect(FRAME_LAYOUT.probeParams % 4).toBe(0);
     expect(FRAME_LAYOUT.ambientSH % 4).toBe(0);
-    // 720 bytes of lights + 48 bytes of sky-shaped ambient SH (ibl.ts).
-    expect(FRAME_UNIFORM_SIZE).toBe(912);
+    expect(FRAME_LAYOUT.envSH % 4).toBe(0);
+    expect(FRAME_LAYOUT.envParams).toBe(FRAME_LAYOUT.envSH + 36);
+    expect(FRAME_LAYOUT.exposure).toBe(FRAME_LAYOUT.envParams + 4);
+    // 912 bytes as of 2026-11-23 + 144 (SH9) + 16 (env params) + 16 (exposure).
+    expect(FRAME_UNIFORM_SIZE).toBe(1088);
     expect(FRAME_UNIFORM_SIZE % 16).toBe(0);
     expect(FRAME_LAYOUT.localLights % 4).toBe(0);
     const lights = collectSceneLights(sceneOf([

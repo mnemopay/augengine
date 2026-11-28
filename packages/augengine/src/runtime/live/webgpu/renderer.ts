@@ -24,6 +24,32 @@ import { TemporalResolver, applyProjectionJitter, jitterToUv, scaledSize, taaJit
 import { packSkyAmbient, packSkySpecular } from "./ibl.js";
 import { PROBE_RING_FLOATS, ProbeRing, type ProbeGridParams, type ProbeTileLike, type RingRange } from "./probe-ring.js";
 import { MotionPass, type MotionDraw } from "./motion.js";
+import { EnvironmentLighting } from "./env-lighting.js";
+import { PhysicalSkyPass } from "./physical-sky.js";
+import { AutoExposureMeter } from "./auto-exposure.js";
+import { createDfgLut } from "./ibl-brdf.js";
+import { LIGHTING_PRESETS, type LightingPreset } from "./lighting-presets.js";
+import { packSh9 } from "./sh9.js";
+import {
+  SKY_MODEL_FLOATS,
+  buildSkyModel,
+  horizontalSkyIlluminance,
+  luminance,
+  packSkyModel,
+  sunFromAngles,
+  sunPosition,
+  type SkyModel,
+} from "./sky-model.js";
+import {
+  DEFAULT_AUTO_EXPOSURE,
+  NEUTRAL_KELVIN,
+  adaptEv100,
+  ev100FromAverageLuminance,
+  exposureFromEv100,
+  targetEv100FromHistogram,
+  whiteBalanceGains,
+  type AutoExposureSettings,
+} from "./exposure.js";
 import {
   ParticlePass,
   FIRE_PRESET,
@@ -353,6 +379,32 @@ export class WebGpuLiveRenderer implements LiveRenderer {
   private probesEnabled = false;
   private probeGrid: ProbeGridParams = { spacing: 16, heightAboveGround: 1.5, layerSpacing: 12 };
 
+  // ─── Natural-light tier (sky-model / env-lighting / auto-exposure) ──
+  // Off by default: a scene renders exactly as before until a host calls
+  // setNaturalLight(). See docs/LIGHTING.md.
+  private natural: ResolvedNaturalLight | null = null;
+  private envLighting: EnvironmentLighting | null = null;
+  private physicalSky: PhysicalSkyPass | null = null;
+  private exposureMeter: AutoExposureMeter | null = null;
+  private dummyEnvCube: GPUTexture | null = null;
+  private dummyEnvCubeView: GPUTextureView | null = null;
+  private envSampler: GPUSampler | null = null;
+  private dfgLut: GPUTexture | null = null;
+  private dfgView: GPUTextureView | null = null;
+  private skyModel: SkyModel | null = null;
+  private skyModelKey = "";
+  private envDirty = true;
+  /** env.generation the frame bind groups were built against. */
+  private boundEnvGeneration = -1;
+  private ev100 = Number.NaN;
+  private preExposure = 1;
+  private skyPacked = new Float32Array(SKY_MODEL_FLOATS);
+  private lastNaturalFrameMs = 0;
+  /** Sky-only horizontal illuminance of the current model (lux), for HUDs/tests. */
+  private skyHorizontalLux = 0;
+  /** Lighting quality preset last applied (setLightingPreset). */
+  private lightingPreset: LightingPreset | null = null;
+
   /** Image-based lighting proxy — hemisphere irradiance used as ambient. */
   private iblEnabled = false;
   private iblIrradiance: Vec3 = [0.22, 0.24, 0.28];
@@ -547,6 +599,26 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     });
     this.device.queue.writeBuffer(this.probeBuffer, 0, this.probeRing.data as BufferSource);
+    // Natural-light bindings exist in every frame bind group (like the probe
+    // ring): a 1×1 cube + the DFG LUT, so turning the tier on never changes a
+    // pipeline layout.
+    this.dummyEnvCube = this.device.createTexture({
+      label: "env/off",
+      size: [1, 1, 6],
+      format: "rgba16float",
+      usage: GPUTextureUsage.TEXTURE_BINDING,
+    });
+    this.dummyEnvCubeView = this.dummyEnvCube.createView({ dimension: "cube" });
+    this.envSampler = this.device.createSampler({
+      label: "env/material",
+      magFilter: "linear",
+      minFilter: "linear",
+      mipmapFilter: "linear",
+      addressModeU: "clamp-to-edge",
+      addressModeV: "clamp-to-edge",
+    });
+    this.dfgLut = createDfgLut(this.device);
+    this.dfgView = this.dfgLut.createView();
     const computeModule = this.device.createShaderModule({ code: SKINNING_COMPUTE_WGSL });
     this.skinComputePipeline = this.device.createComputePipeline({
       layout: "auto",
@@ -590,6 +662,8 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       addressModeV: "repeat",
     });
     this.initShadowResources();
+    if (this.natural) this.ensureNaturalResources();
+    if (this.lightingPreset) this.setLightingPreset(this.lightingPreset);
 
     this.ready = true;
   }
@@ -937,6 +1011,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         { binding: 1, resource: this.shadowView ?? this.dummyShadowView! },
         { binding: 2, resource: this.shadowSampler! },
         { binding: 3, resource: { buffer: this.probeBuffer! } },
+        ...this.envBindings(),
       ],
     });
     entry.shadowGen = this.shadowGen;
@@ -1076,6 +1151,144 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     this.iblEnabled = enabled;
     if (opts?.irradiance) this.iblIrradiance = opts.irradiance;
     if (opts?.intensity !== undefined) this.iblIntensity = opts.intensity;
+  }
+
+  // ─── Natural light ────────────────────────────────────────────────
+  /**
+   * Physically based natural lighting: an analytic sun + sky (Preetham /
+   * CIE overcast, sky-model.ts) drives the key light (lux), the visible sky,
+   * the diffuse ambient (SH9) and specular reflections (prefiltered cube),
+   * all regenerated when the sun or atmosphere changes; lighting is
+   * pre-exposed by a physical camera (auto EV100 histogram or manual) with
+   * white balance. Partial updates merge with the previous call, so a
+   * time-of-day slider only passes `sun`. `false` turns the tier off and the
+   * renderer is exactly as before. Safe before or after init().
+   */
+  setNaturalLight(opts: NaturalLightOptions | false): void {
+    if (opts === false || opts.enabled === false) {
+      this.natural = null;
+      this.shadowGen++;
+      return;
+    }
+    const merged: NaturalLightOptions = {
+      ...(this.natural?.options ?? {}),
+      ...opts,
+      exposure: { ...(this.natural?.options.exposure ?? {}), ...(opts.exposure ?? {}) },
+    };
+    this.natural = resolveNaturalLight(merged);
+    if (this.device) this.ensureNaturalResources();
+  }
+
+  /** Current natural-light state (null when the tier is off). */
+  getNaturalLightState(): NaturalLightState | null {
+    if (!this.natural || !this.skyModel) return null;
+    return {
+      ev100: this.ev100,
+      preExposure: this.preExposure,
+      sunDir: [...this.skyModel.sunDir] as Vec3,
+      sunElevationDeg: (Math.asin(this.skyModel.sunDir[1]) * 180) / Math.PI,
+      sunIlluminanceLux: luminance(this.skyModel.sunIlluminance) * this.natural.sunIntensity,
+      skyHorizontalLux: this.skyHorizontalLux,
+      envBakes: this.envLighting?.bakes ?? 0,
+      envSize: this.envLighting?.settings.size ?? 0,
+      preset: this.lightingPreset,
+    };
+  }
+
+  /**
+   * Quality preset for the natural-light tier and the shadow/AA settings it
+   * leans on (lighting-presets.ts). Medium is the Intel UHD default.
+   */
+  setLightingPreset(preset: LightingPreset): void {
+    this.lightingPreset = preset;
+    const p = LIGHTING_PRESETS[preset];
+    this.setShadowQuality(p.shadowQuality);
+    this.setShadowCascades(p.cascades);
+    this.setShadowRange(p.shadowRange);
+    this.envLighting?.configure({ size: p.envSize, samples: p.envSamples });
+    this.envDirty = true;
+  }
+
+  private ensureNaturalResources(): void {
+    if (!this.device) return;
+    const preset = LIGHTING_PRESETS[this.lightingPreset ?? "medium"];
+    this.envLighting ??= new EnvironmentLighting(this.device, { size: preset.envSize, samples: preset.envSamples });
+    this.physicalSky ??= new PhysicalSkyPass(this.device, "rgba16float", this.sampleCount);
+    this.exposureMeter ??= new AutoExposureMeter(this.device);
+    this.envDirty = true;
+  }
+
+  /** Frame bind group entries 4–6: env cube (or a 1×1 stand-in), sampler, DFG LUT. */
+  private envBindings(): GPUBindGroupEntry[] {
+    const cube = this.natural && this.envLighting ? this.envLighting.specularView : this.dummyEnvCubeView!;
+    return [
+      { binding: 4, resource: cube },
+      { binding: 5, resource: this.envSampler! },
+      { binding: 6, resource: this.dfgView! },
+    ];
+  }
+
+  /**
+   * Per-frame natural-light work: rebuild the sky model when the sun or
+   * atmosphere changed (and re-bake the environment), adapt exposure, and
+   * replace the scene's key/fill/ambient lights with the sun + sky.
+   */
+  private prepareNaturalLight(encoder: GPUCommandEncoder, lights: FrameLights, passTimer: PassTimestampSession | null, dt: number): NaturalFrame | null {
+    const n = this.natural;
+    const env = this.envLighting;
+    if (!n || !env) return null;
+    const key = `${n.sunDir.map((v) => v.toFixed(3)).join(",")}|${n.turbidity}|${n.cloudCover}|${n.groundAlbedo}|${n.skyIntensity}`;
+    if (key !== this.skyModelKey || !this.skyModel) {
+      this.skyModel = buildSkyModel({ sunDir: n.sunDir, turbidity: n.turbidity, cloudCover: n.cloudCover, groundAlbedo: n.groundAlbedo });
+      this.skyHorizontalLux = luminance(horizontalSkyIlluminance(this.skyModel, 16, 32)) * n.skyIntensity;
+      this.skyModelKey = key;
+      this.envDirty = true;
+    }
+    const model = this.skyModel;
+    if (this.envDirty) {
+      env.bakeSky(encoder, model, n.skyIntensity, 1024, passTimer ? passTimer.writes("env") : undefined);
+      this.envDirty = false;
+    }
+    if (env.generation !== this.boundEnvGeneration) {
+      this.boundEnvGeneration = env.generation;
+      this.shadowGen++; // frame bind groups rebuild against the new cube view
+    }
+
+    // Exposure: manual EV100, or adapt toward the last measured histogram.
+    const ae = n.autoExposure;
+    if (n.exposureMode === "manual") {
+      this.ev100 = n.manualEv100;
+    } else {
+      if (!Number.isFinite(this.ev100)) {
+        // First frame: meter an 18% grey world under this sun + sky.
+        const sunH = luminance(model.sunIlluminance) * n.sunIntensity * Math.max(model.sunDir[1], 0);
+        this.ev100 = Math.min(ae.maxEv100, Math.max(ae.minEv100, ev100FromAverageLuminance((0.18 * (sunH + this.skyHorizontalLux)) / Math.PI) + ae.compensation));
+      }
+      const latest = this.exposureMeter?.latest;
+      if (latest) {
+        const target = targetEv100FromHistogram(latest.counts, latest.preExposure, ae, this.exposureMeter!.layout);
+        if (target !== null) this.ev100 = adaptEv100(this.ev100, target, dt, ae);
+      }
+    }
+    this.preExposure = exposureFromEv100(this.ev100);
+    const wb = whiteBalanceGains(n.whiteBalanceK);
+
+    // The sun is the key light; the sky replaces fill + ambient lights.
+    const s = n.sunIntensity;
+    lights.key = { dir: [-model.sunDir[0], -model.sunDir[1], -model.sunDir[2]], radiance: [model.sunIlluminance[0] * s, model.sunIlluminance[1] * s, model.sunIlluminance[2] * s] };
+    lights.extraDirectional = [];
+    lights.ambient = null;
+    for (const l of lights.local) l.radiance = [l.radiance[0] * n.localLightScale, l.radiance[1] * n.localLightScale, l.radiance[2] * n.localLightScale];
+
+    const horizon = EnvironmentLighting.horizonRadiance(model);
+    const pre = this.preExposure;
+    packSkyModel(this.skyPacked, 0, model, [pre * wb[0], pre * wb[1], pre * wb[2]], 0, n.skyIntensity);
+    this.physicalSky?.setSkyModel(this.skyPacked);
+    return {
+      fogColor: [horizon[0] * n.skyIntensity, horizon[1] * n.skyIntensity, horizon[2] * n.skyIntensity],
+      exposure: [pre * wb[0], pre * wb[1], pre * wb[2], n.emissiveScale],
+      envParams: [1, env.specularMips - 1, n.skyIntensity, n.multiScatter ? 1 : 0],
+    };
   }
 
   // ─── Streamed irradiance probes ───────────────────────────────────
@@ -1326,6 +1539,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
         { binding: 1, resource: this.shadowView ?? this.dummyShadowView! },
         { binding: 2, resource: this.shadowSampler! },
         { binding: 3, resource: { buffer: this.probeBuffer! } },
+        ...this.envBindings(),
       ],
     });
     entry = { compiled, frameBuf, frameBindGroup, shadowGen: this.shadowGen };
@@ -1792,7 +2006,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
           this.iblIrradiance[2] * this.iblIntensity,
         ]
       : [0.18, 0.18, 0.22]);
-    const fogColor = opts.fogColor ?? opts.clearColor ?? [0, 0, 0];
+    let fogColor: Vec3 = opts.fogColor ?? opts.clearColor ?? [0, 0, 0];
     const fogDensity = opts.fogDensity ?? 0;
 
     const encoder = this.device.createCommandEncoder();
@@ -1880,8 +2094,14 @@ export class WebGpuLiveRenderer implements LiveRenderer {
 
     // ─── Lights + per-entity draw prep (shared by shadow + main pass) ───
     const lights = collectSceneLights(scene, lightDir, camPos as Vec3);
+    const nowMs = typeof performance !== "undefined" ? performance.now() : Date.now();
+    const naturalDt = opts.dt ?? (this.lastNaturalFrameMs > 0 ? Math.min(0.1, (nowMs - this.lastNaturalFrameMs) / 1000) : 1 / 60);
+    this.lastNaturalFrameMs = nowMs;
+    const natural = this.natural ? this.prepareNaturalLight(encoder, lights, passTimer, naturalDt) : null;
+    if (natural) fogColor = natural.fogColor;
     this.lastFrameLights = lights;
-    const frameAmbient = lights.ambient ?? ambient;
+    // Natural light: probes carry absolute irradiance (multiplier 1).
+    const frameAmbient = natural ? [1, 1, 1] as Vec3 : lights.ambient ?? ambient;
     const frameScratch = this.frameScratch;
     frameScratch.set(camVP, 0);
     // ambient.a carries the fog height falloff (0 = uniform fog); see augengine_fog_factor.
@@ -1899,6 +2119,20 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       packSkySpecular(frameScratch, FRAME_LAYOUT.skySpecSH, this.skyEnabled ? this.skyGradient : null, frameAmbient as Vec3, this.groundBounce);
     } else {
       frameScratch.fill(0, FRAME_LAYOUT.skySpecSH, FRAME_LAYOUT.skySpecSH + 12);
+    }
+    if (natural) {
+      // The env tier replaces the legacy gradient-sky ambient/specular.
+      frameScratch.fill(0, FRAME_LAYOUT.ambientSH, FRAME_LAYOUT.ambientSH + 12);
+      frameScratch.fill(0, FRAME_LAYOUT.skySpecSH, FRAME_LAYOUT.skySpecSH + 12);
+      packSh9(frameScratch, FRAME_LAYOUT.envSH, this.envLighting!.sh);
+      frameScratch.set(natural.envParams, FRAME_LAYOUT.envParams);
+      frameScratch.set(natural.exposure, FRAME_LAYOUT.exposure);
+    } else {
+      frameScratch.fill(0, FRAME_LAYOUT.envSH, FRAME_LAYOUT.envParams + 4);
+      frameScratch[FRAME_LAYOUT.exposure] = 1;
+      frameScratch[FRAME_LAYOUT.exposure + 1] = 1;
+      frameScratch[FRAME_LAYOUT.exposure + 2] = 1;
+      frameScratch[FRAME_LAYOUT.exposure + 3] = 1;
     }
     frameScratch[FRAME_LAYOUT.probeParams] = this.probesEnabled ? 1 : 0;
     frameScratch[FRAME_LAYOUT.probeParams + 1] = this.probeGrid.spacing;
@@ -2311,7 +2545,9 @@ export class WebGpuLiveRenderer implements LiveRenderer {
 
     // Sky after opaques. The triangle is on the far plane and tests equal to
     // the clear depth, so it fills only pixels the room did not cover.
-    if (this.skyPass && this.skyEnabled) {
+    if (natural && this.physicalSky && this.envLighting) {
+      this.physicalSky.encode(pass, camVP, this.envLighting.equirectView ?? this.envLighting.dummyEquirectView, 0, this.natural!.sunDisc);
+    } else if (this.skyPass && this.skyEnabled) {
       this.skyPass.encode(pass, camVP, camPos as Vec3);
     }
 
@@ -2363,6 +2599,11 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       // pass only (WebGPU scopes it per pass), so while water is active the
       // reported `gpu_ms` EXCLUDES the water pass. Do not publish that number
       // as a whole-frame cost in a scene with water.
+    }
+    // Auto-exposure: histogram of the finished (pre-exposed) HDR frame.
+    let exposureSlot = -1;
+    if (natural && hasPost && this.natural!.exposureMode === "auto" && this.exposureMeter) {
+      exposureSlot = this.exposureMeter.encode(encoder, hdrView, internal.width, internal.height, this.preExposure, passTimer ? passTimer.writes("exposure") : undefined);
     }
     let resolved = false;
     if (hasPost && temporalOn) {
@@ -2428,6 +2669,7 @@ export class WebGpuLiveRenderer implements LiveRenderer {
       ? performance.now()
       : 0;
     this.device.queue.submit([encoder.finish()]);
+    this.exposureMeter?.collect(exposureSlot);
     if (passTimer) {
       const passListener = this.passListener!;
       const frameListener = this.gpuMsListener;
@@ -2618,6 +2860,21 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     this.depthViewCached = null;
     this.skyPass?.destroy();
     this.skyPass = null;
+    this.physicalSky?.destroy();
+    this.physicalSky = null;
+    this.envLighting?.destroy();
+    this.envLighting = null;
+    this.exposureMeter?.destroy();
+    this.exposureMeter = null;
+    this.dummyEnvCube?.destroy();
+    this.dummyEnvCube = null;
+    this.dummyEnvCubeView = null;
+    this.dfgLut?.destroy();
+    this.dfgLut = null;
+    this.dfgView = null;
+    this.skyModelKey = "";
+    this.boundEnvGeneration = -1;
+    this.ev100 = Number.NaN;
     this.particlePass?.destroy();
     this.particlePass = null;
     this.waterPass?.destroy();
@@ -2730,6 +2987,131 @@ export interface ImageQualityOptions {
    * prefiltered per roughness + an analytic environment BRDF. Off by default.
    */
   skySpecular?: boolean;
+}
+
+/** Where the sun is: geographic time of day, explicit angles, or a direction. */
+export type SunSpec =
+  | { latitudeDeg: number; dayOfYear: number; solarHour: number }
+  | { elevationDeg: number; azimuthDeg: number }
+  | { direction: Vec3 };
+
+export interface NaturalLightOptions {
+  /** false turns the tier off (same as setNaturalLight(false)). */
+  enabled?: boolean;
+  /** Sun position. Default: 52°N, day 172, 14:00 solar. */
+  sun?: SunSpec;
+  /** Atmospheric turbidity 1.7–10 (default 2.5, a clear day). */
+  turbidity?: number;
+  /** 0 clear … 1 fully overcast (sun hidden). Default 0. */
+  cloudCover?: number;
+  groundAlbedo?: number;
+  /** Multiplier on sky radiance (background, ambient, reflections). Default 1. */
+  skyIntensity?: number;
+  /** Multiplier on the sun's illuminance. Default 1. */
+  sunIntensity?: number;
+  exposure?: {
+    mode?: "auto" | "manual";
+    /** Manual EV100 (default 14, a bright day). */
+    ev100?: number;
+    /** Added to the metered EV100 in auto mode (+1 = one stop darker). */
+    compensation?: number;
+    minEv100?: number;
+    maxEv100?: number;
+    speedUp?: number;
+    speedDown?: number;
+  };
+  /** Camera white balance in kelvin (6504 = neutral). */
+  whiteBalanceK?: number;
+  /** Scale on emissive + unlit colours (1 = display-referred, unaffected by exposure). */
+  emissiveScale?: number;
+  /**
+   * Scene point/spot light intensities are display-referred; in physical
+   * units they are multiplied by this (default 50: intensity 1 ≈ 10 lux at 2 m).
+   */
+  localLightScale?: number;
+  /** Multiple-scattering energy compensation on PBR specular (default true). */
+  multiScatter?: boolean;
+  /** Draw the sun disc in the visible sky (default true). */
+  sunDisc?: boolean;
+}
+
+interface ResolvedNaturalLight {
+  options: NaturalLightOptions;
+  sunDir: Vec3;
+  turbidity: number;
+  cloudCover: number;
+  groundAlbedo: number;
+  skyIntensity: number;
+  sunIntensity: number;
+  exposureMode: "auto" | "manual";
+  manualEv100: number;
+  autoExposure: AutoExposureSettings;
+  whiteBalanceK: number;
+  emissiveScale: number;
+  localLightScale: number;
+  multiScatter: boolean;
+  sunDisc: boolean;
+}
+
+/** Fill natural-light defaults and resolve the sun to a direction. */
+export function resolveNaturalLight(o: NaturalLightOptions): ResolvedNaturalLight {
+  const sun = o.sun ?? { latitudeDeg: 52, dayOfYear: 172, solarHour: 14 };
+  let sunDir: Vec3;
+  if ("direction" in sun) {
+    const l = Math.hypot(sun.direction[0], sun.direction[1], sun.direction[2]) || 1;
+    sunDir = [sun.direction[0] / l, sun.direction[1] / l, sun.direction[2] / l];
+  } else if ("elevationDeg" in sun) {
+    sunDir = sunFromAngles(sun.elevationDeg, sun.azimuthDeg).dir;
+  } else {
+    sunDir = sunPosition(sun).dir;
+  }
+  const e = o.exposure ?? {};
+  const fin = (v: number | undefined, d: number) => (v !== undefined && Number.isFinite(v) ? v : d);
+  return {
+    options: o,
+    sunDir,
+    turbidity: fin(o.turbidity, 2.5),
+    cloudCover: fin(o.cloudCover, 0),
+    groundAlbedo: fin(o.groundAlbedo, 0.2),
+    skyIntensity: fin(o.skyIntensity, 1),
+    sunIntensity: fin(o.sunIntensity, 1),
+    exposureMode: e.mode === "manual" ? "manual" : "auto",
+    manualEv100: fin(e.ev100, 14),
+    autoExposure: {
+      ...DEFAULT_AUTO_EXPOSURE,
+      compensation: fin(e.compensation, DEFAULT_AUTO_EXPOSURE.compensation),
+      minEv100: fin(e.minEv100, DEFAULT_AUTO_EXPOSURE.minEv100),
+      maxEv100: fin(e.maxEv100, DEFAULT_AUTO_EXPOSURE.maxEv100),
+      speedUp: fin(e.speedUp, DEFAULT_AUTO_EXPOSURE.speedUp),
+      speedDown: fin(e.speedDown, DEFAULT_AUTO_EXPOSURE.speedDown),
+    },
+    whiteBalanceK: fin(o.whiteBalanceK, NEUTRAL_KELVIN),
+    emissiveScale: fin(o.emissiveScale, 1),
+    localLightScale: fin(o.localLightScale, 50),
+    multiScatter: o.multiScatter !== false,
+    sunDisc: o.sunDisc !== false,
+  };
+}
+
+/** Per-frame values prepareNaturalLight hands to the frame uniform. */
+interface NaturalFrame {
+  fogColor: Vec3;
+  exposure: [number, number, number, number];
+  envParams: [number, number, number, number];
+}
+
+export interface NaturalLightState {
+  ev100: number;
+  preExposure: number;
+  sunDir: Vec3;
+  sunElevationDeg: number;
+  /** Sun illuminance on a surface facing it (lux). */
+  sunIlluminanceLux: number;
+  /** Sky-only illuminance on a horizontal surface (lux). */
+  skyHorizontalLux: number;
+  envBakes: number;
+  envSize: number;
+  preset: LightingPreset | null;
 }
 
 /** Post look knobs shared by both backends (B maps what three supports). */

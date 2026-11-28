@@ -50,11 +50,15 @@ export function textureInfo(mat: any, slot: TextureSlot): { index: number; texCo
   }
 }
 
-/** Image index a texture draws from: the plain `source`, or the KHR_texture_basisu one. */
+/**
+ * Image index a texture draws from: the plain `source` (the fallback image
+ * when an extension is also present), else the EXT_texture_webp or
+ * KHR_texture_basisu one.
+ */
 export function textureImage(set: LodMaterialSet, textureIndex: number): number | undefined {
   const t = set.textures[textureIndex];
   if (!t) return undefined;
-  return t.source ?? t.extensions?.KHR_texture_basisu?.source;
+  return t.source ?? t.extensions?.EXT_texture_webp?.source ?? t.extensions?.KHR_texture_basisu?.source;
 }
 
 export function hasAnyTexture(set: LodMaterialSet): boolean {

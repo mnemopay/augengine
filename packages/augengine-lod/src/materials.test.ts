@@ -123,19 +123,30 @@ describe("materials carried through the bake", () => {
     }
   });
 
-  it("locks the UV seam: every seam vertex survives LOD1 with both of its UVs", async () => {
+  it("keeps the UV seam closed: seam vertices keep both UVs, no triangle wraps across u = 0/1", async () => {
     const src = texturedSphere();
     const r = await bakeLods(src, { materials: sphereSet() });
-    const lod1 = r.levels[1]!.mesh;
+    expect(r.seams!.mode).toBe("preserve");
     const f = (x: number) => (Math.round(x * 1e4) / 1e4 + 0).toFixed(4); // + 0 turns -0 into 0
-    const have = new Set<string>();
-    for (let v = 0; v < lod1.positions.length / 3; v++) have.add(`${f(lod1.positions[v * 3]!)},${f(lod1.positions[v * 3 + 2]!)},${f(lod1.positions[v * 3 + 1]!)}|${lod1.uvs[v * 2]!.toFixed(3)}`);
-    // Seam column: phi = 0, i.e. z = 0, x > 0, u = 0 and u = 1 (poles excluded: degenerate there).
-    for (let r2 = 1; r2 < 24; r2++) {
-      const th = (r2 / 24) * Math.PI;
-      const p = `${f(Math.sin(th))},${f(0)},${f(Math.cos(th))}`;
-      expect(have.has(`${p}|0.000`)).toBe(true);
-      expect(have.has(`${p}|1.000`)).toBe(true);
+    for (const l of r.levels.slice(1, 3)) {
+      const m = l.mesh;
+      expect(l.uvIslandBreaks).toBe(0);
+      const uAt = new Map<string, Set<string>>();
+      for (let v = 0; v < m.positions.length / 3; v++) {
+        // Seam meridian (z = 0, x > 0). The rings next to the poles are skipped: the pole fans are
+        // degenerate in the source itself (a ring of coincident pole vertices), so not a clean seam.
+        const onSeam = Math.abs(m.positions[v * 3 + 2]!) < 1e-5 && m.positions[v * 3]! > 1e-3 && Math.abs(m.positions[v * 3 + 1]!) < 0.9;
+        if (!onSeam) continue;
+        const k = `${f(m.positions[v * 3]!)},${f(m.positions[v * 3 + 1]!)}`;
+        if (!uAt.has(k)) uAt.set(k, new Set());
+        uAt.get(k)!.add(m.uvs[v * 2]!.toFixed(3));
+      }
+      expect(uAt.size).toBeGreaterThan(0);
+      for (const [k, us] of uAt) expect([k, ...[...us].sort()]).toEqual([k, "0.000", "1.000"]);
+      for (let t = 0; t < m.indices.length; t += 3) {
+        const u = [0, 1, 2].map((k) => m.uvs[m.indices[t + k]! * 2]!);
+        expect(Math.max(...u) - Math.min(...u)).toBeLessThan(0.5);
+      }
     }
   });
 

@@ -14,6 +14,7 @@ export * from "./manifest.js";
 export * from "./kit/index.js";
 export * from "./material.js";
 export * from "./impostor.js";
+export * from "./seams.js";
 export { decodePng, encodePngStored, encodePngWith, isPng, imageSize, type RgbaImage, type Inflate, type Deflate } from "./png.js";
 export { MeshBuilder, rng } from "./builder.js";
 

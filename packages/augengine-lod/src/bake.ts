@@ -23,13 +23,18 @@
  *
  * Simplification runs on a welded copy: vertices merge when position,
  * material, colour, UV (textured / `preserveUvSeams`) and — for smooth
- * chains — normal all match, so meshoptimizer sees connected surfaces. Where
- * the weld keeps vertices apart (a UV, material, colour or hard-normal seam)
- * meshoptimizer keeps the seam closed; `uvSeams: "lock"` (the default for
- * textured input) also pins every seam vertex so texture islands cannot
- * slide. UVs, normals and colours are passed as weighted attributes
+ * chains — normal all match, so meshoptimizer sees connected surfaces. UVs,
+ * normals and colours are passed as weighted attributes
  * (`simplifyWithAttributes`), so collapses that would smear a texture or bend
  * shading cost error like geometric ones do.
+ *
+ * UV seams (see seams.ts). Near-identical UV wedges (under half a texel by
+ * default, `seamWeld`) are snapped together first. Real seams are kept
+ * closed by meshoptimizer: a seam vertex only slides along its seam with
+ * both wedges, junctions stay put, so every corner keeps a UV from its own
+ * island. `uvSeams: "lock"` additionally pins the junctions explicitly;
+ * "permissive" lets collapses cross seams (more reduction, texture
+ * stretching, counted in `uvIslandBreaks`).
  */
 import { MeshoptSimplifier, type SimplifierFlags } from "meshoptimizer";
 import { MeshBuilder } from "./builder.js";
@@ -49,8 +54,9 @@ import {
 } from "./mesh.js";
 import { compactVertices, withSmoothNormals } from "./smooth.js";
 import { buildImpostor, type ImpostorKind, type ImpostorOut, type ImpostorTexture } from "./impostor.js";
-import { hasAnyTexture, type LodImage, type LodMaterialSet } from "./material.js";
-import type { RgbaImage } from "./png.js";
+import { hasAnyTexture, textureImage, type LodImage, type LodMaterialSet } from "./material.js";
+import { imageSize, type RgbaImage } from "./png.js";
+import { seamClasses, SEAM_JUNCTION, uvIslandBreaks, uvIslands, weldUvSeams, type SeamStats } from "./seams.js";
 
 export { compactVertices, withSmoothNormals } from "./smooth.js";
 
@@ -62,12 +68,23 @@ export interface BakeOptions {
   /** Keep UV seams (weld by UV too). Implied when `materials` has textures. */
   preserveUvSeams?: boolean;
   /**
-   * UV/material seams: "lock" pins seam vertices (no texture swimming, less
-   * reduction on heavily chopped atlases); "preserve" lets meshoptimizer
-   * collapse along a seam while keeping it closed. Default "lock" when
-   * textured, else "preserve".
+   * UV/material seams. "preserve" (default): seams stay closed and every
+   * corner keeps a UV from its own island; seam vertices may slide along the
+   * seam, junctions stay. "lock": also pin seam junctions (three or more UV
+   * islands, or a material boundary) explicitly, not every vertex with a UV
+   * split as 0.2.0-alpha.0 did. "permissive": allow collapses across seams
+   * (meshoptimizer `Permissive`): far more reduction on heavily cut atlases,
+   * but triangles that span two islands stretch the texture
+   * (`LodLevelOut.uvIslandBreaks` counts them).
    */
-  uvSeams?: "lock" | "preserve";
+  uvSeams?: "lock" | "preserve" | "permissive";
+  /**
+   * Seam-weld pre-pass: snap UV wedges at the same position that differ by
+   * less than this many texels of the material's baseColor image (1/4096 of
+   * UV space when the size is unknown). Default 0.5; 0 or false turns it off.
+   * Only the simplification input changes; LOD0 keeps the authored UVs.
+   */
+  seamWeld?: number | false;
   /** Never move open-border vertices (for tiles that must meet neighbours). */
   lockBorder?: boolean;
   /**
@@ -102,6 +119,11 @@ export interface LodLevelOut {
   /** Relative error reported by meshoptimizer (0 for LOD0 and the impostor). */
   error: number;
   kind: "source" | "simplified" | "impostor";
+  /**
+   * Simplified levels of a UV-aware bake: triangles whose corners come from
+   * different UV islands (each stretches the texture). 0 unless `uvSeams: "permissive"`.
+   */
+  uvIslandBreaks?: number;
 }
 
 export interface BakeResult {
@@ -112,6 +134,8 @@ export interface BakeResult {
   shading: "flat" | "smooth";
   /** The impostor's material, atlas and layout (absent with `impostor: false`). */
   impostor?: ImpostorOut & { kind: ImpostorKind };
+  /** UV-aware bakes: the seam mode, the welded mesh's seam counts and how many corners the seam weld snapped. */
+  seams?: SeamStats & { mode: "lock" | "preserve" | "permissive"; snapped: number };
   warnings: string[];
 }
 
@@ -133,7 +157,14 @@ export async function bakeLods(source: KitMesh, opts: BakeOptions = {}): Promise
   const levels: LodLevelOut[] = [{ level: 0, mesh: lod0, triangles: triangleCount(lod0), error: 0, kind: "source" }];
 
   const byUv = textured || (opts.preserveUvSeams ?? false);
-  const welded = weldFull(lod0, { byUv, byNormal: shading === "smooth" });
+  const mode = opts.uvSeams ?? "preserve";
+  let simplifyInput = lod0, snapped = 0;
+  if (byUv && opts.seamWeld !== false && opts.seamWeld !== 0) {
+    const texels = opts.seamWeld ?? 0.5;
+    const size = baseColorSizes(opts.materials);
+    ({ mesh: simplifyInput, snapped } = weldUvSeams(lod0, (mat) => texels / (size.get(mat) ?? 4096)));
+  }
+  const welded = weldFull(simplifyInput, { byUv, byNormal: shading === "smooth" });
   const colorsVary = varies(welded.mesh.colors, 4);
   const w = {
     uv: byUv ? (opts.weights?.uv ?? 1) : 0,
@@ -141,14 +172,20 @@ export async function bakeLods(source: KitMesh, opts: BakeOptions = {}): Promise
     color: colorsVary ? (opts.weights?.color ?? 1) : 0,
   };
   const attr = attributeStream(welded.mesh, w);
-  const lockSeams = (opts.uvSeams ?? (textured ? "lock" : "preserve")) === "lock";
-  const lock = lockSeams ? seamLocks(welded.mesh) : null;
+  const seam = byUv ? seamClasses(welded.mesh, welded.vertexMaterial) : null;
+  const islands = byUv ? uvIslands(welded.mesh, welded.vertexMaterial) : null;
+  let lock: Uint8Array | null = null;
+  if (mode === "lock" && seam) {
+    lock = new Uint8Array(seam.classes.length);
+    for (let v = 0; v < lock.length; v++) if (seam.classes[v] === SEAM_JUNCTION) lock[v] = 1;
+  }
   const baseTris = triangleCount(lod0);
   for (const step of [0, 1] as const) {
     const target = Math.max(3, Math.floor(baseTris * ratios[step]) * 3);
     const flags: SimplifierFlags[] = [];
     if (opts.lockBorder) flags.push("LockBorder");
     if (step === 1) flags.push("Prune");
+    if (mode === "permissive") flags.push("Permissive");
     const [idx, err] = attr.stride > 0 || lock
       ? MeshoptSimplifier.simplifyWithAttributes(welded.mesh.indices, welded.mesh.positions, 3, attr.data, attr.stride, attr.weights, lock, target, maxError[step], flags)
       : MeshoptSimplifier.simplify(welded.mesh.indices, welded.mesh.positions, 3, target, maxError[step], flags);
@@ -157,10 +194,14 @@ export async function bakeLods(source: KitMesh, opts: BakeOptions = {}): Promise
     for (let t = 0; t < triMat.length; t++) triMat[t] = welded.vertexMaterial[idx[t * 3]!]!;
     const grouped = { ...welded.mesh, ...regroup(idx, triMat) };
     let mesh = shading === "flat" ? flatShade(removeDegenerates(grouped)) : compactVertices(removeDegenerates(grouped));
+    let breaks = islands ? uvIslandBreaks(idx, islands) : undefined;
     // Never let a coarser level end up with more triangles than the one before it.
     const prev = levels[levels.length - 1]!;
-    if (triangleCount(mesh) >= prev.triangles) mesh = prev.mesh;
-    levels.push({ level: (step + 1) as 1 | 2, mesh, triangles: triangleCount(mesh), error: err, kind: "simplified" });
+    if (triangleCount(mesh) >= prev.triangles) { mesh = prev.mesh; breaks = islands ? (prev.uvIslandBreaks ?? 0) : undefined; }
+    levels.push({ level: (step + 1) as 1 | 2, mesh, triangles: triangleCount(mesh), error: err, kind: "simplified", ...(breaks !== undefined ? { uvIslandBreaks: breaks } : {}) });
+  }
+  if (levels.some((l) => (l.uvIslandBreaks ?? 0) > 0)) {
+    warnings.push(`uvSeams "${mode}": ${levels.slice(1).map((l) => l.uvIslandBreaks ?? 0).join(" / ")} triangles (LOD1 / LOD2) span two UV islands and stretch the texture`);
   }
   let impostorOut: BakeResult["impostor"];
   if (opts.impostor !== false) {
@@ -176,7 +217,26 @@ export async function bakeLods(source: KitMesh, opts: BakeOptions = {}): Promise
     impostorOut = { ...out, kind };
     levels.push({ level: 3, mesh: out.mesh, triangles: triangleCount(out.mesh), error: 0, kind: "impostor" });
   }
-  return { levels, bounds: b, radius, shading, ...(impostorOut ? { impostor: impostorOut } : {}), warnings };
+  return {
+    levels, bounds: b, radius, shading,
+    ...(impostorOut ? { impostor: impostorOut } : {}),
+    ...(seam ? { seams: { ...seam.stats, mode, snapped } } : {}),
+    warnings,
+  };
+}
+
+/** Larger side of each material's baseColor image, where its header can be read. */
+function baseColorSizes(set: LodMaterialSet | undefined): Map<number, number> {
+  const out = new Map<number, number>();
+  if (!set) return out;
+  set.materials.forEach((m, i) => {
+    const ti = m?.pbrMetallicRoughness?.baseColorTexture;
+    const img = ti ? textureImage(set, ti.index) : undefined;
+    const src = img !== undefined ? set.images[img] : undefined;
+    const size = src && src.bytes.length > 0 ? imageSize(src.bytes, src.mimeType) : null;
+    if (size) out.set(i, Math.max(size.width, size.height));
+  });
+  return out;
 }
 
 /**
@@ -204,6 +264,7 @@ function weldFull(m: KitMesh, o: { byUv: boolean; byNormal: boolean }): { mesh: 
   // near-identical normals never split on a rounding boundary while real
   // hard edges (> ~2.5 deg) stay apart.
   const clusters = new Map<string, number[]>();
+  const canonical = new Map<string, number>();
   const normalCluster = (v: number, posKey: string): number => {
     const list = clusters.get(posKey) ?? [];
     const nx = m.normals[v * 3]!, ny = m.normals[v * 3 + 1]!, nz = m.normals[v * 3 + 2]!;
@@ -227,7 +288,12 @@ function weldFull(m: KitMesh, o: { byUv: boolean; byNormal: boolean }): { mesh: 
     if (id === undefined) {
       id = P.length / 3;
       map.set(key, id);
-      P.push(m.positions[v * 3]!, m.positions[v * 3 + 1]!, m.positions[v * 3 + 2]!);
+      // Wedges of one position get bit-identical coordinates: meshoptimizer
+      // pairs seam sides by exact position, so 1e-7 float noise (cos(2*pi)
+      // vs cos(0)) would turn a seam into two open borders that crack apart.
+      let canon = canonical.get(posKey);
+      if (canon === undefined) { canon = v; canonical.set(posKey, v); }
+      P.push(m.positions[canon * 3]!, m.positions[canon * 3 + 1]!, m.positions[canon * 3 + 2]!);
       N.push(m.normals[v * 3]!, m.normals[v * 3 + 1]!, m.normals[v * 3 + 2]!);
       UV.push(m.uvs[v * 2]!, m.uvs[v * 2 + 1]!);
       C.push(m.colors[v * 4]!, m.colors[v * 4 + 1]!, m.colors[v * 4 + 2]!, m.colors[v * 4 + 3]!);
@@ -266,17 +332,6 @@ function attributeStream(m: KitMesh, w: { uv: number; normal: number; color: num
     o += p.n;
   }
   return { data, stride, weights };
-}
-
-/** 1 for every welded vertex that shares its position with another (a UV / material / colour / hard-normal seam). */
-function seamLocks(m: KitMesh): Uint8Array {
-  const count = m.positions.length / 3;
-  const byPos = new Map<string, number>();
-  const key = (v: number) => `${Math.round(m.positions[v * 3]! * 1e4)},${Math.round(m.positions[v * 3 + 1]! * 1e4)},${Math.round(m.positions[v * 3 + 2]! * 1e4)}`;
-  for (let v = 0; v < count; v++) { const k = key(v); byPos.set(k, (byPos.get(k) ?? 0) + 1); }
-  const lock = new Uint8Array(count);
-  for (let v = 0; v < count; v++) if (byPos.get(key(v))! > 1) lock[v] = 1;
-  return lock;
 }
 
 /** The bounds box (bottom face omitted), one colour, flat normals: 10 triangles. */

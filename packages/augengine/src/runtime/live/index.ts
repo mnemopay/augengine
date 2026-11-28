@@ -8,7 +8,65 @@ export {
   type RendererFrameStats,
   type LookOptions,
   type ImageQualityOptions,
+  type NaturalLightOptions,
+  type NaturalLightState,
+  type SunSpec,
+  resolveNaturalLight,
 } from "./webgpu/renderer.js";
+export {
+  sunPosition,
+  sunFromAngles,
+  solarDeclination,
+  buildSkyModel,
+  skyRadianceAt,
+  horizontalSkyIlluminance,
+  sunIlluminanceClear,
+  iesClearSky,
+  preethamCoefficients,
+  preethamZenith,
+  airMass,
+  PREETHAM_CALIBRATION,
+  SOLAR_ILLUMINANCE_EXTRATERRESTRIAL,
+  SUN_ANGULAR_DIAMETER_DEG,
+  type SkyParams,
+  type SkyModel,
+  type SunPosition,
+  type SunPositionInput,
+} from "./webgpu/sky-model.js";
+export {
+  projectSh9,
+  projectEquirectSh9,
+  convolveSh9Diffuse,
+  evalSh9,
+  equirectDirection,
+  type Sh9,
+} from "./webgpu/sh9.js";
+export {
+  ev100FromCamera,
+  ev100FromAverageLuminance,
+  exposureFromEv100,
+  histogramBin,
+  histogramAverageLog2,
+  targetEv100FromHistogram,
+  adaptEv100,
+  planckianXy,
+  kelvinToLinearSrgb,
+  whiteBalanceGains,
+  DEFAULT_AUTO_EXPOSURE,
+  DEFAULT_HISTOGRAM,
+  NEUTRAL_KELVIN,
+  type AutoExposureSettings,
+  type HistogramLayout,
+} from "./webgpu/exposure.js";
+export { EnvironmentLighting, type EnvBakeSettings, type EquirectImage } from "./webgpu/env-lighting.js";
+export { integrateDfg, envIblResponse, DFG_LUT_SIZE } from "./webgpu/ibl-brdf.js";
+export {
+  LIGHTING_PRESETS,
+  LIGHTING_PRESET_NAMES,
+  isLightingPreset,
+  type LightingPreset,
+  type LightingPresetSettings,
+} from "./webgpu/lighting-presets.js";
 export {
   TemporalResolver,
   halton,
