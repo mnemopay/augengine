@@ -23,6 +23,10 @@ export interface NetSnapshot {
   entities: NetEntity[];
   /** Optional deltas-only payload — if present, applied on top of last snapshot. */
   delta?: boolean;
+  /** Server clock (ms) the snapshot describes, for client interpolation. */
+  serverTime?: number;
+  /** Game events since the previous snapshot (hits, spawns), schema per game. */
+  events?: Array<Record<string, unknown>>;
 }
 
 export interface NetEntity {

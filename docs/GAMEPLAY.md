@@ -180,3 +180,178 @@ misses; an enemy paths around a wall with augengine-nav and attacks).
 Engine fix found while building this: compute skinning wrote one output buffer per mesh, so
 two characters from the same .glb drew as one. Each skinned entity now has its own buffer
 (e2e "two instances of one skinned mesh", which fails on the old renderer).
+
+## 3. World tooling (runtime)
+
+```ts
+import { PrefabLibrary, TriggerSystem, Spawner, CheckpointTracker, generateTerrain, scatter, grassTuftMesh } from "@mnemopay/augengine/gameplay";
+
+const lib = new PrefabLibrary();
+for (const p of levelJson.prefabs) lib.register(p);          // validated; throws PrefabError listing every problem
+const layout = lib.instantiate(scene, "arena", { position: [0, 0, 0], yaw: 0 }, "level");
+const triggers = new TriggerSystem();
+layout.triggers.forEach((t) => triggers.add(t));
+const spawners = layout.spawners.map((s) => new Spawner(s));
+const checkpoints = new CheckpointTracker(layout.checkpoints, startPoint);
+
+const terrain = generateTerrain({ seed: 4, size: 90, cells: 72, amplitude: 3.6, flatRadius: 12, rim: 6 });
+scene.add({ id: "terrain", name: "terrain", components: { transform: { position: [0, 0, 0], rotation: [0, 0, 0, 1], scale: [1, 1, 1], parent: null },
+  mesh: { geometry: { kind: "procedural", seed: 4, generator: "terrain" }, material: { kind: "pbr", baseColor: [1, 1, 1], metallic: 0, roughness: 0.95 }, visible: true },
+  collider: terrain.collider } });                             // Rapier heightfield; the controller and raycast read it too
+renderer.uploadMesh("proc:terrain:4", terrain.mesh(), 8);
+renderer.uploadMesh("proc:grass:0", grassTuftMesh(11), 8);
+for (const g of scatter(terrain, { seed: 31, count: 700, minSpacing: 0.9, minNormalY: 0.82, alignToNormal: 0.5 }))
+  scene.add({ /* mesh: { geometry: { kind: "procedural", seed: 0, generator: "grass" }, … } at g.position/rotation/scale */ });
+```
+
+- **Prefabs** (`PrefabLibrary`, `parsePrefab`): an entity tree with local ids, transforms
+  (`position`, `rotation` or `yaw` in degrees, `scale`), scene components copied as-is,
+  nested prefabs (cycles rejected with the chain in the message), per-instance `overrides`
+  by local path ("entrance/base") that shallow-patch components without touching the
+  registered spec. Colliders and rigid bodies are flattened to world-space roots on
+  instantiation (physics requires roots); visual children keep their hierarchy. Validation
+  reports every problem with its JSON path (unknown component, non-unit quaternion,
+  duplicate id, unknown parent, parent cycle, bad trigger/spawner fields).
+- **Gameplay entries** ride on prefab entities under `gameplay` and come back placed in
+  world space: `trigger` (box/sphere, `event`, `once`), `spawner` (`kind`, `points`,
+  `interval`, `maxAlive`, `count`, `activateOn`, `seed`), `checkpoint` (`order`, `radius`).
+- **`TriggerSystem`**: enter/exit events per subject; `once` triggers fire one enter and go
+  quiet. **`Spawner`**: spawns on its interval, never above `maxAlive` alive or `count` in
+  total, points from a seeded shuffle bag, at most one interval of credit while capped (no
+  burst when a slot frees). **`CheckpointTracker`**: only forward progress counts;
+  `respawnPoint()`. All pure and deterministic.
+- **`generateTerrain`**: seeded fBm heights with an optional flat disc and raised rim; the
+  collider, the render mesh (vertex-coloured grass/dirt/rock by slope and height) and
+  `heightAt`/`normalAt` all use Rapier's cell split, so they agree (tested against Rapier
+  raycasts to < 2 mm). **`scatter`**: seeded dart throwing with a spatial hash; min spacing,
+  slope and height filters, avoid zones, scale range, tilt-to-normal, sink.
+  **`grassTuftMesh`/`rockMesh`**: small procedural meshes. Entities that share a mesh key are
+  instanced by the renderer automatically (groups of 4+): in the demo, 750 scatter entities
+  draw in 6 instanced draws.
+
+Demo: 90 m terrain (72x72 cells) with a flat 12 m combat disc and a raised rim, 46 rocks (21
+large ones get sphere colliders and block nav), 700 grass tufts, four standing stones from a
+nested prefab, a sphere trigger at the centre that activates two spawners (one enemy alive
+each), two checkpoints (respawn after death). The nav grid marks stones, big rocks and
+terrain steeper than normal.y 0.72. All of it is in `examples/arena/src/level.json` and
+`level.ts`.
+
+Engine changes found while building this (each with tests):
+
+- **Scene transform cache**: moving a childless root (sensors, sparks, cameras, props) now
+  patches its world matrix in place instead of dirtying the whole scene, and moving joints
+  refreshes matrices along the cached parent-first order instead of re-sorting every entity
+  (a re-parent behind the cache's back is detected and falls back to a full pass). In the
+  arena this took the hurtbox sync from 6.4 ms to 0.5–0.8 ms per step and hit queries from
+  0.9 to 0.1 ms.
+- **PhysicsSystem** validated every heightfield sample on every fixed step; it now checks
+  each heights array once.
+- **augengine-nav A\***: binary-heap open set with numeric keys, allocation-free neighbour
+  loop (was a linear scan of a Map plus a string key per neighbour). Same API, optimal
+  paths (tested against Dijkstra). Measured on Node 25 (warm): a 12 m detour round a
+  stone 150 → 7 ms, a blocked goal at a 4 000-node cap 234 → 57 ms, a 180x180 grid detour
+  900 → 480 ms. The arena also snaps start/goal to the nearest free cell, because a player
+  standing against a stone put the goal inside the stone's margin and every re-plan ran to
+  the cap: per-call cost went from 42 ms mean / 244 ms max to about 1.5 ms mean / 17 ms max.
+
+## 4. Multiplayer proof (two clients, authoritative server)
+
+Not part of `./gameplay`: the transport lives in the private `augengine-net` package and the
+server in the demo. What exists:
+
+- **`augengine-net` WebSocket transport** (`createWsServer`, `WsNetServerTransport`,
+  `WsNetClientTransport`): the engine's typed protocol (`join` / `input` / `ping` →
+  `welcome` / `snapshot` / `pong`) over a minimal RFC 6455 server on `node:http` and
+  `node:crypto` (no dependency: fragmentation, ping/pong, close, 16/64-bit lengths, mask
+  enforcement, size cap) and the global `WebSocket` on the client (browsers, Node 22+).
+  Optional injected latency/jitter per direction, order preserved. WebSocket rather than
+  the existing WebTransport adapter because WebTransport on the server needs Node's
+  experimental QUIC and TLS certificates even on localhost.
+- **`ClockSync`** (server-time estimate from the lowest-RTT pings) and **`SnapshotBuffer`**
+  (linear position, short-arc yaw, discrete fields from the earlier snapshot, capped
+  extrapolation, underrun/extrapolation counters).
+- **Arena server** (`examples/arena/server/arena-server.ts`, `npx tsx server/arena-server.ts
+  [--port 5296] [--lag ms] [--jitter ms]`): runs the same `ArenaSim` as single-player in Node
+  (terrain, Rapier, players, enemies, AI, combat, spawners) at 60 Hz and broadcasts a
+  snapshot (one compact state per fighter + hit events) at 20 Hz. Inputs are validated and
+  clamped; an input carries one step's intent; a client that stops sending is held for at
+  most 100 ms and then stops. `GET /trace` returns the authoritative trajectory, `GET /stats`
+  tick timing and traffic.
+- **Client** (`?net=ws://127.0.0.1:5296`): the same level in mirror mode. The local player
+  is **predicted** through the same controller and reconciled against the acked input
+  (15 % per step, snap above 1.5 m; corrections shift every not-yet-acked prediction so they
+  are not applied twice). Everyone else is **interpolated** at server time minus an
+  RTT-adaptive delay (one-way latency + 1.5 snapshot intervals + jitter: ~80 ms on
+  localhost, ~150 ms at 130 ms RTT).
+
+Measured on this laptop (Intel UHD, one Chrome with two 640x360 clients, both on
+autopilot, 20 s, server in Node on the same machine; `e2e/net.spec.ts`,
+`results/arena/net-lag*/metrics.json`):
+
+| | localhost | +50 ms one-way, 10 ms jitter |
+| --- | --- | --- |
+| round trip, p50 / p95 | 4–5 / 32 ms | 133–135 / 236–264 ms |
+| other player as drawn vs server at the same server time, p95 | 3 cm | 2–4 cm |
+| all remote entities (player + enemies), p95 / max | 2 cm / 0.1–0.2 m | 2–3 cm / 0.39 m |
+| samples extrapolated (buffer ran dry) | 1–2 % | 5 % |
+| local prediction error at ack, mean / p95 / max | 9–12 cm / 0.35–0.55 m / 1.2–1.6 m | 9–10 cm / 0.44 m / 1.3–1.6 m |
+| traffic per client, down / up (bytes over a ~22–25 s connection) | ~9–11 / ~10–12 KB/s | ~10–13 / ~12–15 KB/s |
+
+The 1.6 m maximum is the second client's spawn offset before its first snapshot. Most of
+the p95 prediction error comes from things the client does not predict: server-side hit
+knockback and hit-stop, and pushing against enemy capsules that the client sees ~80 ms in
+the past. Headless (`tests/net.test.ts`, two in-process clients over real sockets, one
+stalling 1.5 s mid-run) the median is 1–2.5 cm at both latencies.
+
+Limits, honestly:
+
+- **Two players on localhost, not a netcode library.** TCP (head-of-line blocking on loss),
+  JSON snapshots of every fighter every 50 ms (~0.5 KB each), no delta compression, no
+  interest management, no lag compensation for hits (the server resolves swings in its own
+  present, so at 130 ms RTT you hit where the enemy was when the server stepped, not where
+  you saw it), no authority handover or reconnection, no anti-cheat beyond input clamping.
+  Not measured over a real network or with packet loss.
+- Remote animation is approximate: discrete states (attack, hit, death, jump) are
+  cross-faded when the snapshot's state name changes; locomotion follows the speed. Clip
+  time is not synced.
+- The server shares the arena's code, so a Node server needs the character .glb on disk.
+  Spawning an enemy costs ~20 ms on the server (and a visible hitch in the browser); the
+  first physics step builds the heightfield (~230 ms). Neither is pooled or amortised yet.
+
+## The demo, end to end
+
+`examples/arena`: a third-person character on procedural terrain walks into the arena; the
+gate trigger starts two spawners; two melee enemies (behaviour tree + A* on the nav grid)
+come at you; sword slashes resolve through bone hitboxes against Rapier hurtboxes, with
+stagger, flinch, knockback, hit-stop, sparks and camera shake; lock-on frames the fight;
+dying respawns you at the last checkpoint. With `?net=` a second player joins through the
+authoritative server and both fight the same enemies.
+
+Tests: engine `src/gameplay/*.test.ts`, `src/physics/overlap.test.ts`,
+`src/scene/scene-fastpath.test.ts`; nav `src/astar.test.ts`; net `tests/ws-transport.spec.ts`,
+`tests/interpolation.spec.ts`; arena `tests/*.test.ts` (real rig, combat, nav pathing,
+headless multiplayer) and `e2e/*.spec.ts` (animation states and events; 20 s of game time
+in which enemies take damage and die; terrain/scatter/trigger/spawner/checkpoint; two
+instances of one skinned mesh; two browser clients against the server).
+
+Performance (`results/arena/SCORECARD.md`, Intel UHD gen-11, headed Chrome, 1280x720, `?bench=1`, three runs on a quiet machine): **59.9 fps median, 59.8–59.9 mean, frame p95 16.8–16.9 ms**, GPU ~7 ms, 750 scatter entities in 6 instanced draws. Spawning an enemy still causes a 33–50 ms frame. Runs made while other agents' WebGPU test suites were loading the machine dropped to 22–52 fps mean.
+
+## What is missing compared with Unity, Godot and Bevy
+
+Being plain about the size of the gap:
+
+- **Animation**: no 2D blend spaces or IK/look-at nodes in the graph, no sync groups across
+  layers, no animation retargeting UI at runtime, no visual graph editor or debugger, no
+  animation compression, no ragdoll blending. Unity's Mecanim, Godot's AnimationTree and
+  Bevy's animation graph all have editors; this has JSON.
+- **Combat**: no block/parry/guard-break, no combo or input-buffer system, no
+  animation-driven root-motion attacks in the demo (the bundled clips are in-place), no
+  projectile or ranged primitives, behaviour trees are reactive only (no memory nodes,
+  blackboard tooling or editor).
+- **World**: no prefab editor or prefab variants; triggers test points, not shapes; terrain
+  is one heightfield (no holes, caves, splat maps, LOD or streaming — the streamed 1 km level
+  in `runtime/world` is a separate, level-specific system); scatter has no wind, GPU culling
+  or per-instance LOD.
+- **Networking**: a two-player proof over WebSocket, not a netcode framework (see section 4).
+- **Shipped titles**: none. This is one vertical slice, played by an autopilot in tests and
+  by hand on one laptop.

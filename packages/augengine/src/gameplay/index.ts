@@ -76,3 +76,42 @@ export {
   type MeleeCommand,
   type MeleeBrainOptions,
 } from "./behavior-tree.js";
+
+export {
+  PrefabLibrary,
+  PrefabError,
+  parsePrefab,
+  type PrefabSpec,
+  type PrefabEntitySpec,
+  type PrefabTransform,
+  type PrefabPlacement,
+  type PrefabInstance,
+  type TriggerSpec,
+  type SpawnerSpec,
+  type CheckpointSpec,
+  type PlacedTrigger,
+  type PlacedSpawner,
+  type PlacedCheckpoint,
+} from "./prefab.js";
+
+export {
+  TriggerSystem,
+  Spawner,
+  CheckpointTracker,
+  insideTrigger,
+  mulberry32,
+  type TriggerEvent,
+  type Subject,
+  type SpawnRequest,
+} from "./triggers.js";
+
+export {
+  generateTerrain,
+  scatter,
+  grassTuftMesh,
+  rockMesh,
+  type Terrain,
+  type TerrainOptions,
+  type ScatterOptions,
+  type Placement,
+} from "./terrain-gen.js";

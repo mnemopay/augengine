@@ -26,6 +26,8 @@ function loadRapier(): Promise<typeof Rapier> {
  * re-stringified per step.
  */
 const heightDigests = new WeakMap<object, string>();
+/** Heights arrays already checked finite (validation runs every fixed step; a terrain has thousands of samples). Like the digest above, keyed by array identity: replace the array to change a terrain. */
+const finiteHeights = new WeakSet<object>();
 function heightDigest(heights: ArrayLike<number>): string {
   const key = heights as unknown as object;
   let d = heightDigests.get(key);
@@ -296,7 +298,12 @@ export class PhysicsSystem {
         !(hf.sizeX > 0) || !(hf.sizeZ > 0)
       )
         throw new Error("Heightfield needs samplesX*samplesZ heights and a positive size");
-      finite([hf.sizeX, hf.sizeZ, ...Array.from(hf.heights)], "heightfield");
+      finite([hf.sizeX, hf.sizeZ], "heightfield size");
+      const key = hf.heights as unknown as object;
+      if (!finiteHeights.has(key)) {
+        finite(Array.from(hf.heights), "heightfield");
+        finiteHeights.add(key);
+      }
     } else throw new Error("Unsupported collider shape");
   }
   private sync(e: Entity): void {

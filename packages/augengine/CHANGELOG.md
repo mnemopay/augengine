@@ -13,6 +13,16 @@
   bone hurtboxes as Rapier sensors, swept `Hitbox`, health with poise and i-frames, knockback,
   `HitStop`, `CameraShake`, lock-on helpers); `BehaviorTree` and a `MeleeBrain` that takes an
   injected pathfinder. See docs/GAMEPLAY.md.
+- **World tools (alpha), `./gameplay`:** `PrefabLibrary`/`parsePrefab` (JSON prefabs, nesting,
+  overrides, path-annotated validation), `TriggerSystem`, `Spawner`, `CheckpointTracker`,
+  `generateTerrain` (Rapier heightfield + vertex-coloured mesh), `scatter`, `grassTuftMesh`,
+  `rockMesh`.
+- **Scene transform cache is cheaper:** moving a childless root patches its world matrix in
+  place; moving joints refreshes along the cached parent-first order instead of re-sorting
+  every entity (falls back to a full pass on re-parenting).
+- PhysicsSystem checks a heightfield's samples once per array instead of every fixed step.
+- Networking types: `NetSnapshot.serverTime` and `NetSnapshot.events` (optional), for client
+  interpolation and per-snapshot game events.
 - Physics: `ColliderComponent.sensor` (no contact forces; ignored by the character controller
   and `raycast`) and `PhysicsSystem.overlapShape(shape, position, rotation, { exclude, filter })`.
 - **Face rig placed from face-detector landmarks.** New `faceLandmarksFromMeshPoints(points,
