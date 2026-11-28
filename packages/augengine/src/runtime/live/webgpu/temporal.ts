@@ -33,7 +33,7 @@
  * shader.
  */
 
-import { TONEMAP_WGSL } from "./post-processing.js";
+import { CAMERA_FX_WGSL, TONEMAP_WGSL } from "./post-processing.js";
 
 /** Radical inverse in `base` of `index` (1-based for Halton). */
 export function halton(index: number, base: number): number {
@@ -229,6 +229,10 @@ struct U {
   look0: vec4<f32>,
   // contrast, vibrance, lift, sharpen
   look1: vec4<f32>,
+  // bloom mode (1 = physical mix), bloom levels, lens dirt, film grain
+  look2: vec4<f32>,
+  // x = frame (grain seed)
+  look3: vec4<f32>,
 };
 @group(0) @binding(0) var t_cur: texture_2d<f32>;
 @group(0) @binding(1) var t_depth: texture_depth_2d;
@@ -241,6 +245,7 @@ struct U {
 @group(0) @binding(7) var t_vel: texture_2d<f32>;
 ${FULLSCREEN_VS}
 ${TONEMAP_WGSL}
+${CAMERA_FX_WGSL}
 fn toYCoCg(c: vec3<f32>) -> vec3<f32> {
   return vec3<f32>(dot(c, vec3<f32>(0.25, 0.5, 0.25)), dot(c, vec3<f32>(0.5, 0.0, -0.5)), dot(c, vec3<f32>(-0.25, 0.5, -0.25)));
 }
@@ -397,11 +402,20 @@ fn fs_main(@builtin(position) frag: vec4<f32>) -> Out {
   let dl = clamp((toYCoCg(outc).x - mean.x) * u.look1.w, -0.25 * sigma.x, 0.25 * sigma.x);
   var disp = max(outc + vec3<f32>(dl), vec3<f32>(0.0)) * outAo;
   if (u.look0.x > 0.0) {
-    disp = disp + textureSampleLevel(t_bloom, s_lin, uv, 0.0).rgb * u.look0.x;
+    var b = textureSampleLevel(t_bloom, s_lin, uv, 0.0).rgb;
+    if (u.look2.z > 0.0) { b = b * (1.0 + u.look2.z * fx_lens_dirt(uv)); }
+    if (u.look2.x > 0.5) {
+      // Physical bloom: energy-conserving mix toward the summed mip chain.
+      disp = mix(disp, b / max(u.look2.y, 1.0), u.look0.x);
+    } else {
+      disp = disp + b * u.look0.x;
+    }
   }
   var o: Out;
   o.history = vec4<f32>(outc, outAo);
-  o.display = vec4<f32>(tonemap_display(disp * u.look0.y, u.look0.w, u.look0.z, u.look1.x, u.look1.y, u.look1.z), 1.0);
+  var shown = tonemap_display(disp * u.look0.y, u.look0.w, u.look0.z, u.look1.x, u.look1.y, u.look1.z);
+  if (u.look2.w > 0.0) { shown = fx_grain(shown, frag.xy, u.look3.x, u.look2.w); }
+  o.display = vec4<f32>(shown, 1.0);
   return o;
 }
 `;
@@ -419,7 +433,7 @@ export interface TemporalFrame {
   frameIndex: number;
 }
 
-const TAA_UNIFORM_FLOATS = 52; // 208 bytes
+const TAA_UNIFORM_FLOATS = 60; // 240 bytes
 const SSAO_UNIFORM_FLOATS = 40; // 160 bytes
 
 /** Tonemap / grade values for the fused display output (from PostProcessingRunner). */
@@ -431,6 +445,12 @@ export interface TemporalLook {
   contrast: number;
   vibrance: number;
   lift: number;
+  /** 1 = physical (energy-conserving) bloom mix, 0 = additive. */
+  bloomMode?: number;
+  bloomLevels?: number;
+  lensDirt?: number;
+  filmGrain?: number;
+  frame?: number;
 }
 
 /**
@@ -660,6 +680,8 @@ export class TemporalResolver {
     t[43] = (frame.historyValid ? 1 : 0) + (this.aoEnabled ? 2 : 0) + (velocity ? 4 : 0);
     t[44] = bloom ? look.bloomIntensity : 0; t[45] = look.exposure; t[46] = look.saturation; t[47] = look.mode;
     t[48] = look.contrast; t[49] = look.vibrance; t[50] = look.lift; t[51] = this.sharpen;
+    t[52] = look.bloomMode ?? 0; t[53] = look.bloomLevels ?? 1; t[54] = look.lensDirt ?? 0; t[55] = look.filmGrain ?? 0;
+    t[56] = look.frame ?? 0; t[57] = 0; t[58] = 0; t[59] = 0;
     this.device.queue.writeBuffer(this.taaUniform, 0, t);
     const desc: GPURenderPassDescriptor = {
       label: "taa-resolve",

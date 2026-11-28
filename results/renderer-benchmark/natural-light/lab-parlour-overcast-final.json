@@ -1,0 +1,24 @@
+{
+  "shot": {
+    "name": "parlour-overcast",
+    "query": "scene=parlour&tod=13&cloud=1"
+  },
+  "extra": "",
+  "state": {
+    "ev100": 13.204029574275095,
+    "preExposure": 0.00008830998041732073,
+    "sunDir": [
+      -0.23746094744971727,
+      0.9345723775045846,
+      0.264927857428605
+    ],
+    "sunElevationDeg": 69.15916904024765,
+    "sunIlluminanceLux": 0,
+    "environment": "sky",
+    "skyHorizontalLux": 19966.976285862962,
+    "envBakes": 1,
+    "envSize": 64,
+    "preset": "medium"
+  },
+  "errors": []
+}

@@ -1,0 +1,24 @@
+{
+  "shot": {
+    "name": "parlour-hdr",
+    "query": "scene=parlour&hdr=/hdr/kloofendal_48d_partly_cloudy_puresky_1k.hdr"
+  },
+  "extra": "",
+  "state": {
+    "ev100": 14.506714936737657,
+    "preExposure": 0.00003579830133664159,
+    "sunDir": [
+      0.3775766058591739,
+      0.741683086320311,
+      -0.5543844389719503
+    ],
+    "sunElevationDeg": 47.874986739643475,
+    "sunIlluminanceLux": 54145.21040865219,
+    "environment": "hdr",
+    "skyHorizontalLux": 60000,
+    "envBakes": 1,
+    "envSize": 64,
+    "preset": "medium"
+  },
+  "errors": []
+}

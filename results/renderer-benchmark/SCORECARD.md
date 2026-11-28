@@ -227,3 +227,36 @@ Range → **off by default**, opt-in `?probes=1`. Frame uniform 896 → 912 byte
 
 Still not done: reflection probes, baked lightmaps, motion vectors for
 instanced draws.
+
+---
+
+# 2026-11-27/28 — natural-light tier (docs/LIGHTING.md)
+
+Opt-in physical sun + sky / HDR IBL, PCSS sun shadows, DDGI-lite GI probes,
+aerial perspective + sun shafts, auto-exposure, physical bloom (PRs #41, #43,
+#44, #46, #47 and the post/docs PR). Intel UHD gen-11, headed Chrome, 1440×900,
+`?bench=1` (180 warm-up + 600 measured frames). Single runs; the machine was
+shared and GPU sums drifted ±30% between identical runs (the untouched TAA pass
+read 5.3–7.3 ms), so fps medians are the steadier number.
+
+| Run | Map | fps (raf p50) | GPU sum p50 / p95 | Main | TAA | Notes |
+|---|---|---|---|---|---|---|
+| before (master, legacy look) | Loading Range | 54.9 (18.2 ms) | 8.86 / 9.28 | 1.84 | 5.27 | `2026-11-27-webgpu-light-before-*` |
+| after, legacy look (natural off) | Loading Range | 55.2 (18.1 ms) | 8.98 / 13.83 | 1.97 | 5.30 | no regression |
+| before | Proof room | 51.0 (19.6 ms) | 10.73 / 15.20 | 4.59 | 5.53 | |
+| after, legacy look | Proof room | 52.6 / 50.0 / 34.1 | 15.00 / 11.12 / 14.00 | 7.15 / 5.17 / 6.66 | 7.22 / 5.48 / 6.66 | run 3 under visible load (raf 29 ms at 14 ms GPU); cleanest run: main +0.57 ms (+12%) — possible legacy cost, unconfirmed |
+| natural, low | Loading Range | 54.1 (18.5 ms) | 9.93 / 15.42 | 2.61 | 5.31 | |
+| **natural, medium (default)** | Loading Range | **52.1 / 52.9 / 51.3** | 15.80 / 11.78 / 14.84 | 6.40 / 4.09 / 4.70 | 6.87 / 5.44 / 7.27 | run 3 with `shadows=low` (no PCSS); ≥ 50 in 3/3 |
+| natural, high | Loading Range | 28.1 (35.6 ms) | 34.95 / 43.49 | 11.09 | 6.18 | shadow 7.95, shafts 4.77 — not a UHD preset |
+| natural, ultra | Loading Range | 27.6 (36.2 ms) | 33.52 / 40.05 | 10.31 | 5.79 | shadow 6.65, shafts 6.72 |
+| three.js (B), legacy look | Loading Range | 34.6 (28.9 ms) | 17.31 / 19.29 | | | B has no natural-light tier |
+| three.js (B), legacy look | Proof room | 53.5 (18.7 ms) | 9.80 / 18.45 | | | |
+
+Per pass at medium: exposure histogram 0.2–0.3 ms, GI trace 0.10–0.24 ms,
+PCSS +0.6–1.3 ms over fixed PCF (stills), physical bloom +0.45 ms, half-res
+sun shafts 3.6 ms (high/ultra only; 7.3 ms at full resolution).
+
+Captures: `natural-light/stream-level-*-final.png`, `natural-light/lab-*-final.png`,
+`natural-light/lab-furnace*.png`. Raw JSON: `2026-11-28-webgpu-natural-*`,
+`2026-11-28-{webgpu,three}-light-after-*`.
+

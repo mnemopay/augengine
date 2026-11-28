@@ -13,6 +13,8 @@
  * here.
  */
 
+import { PhysicalBloomChain } from "./bloom-chain.js";
+
 export interface PostPassDescriptor {
   /** Stable name used for telemetry + debugging. */
   name: string;
@@ -294,6 +296,39 @@ fn tonemap_display(hdr: vec3<f32>, mode: f32, saturation: f32, contrast: f32, vi
 `;
 
 /**
+ * Camera effects shared by the composite and the fused TAA resolve:
+ * procedural lens dirt (soft smudges that modulate bloom; off by default)
+ * and film grain (display-space, luminance-weighted; off by default).
+ */
+export const CAMERA_FX_WGSL = /* wgsl */ `
+fn fx_hash(p: vec2<f32>) -> f32 {
+  let q = fract(p * vec2<f32>(0.1031, 0.1030));
+  let r = q + dot(q, q.yx + 33.33);
+  return fract((r.x + r.y) * r.x);
+}
+// Lens dirt: a fixed field of soft blotches (value noise at two scales).
+fn fx_lens_dirt(uv: vec2<f32>) -> f32 {
+  var d = 0.0;
+  for (var o = 0; o < 2; o = o + 1) {
+    let s = select(7.0, 19.0, o == 1);
+    let g = uv * vec2<f32>(s * 1.6, s);
+    let i = floor(g);
+    let f = fract(g);
+    let w = f * f * (3.0 - 2.0 * f);
+    let n = mix(mix(fx_hash(i), fx_hash(i + vec2<f32>(1.0, 0.0)), w.x), mix(fx_hash(i + vec2<f32>(0.0, 1.0)), fx_hash(i + vec2<f32>(1.0, 1.0)), w.x), w.y);
+    d = d + smoothstep(0.62, 0.95, n) * select(1.0, 0.5, o == 1);
+  }
+  return d;
+}
+// Film grain in display space, strongest in the mid-tones.
+fn fx_grain(c: vec3<f32>, frag: vec2<f32>, frame: f32, amount: f32) -> vec3<f32> {
+  let n = fx_hash(frag + vec2<f32>(frame * 13.7, frame * 7.3)) - 0.5;
+  let l = dot(c, vec3<f32>(0.2126, 0.7152, 0.0722));
+  return clamp(c + vec3<f32>(n * amount * 4.0 * l * (1.0 - l)), vec3<f32>(0.0), vec3<f32>(1.0));
+}
+`;
+
+/**
  * Bloom composite + ACES tonemap fused into one full-screen pass. Same math as
  * BLOOM_COMPOSITE_PASS followed by ACES_TONEMAP_PASS, minus one full-resolution
  * rgba16float write and read — on a bandwidth-starved integrated GPU that
@@ -305,7 +340,9 @@ export const COMPOSITE_TONEMAP_PASS: PostPassDescriptor = {
   shader: /* wgsl */ `
 // contrast / vibrance / lift: parametric display grade (1, 1, 0 = no grade).
 // outTexel = 1 / output size (the scene may be smaller than the output).
-struct Uniforms { intensity: f32, exposure: f32, saturation: f32, mode: f32, contrast: f32, vibrance: f32, lift: f32, _pad: f32, outTexel: vec2<f32>, _pad2: vec2<f32>, };
+// bloomMode 1 = physical (energy-conserving mix of the summed mip chain,
+// divided by its level count); 0 = additive threshold bloom.
+struct Uniforms { intensity: f32, exposure: f32, saturation: f32, mode: f32, contrast: f32, vibrance: f32, lift: f32, bloomMode: f32, outTexel: vec2<f32>, grain: f32, frame: f32, dirt: f32, levels: f32, _p: vec2<f32>, };
 @group(0) @binding(0) var t_scene: texture_2d<f32>;
 @group(0) @binding(1) var t_bloom: texture_2d<f32>;
 @group(0) @binding(2) var t_sampler: sampler;
@@ -317,6 +354,7 @@ fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
   return vec4<f32>(pos[i], 0.0, 1.0);
 }
 ${TONEMAP_WGSL}
+${CAMERA_FX_WGSL}
 @fragment
 fn fs_main(@builtin(position) frag: vec4<f32>) -> @location(0) vec4<f32> {
   let uv = frag.xy * u.outTexel;
@@ -328,12 +366,20 @@ fn fs_main(@builtin(position) frag: vec4<f32>) -> @location(0) vec4<f32> {
   if (u.intensity > 0.0) {
     bloom = textureSample(t_bloom, t_sampler, uv).rgb;
   }
-  let hdr = (scene + bloom * u.intensity) * u.exposure;
-  return vec4<f32>(tonemap_display(hdr, u.mode, u.saturation, u.contrast, u.vibrance, u.lift), 1.0);
+  if (u.dirt > 0.0) { bloom = bloom * (1.0 + u.dirt * fx_lens_dirt(uv)); }
+  var hdr: vec3<f32>;
+  if (u.bloomMode > 0.5 && u.intensity > 0.0) {
+    hdr = mix(scene, bloom / max(u.levels, 1.0), u.intensity) * u.exposure;
+  } else {
+    hdr = (scene + bloom * u.intensity) * u.exposure;
+  }
+  var outc = tonemap_display(hdr, u.mode, u.saturation, u.contrast, u.vibrance, u.lift);
+  if (u.grain > 0.0) { outc = fx_grain(outc, frag.xy, u.frame, u.grain); }
+  return vec4<f32>(outc, 1.0);
 }
 `,
   uniforms: {
-    size: 48,
+    size: 64,
     fields: {
       intensity: { offset: 0, type: "f32" },
       exposure: { offset: 4, type: "f32" },
@@ -342,10 +388,17 @@ fn fs_main(@builtin(position) frag: vec4<f32>) -> @location(0) vec4<f32> {
       contrast: { offset: 16, type: "f32" },
       vibrance: { offset: 20, type: "f32" },
       lift: { offset: 24, type: "f32" },
+      bloomMode: { offset: 28, type: "f32" },
       outTexel: { offset: 32, type: "vec2" },
+      grain: { offset: 40, type: "f32" },
+      frame: { offset: 44, type: "f32" },
+      dirt: { offset: 48, type: "f32" },
+      levels: { offset: 52, type: "f32" },
     },
   },
 };
+
+export type BloomMode = "threshold" | "physical";
 
 export type Tonemapper = "aces" | "neutral" | "agx";
 const TONEMAPPER_MODE: Record<Tonemapper, number> = { aces: 0, neutral: 1, agx: 2 };
@@ -562,7 +615,10 @@ export class PostProcessingRunner {
   private extractUniforms = new Float32Array(4);
   private blurHUniforms = new Float32Array(4);
   private blurVUniforms = new Float32Array(4);
-  private compositeTonemapUniforms = new Float32Array(12);
+  private compositeTonemapUniforms = new Float32Array(16);
+  /** Energy-conserving mip-chain bloom (bloom-chain.ts); level 0 is bloomTexA. */
+  private chainBloom: PhysicalBloomChain;
+  private fxFrame = 0;
   /** Internal (scene) render size; equals width × height unless a render scale is set. */
   sceneWidth = 0;
   sceneHeight = 0;
@@ -597,6 +653,21 @@ export class PostProcessingRunner {
   contrast = 1;
   vibrance = 1;
   lift = 0;
+  /** "threshold" (default, the neon look) or "physical" (bloom-chain.ts). */
+  bloomMode: BloomMode = "threshold";
+  /** Physical bloom: fraction of light spread by the lens (default 0.04). */
+  bloomStrength = 0.04;
+  /** Lens dirt on bloom (0 = off, the default). */
+  lensDirt = 0;
+  /** Film grain amount (0 = off, the default). */
+  filmGrain = 0;
+  /** Set by the renderer while natural light is on (forces physical bloom). */
+  forceBloomMode: BloomMode | null = null;
+
+  /** Bloom mode in effect this frame. */
+  get effectiveBloomMode(): BloomMode {
+    return this.forceBloomMode ?? this.bloomMode;
+  }
 
   setLook(look: Partial<{
     bloomThreshold: number;
@@ -608,7 +679,15 @@ export class PostProcessingRunner {
     contrast: number;
     vibrance: number;
     lift: number;
+    bloomMode: BloomMode;
+    bloomStrength: number;
+    lensDirt: number;
+    filmGrain: number;
   }>): void {
+    if (look.bloomMode !== undefined) this.bloomMode = look.bloomMode;
+    if (look.bloomStrength !== undefined && Number.isFinite(look.bloomStrength)) this.bloomStrength = Math.min(1, Math.max(0, look.bloomStrength));
+    if (look.lensDirt !== undefined && Number.isFinite(look.lensDirt)) this.lensDirt = Math.max(0, look.lensDirt);
+    if (look.filmGrain !== undefined && Number.isFinite(look.filmGrain)) this.filmGrain = Math.max(0, look.filmGrain);
     if (look.tonemapper !== undefined) this.tonemapper = look.tonemapper;
     if (look.contrast !== undefined) this.contrast = look.contrast;
     if (look.vibrance !== undefined) this.vibrance = look.vibrance;
@@ -631,6 +710,7 @@ export class PostProcessingRunner {
       addressModeV: "clamp-to-edge",
     });
     this.initPasses();
+    this.chainBloom = new PhysicalBloomChain(device);
   }
 
   private initPasses(): void {
@@ -688,6 +768,7 @@ export class PostProcessingRunner {
 
     this.hdrView = this.hdrTexture.createView();
     this.bloomViewA = this.bloomTexA.createView();
+    this.chainBloom.resize(width, height, this.bloomTexA, this.bloomViewA);
     this.bloomViewB = this.bloomTexB.createView();
     this.ldrView = this.ldrTexture.createView();
 
@@ -710,16 +791,32 @@ export class PostProcessingRunner {
   }
 
   /** The tonemap / grade values the fused TAA resolve needs. */
-  lookUniforms(): { bloomIntensity: number; exposure: number; saturation: number; mode: number; contrast: number; vibrance: number; lift: number } {
+  lookUniforms(): { bloomIntensity: number; exposure: number; saturation: number; mode: number; contrast: number; vibrance: number; lift: number; bloomMode: number; bloomLevels: number; lensDirt: number; filmGrain: number; frame: number } {
+    const physical = this.effectiveBloomMode === "physical";
     return {
-      bloomIntensity: this.chain === "full" ? this.bloomIntensity : 0,
+      bloomIntensity: this.chain === "full" ? (physical ? this.bloomStrength : this.bloomIntensity) : 0,
       exposure: this.exposure,
       saturation: this.tonemapSaturation,
       mode: TONEMAPPER_MODE[this.tonemapper],
       contrast: this.contrast,
       vibrance: this.vibrance,
       lift: this.lift,
+      bloomMode: physical ? 1 : 0,
+      bloomLevels: this.chainBloom.levelCount,
+      lensDirt: this.lensDirt,
+      filmGrain: this.filmGrain,
+      frame: this.fxFrame++ % 1024,
     };
+  }
+
+  /** Fill the composite uniform (bloom term, grade, camera effects). */
+  private fillComposite(t: Float32Array, bloomOn: boolean): void {
+    const physical = this.effectiveBloomMode === "physical";
+    t[0] = bloomOn ? (physical ? this.bloomStrength : this.bloomIntensity) : 0;
+    t[1] = this.exposure; t[2] = this.tonemapSaturation; t[3] = TONEMAPPER_MODE[this.tonemapper];
+    t[4] = this.contrast; t[5] = this.vibrance; t[6] = this.lift; t[7] = physical ? 1 : 0;
+    t[8] = 1 / this.width; t[9] = 1 / this.height; t[10] = this.filmGrain; t[11] = this.fxFrame++ % 1024;
+    t[12] = this.lensDirt; t[13] = this.chainBloom.levelCount; t[14] = 0; t[15] = 0;
   }
 
   /**
@@ -729,6 +826,10 @@ export class PostProcessingRunner {
    */
   runBloom(encoder: GPUCommandEncoder, beginTimestampWrites?: GPURenderPassTimestampWrites, endTimestampWrites?: GPURenderPassTimestampWrites): boolean {
     if (this.chain !== "full" || !this.bloomViewA || !this.bloomViewB) return false;
+    if (this.effectiveBloomMode === "physical" && this.hdrView) {
+      this.chainBloom.run(encoder, this.hdrView, this.sceneWidth, this.sceneHeight, beginTimestampWrites, endTimestampWrites);
+      return true;
+    }
     const texelW = 1.0 / this.bloomWidth;
     const texelH = 1.0 / this.bloomHeight;
     const ex = this.extractUniforms;
@@ -790,9 +891,8 @@ export class PostProcessingRunner {
           : beginTimestampWrites;
       }
       const tone = this.compositeTonemapUniforms;
-      tone[0] = 0; tone[1] = this.exposure; tone[2] = this.tonemapSaturation; tone[3] = TONEMAPPER_MODE[this.tonemapper];
-      tone[4] = this.contrast; tone[5] = this.vibrance; tone[6] = this.lift; tone[7] = 0;
-      tone[8] = outTexelX; tone[9] = outTexelY; tone[10] = 0; tone[11] = 0;
+      this.fillComposite(tone, false);
+      void outTexelX; void outTexelY;
       this.compositeTonemapPass!.writeUniforms(this.device, tone);
       const toneDesc: GPURenderPassDescriptor = {
         label: "post-pass-tonemap",
@@ -831,13 +931,14 @@ export class PostProcessingRunner {
     bv[0] = texelW; bv[1] = texelH; bv[2] = 0.0; bv[3] = 1.0; // dir=[0,1]
     this.blurVPass!.writeUniforms(this.device, bv);
     const ct = this.compositeTonemapUniforms;
-    ct[0] = this.bloomIntensity; ct[1] = this.exposure; ct[2] = this.tonemapSaturation; ct[3] = TONEMAPPER_MODE[this.tonemapper];
-    ct[4] = this.contrast; ct[5] = this.vibrance; ct[6] = this.lift; ct[7] = 0;
-    ct[8] = outTexelX; ct[9] = outTexelY; ct[10] = 0; ct[11] = 0;
+    this.fillComposite(ct, true);
     this.compositeTonemapPass!.writeUniforms(this.device, ct);
 
+    const physicalBloom = this.effectiveBloomMode === "physical" && !!this.hdrView;
+    if (physicalBloom) this.chainBloom.run(encoder, this.hdrView!, this.sceneWidth, this.sceneHeight, beginTimestampWrites);
+
     // 2. Pass 1: Extract Bloom Highlights (full res → half res)
-    {
+    if (!physicalBloom) {
       const extractDesc: GPURenderPassDescriptor = {
         label: "post-pass-extract",
         colorAttachments: [{
@@ -856,7 +957,7 @@ export class PostProcessingRunner {
     }
 
     // 3. Pass 2: Blur Bloom Horizontal
-    {
+    if (!physicalBloom) {
       const pass = encoder.beginRenderPass({
         label: "post-pass-blur-h",
         colorAttachments: [{
@@ -873,7 +974,7 @@ export class PostProcessingRunner {
     }
 
     // 4. Pass 3: Blur Bloom Vertical
-    {
+    if (!physicalBloom) {
       const pass = encoder.beginRenderPass({
         label: "post-pass-blur-v",
         colorAttachments: [{
@@ -942,6 +1043,7 @@ export class PostProcessingRunner {
 
   destroy(): void {
     this.destroyTextures();
+    this.chainBloom.destroy();
     this.extractPass = null;
     this.blurHPass = null;
     this.blurVPass = null;

@@ -18,7 +18,7 @@ import {
   planInstanceGroups,
 } from "./instanced-draws.js";
 import { SKINNING_COMPUTE_WGSL, SKINNING_COMPUTE_WGSL_UV, buildBoneMatricesGltf } from "./skinning.js";
-import { PostProcessingRunner, type Tonemapper } from "./post-processing.js";
+import { PostProcessingRunner, type BloomMode, type Tonemapper } from "./post-processing.js";
 import { SkyPass, OVERCLOCK_SKY, type SkyGradient } from "./sky.js";
 import { TemporalResolver, applyProjectionJitter, jitterToUv, scaledSize, taaJitter } from "./temporal.js";
 import { packSkyAmbient, packSkySpecular } from "./ibl.js";
@@ -2340,6 +2340,8 @@ export class WebGpuLiveRenderer implements LiveRenderer {
     const naturalDt = opts.dt ?? (this.lastNaturalFrameMs > 0 ? Math.min(0.1, (nowMs - this.lastNaturalFrameMs) / 1000) : 1 / 60);
     this.lastNaturalFrameMs = nowMs;
     const natural = this.natural ? this.prepareNaturalLight(encoder, scene, camPos as Vec3, lights, passTimer, naturalDt) : null;
+    // Natural light uses the physical (energy-conserving) bloom unless the host opted out.
+    if (this.postRunner) this.postRunner.forceBloomMode = natural && this.natural!.physicalBloom ? "physical" : null;
     if (natural) fogColor = natural.fogColor;
     this.lastFrameLights = lights;
     // Natural light: probes carry absolute irradiance (multiplier 1).
@@ -3355,6 +3357,8 @@ export interface NaturalLightOptions {
   volumetrics?: boolean;
   /** Medium density for the shafts (1/m, default 0.01). */
   volumetricDensity?: number;
+  /** Energy-conserving mip-chain bloom while natural light is on (default true). */
+  physicalBloom?: boolean;
 }
 
 interface ResolvedNaturalLight {
@@ -3381,6 +3385,7 @@ interface ResolvedNaturalLight {
   sunInscatter: number;
   volumetrics: boolean | null;
   volumetricDensity: number;
+  physicalBloom: boolean;
 }
 
 /** Fill natural-light defaults and resolve the sun to a direction. */
@@ -3428,6 +3433,7 @@ export function resolveNaturalLight(o: NaturalLightOptions): ResolvedNaturalLigh
     sunInscatter: fin(o.sunInscatter, 0.5),
     volumetrics: o.volumetrics === undefined ? null : o.volumetrics,
     volumetricDensity: fin(o.volumetricDensity, 0.01),
+    physicalBloom: o.physicalBloom !== false,
   };
 }
 
@@ -3462,6 +3468,14 @@ export interface LookOptions {
   contrast?: number;
   vibrance?: number;
   lift?: number;
+  /** "threshold" (default) or "physical" energy-conserving mip-chain bloom (bloom-chain.ts). */
+  bloomMode?: BloomMode;
+  /** Physical bloom strength: fraction of light the lens spreads (default 0.04). */
+  bloomStrength?: number;
+  /** Lens dirt on bloom, 0 = off (default). */
+  lensDirt?: number;
+  /** Film grain amount, 0 = off (default). */
+  filmGrain?: number;
 }
 
 export interface RenderFrameOptions {

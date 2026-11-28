@@ -1,0 +1,24 @@
+{
+  "shot": {
+    "name": "macbeth-noon",
+    "query": "scene=macbeth&tod=12.5"
+  },
+  "extra": "",
+  "state": {
+    "ev100": 15.116104485382438,
+    "preExposure": 0.000023464855616346726,
+    "sunDir": [
+      -0.11975499430229328,
+      0.9525079061220239,
+      0.279977552876468
+    ],
+    "sunElevationDeg": 72.27108125458025,
+    "sunIlluminanceLux": 97975.83548437762,
+    "environment": "sky",
+    "skyHorizontalLux": 14775.622003112008,
+    "envBakes": 1,
+    "envSize": 64,
+    "preset": "medium"
+  },
+  "errors": []
+}
